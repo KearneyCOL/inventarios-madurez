@@ -1491,7 +1491,6 @@ export default function App() {
               }}>{activeDim===DIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
             </div>
 
-            <ScrollIndicator scrollRef={assessScrollRef}/>
           </main>
         </div>
       )}
