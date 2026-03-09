@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line } from "recharts";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -450,8 +450,25 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
   );
 }
 
-// ─── ANALYTICS TAB ────────────────────────────────────────────────────────────
-const LV = [
+// ─── SHARED DIMS META (with icons + sub-dimension labels for gaps) ────────────
+const DIMS_META = [
+  { key:"estrategia",      label:"Estrategia de Gestión",   num:"01", icon:"🎯",
+    subs:["Objetivos & trade-offs","Políticas por canal","Diseño de red","Gobernanza S&OP","Riesgos y resiliencia"] },
+  { key:"caracterizacion", label:"Caracterización",          num:"02", icon:"🏷️",
+    subs:["Segmentación ABC/XYZ","Atributos & trazabilidad","Ciclo de vida y SLOB","Ubicación y propiedad","Retornos y condición"] },
+  { key:"procesos",        label:"Procesos",                 num:"03", icon:"⚙️",
+    subs:["Planeación & reposición","Asignación omnicanal","Ejecución física","Control & exactitud","Excepciones y retornos"] },
+  { key:"roles",           label:"Roles y Responsabilidades",num:"04", icon:"👥",
+    subs:["Modelo operativo & RACI","Interfaces clave","Gestión de terceros","Capacidades y formación","Incentivos & accountability"] },
+  { key:"herramientas",    label:"Herramientas",             num:"05", icon:"🔧",
+    subs:["Arquitectura core","Herramientas de planificación","Visibilidad & trazabilidad","Datos & analítica","Automatización"] },
+  { key:"indicadores",     label:"Indicadores",              num:"06", icon:"📊",
+    subs:["Servicio al cliente","Eficiencia & capital","Exactitud & pérdidas","Salud del inventario","Cumplimiento & riesgo"] },
+  { key:"abastecimiento",  label:"Abastecimiento",           num:"07", icon:"📦",
+    subs:["Dispositivos","CPE/routers/STB","SIM/eSIM & kits","Accesorios","Repuestos/refurb/swap"] },
+];
+
+const LV_META = [
   { v:1, label:"Básico",     c:"#78716C", bg:"#FAFAF8" },
   { v:2, label:"Emergente",  c:"#D97706", bg:"#FFFBEB" },
   { v:3, label:"Robusto",    c:"#2563EB", bg:"#EFF6FF" },
@@ -459,55 +476,45 @@ const LV = [
   { v:5, label:"Pivote",     c:"#059669", bg:"#ECFDF5" },
 ];
 
-function lv(v) {
-  return LV[Math.round(v)-1] || LV[0];
+function lvMeta(v) { return LV_META[Math.max(0,Math.round(v)-1)] || LV_META[0]; }
+function avgArr(arr) {
+  const a = arr.filter(x => x != null && !isNaN(x));
+  return a.length ? parseFloat((a.reduce((s,x)=>s+x,0)/a.length).toFixed(2)) : null;
 }
 
-function avg(arr) {
-  const a = arr.filter(Boolean);
-  return a.length ? parseFloat((a.reduce((x,y)=>x+y,0)/a.length).toFixed(2)) : null;
-}
-
-function Card({ children, style={} }) {
+// ─── ANALYTICS TAB ────────────────────────────────────────────────────────────
+function AnalyticsCard({ children, style={} }) {
   return (
     <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF",
-      padding:"22px 24px", ...style }}>
-      {children}
-    </div>
+      padding:"22px 24px", ...style }}>{children}</div>
   );
 }
-
-function SectionLabel({ children }) {
-  return (
-    <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase",
-      letterSpacing:".14em", marginBottom:14 }}>{children}</div>
-  );
+function AnalyticsLabel({ children }) {
+  return <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase",
+    letterSpacing:".14em", marginBottom:14 }}>{children}</div>;
 }
-
 function MiniBar({ value, max=5, color="#E8251F" }) {
   return (
     <div style={{ height:5, background:"#F0EDE9", borderRadius:99, overflow:"hidden", flex:1 }}>
-      <div style={{ height:"100%", width:`${(value/max)*100}%`, background:color,
-        borderRadius:99, transition:"width .5s" }} />
+      <div style={{ height:"100%", width:`${Math.min(100,(value/max)*100)}%`,
+        background:color, borderRadius:99, transition:"width .5s" }} />
     </div>
   );
 }
 
-function AnalyticsTab({ evaluaciones }) {
-  const [filterDir, setFilterDir]     = useState([]);
-  const [filterRol, setFilterRol]     = useState([]);
-  const [filterLvl, setFilterLvl]     = useState([]);
-  const [viewDim,   setViewDim]       = useState(null); // drill-down dimension
-  const [sortDim,   setSortDim]       = useState("score_global");
-  const [sortAsc,   setSortAsc]       = useState(false);
+function AnalyticsTab({ evaluaciones, respuestas }) {
+  const [filterDir, setFilterDir] = useState([]);
+  const [filterRol, setFilterRol] = useState([]);
+  const [filterLvl, setFilterLvl] = useState([]);
+  const [viewDim,   setViewDim]   = useState(null);
+  const [sortDim,   setSortDim]   = useState("score_global");
+  const [sortAsc,   setSortAsc]   = useState(false);
+  const [gapsView,  setGapsView]  = useState("critical"); // "critical"|"moderate"|"roadmap"
 
   const allDirs = useMemo(() => [...new Set(evaluaciones.map(e=>e.direccion).filter(Boolean))].sort(), [evaluaciones]);
   const allRols = useMemo(() => [...new Set(evaluaciones.map(e=>e.rol).filter(Boolean))].sort(), [evaluaciones]);
 
-  // Multi-filter toggle helpers
-  function toggle(arr, setArr, val) {
-    setArr(a => a.includes(val) ? a.filter(x=>x!==val) : [...a, val]);
-  }
+  function toggle(arr, setArr, val) { setArr(a => a.includes(val) ? a.filter(x=>x!==val) : [...a, val]); }
 
   const filtered = useMemo(() => evaluaciones.filter(e => {
     if (filterDir.length && !filterDir.includes(e.direccion)) return false;
@@ -517,48 +524,48 @@ function AnalyticsTab({ evaluaciones }) {
   }), [evaluaciones, filterDir, filterRol, filterLvl]);
 
   const hasFilters = filterDir.length || filterRol.length || filterLvl.length;
+  const RED = "#E8251F";
 
-  // ── KPIs ─────────────────────────────────────────────────────────────────
-  const globalAvg = avg(filtered.map(e=>e.score_global));
-  const dimAvgs   = DIMS.map(d => ({ ...d, score: avg(filtered.map(e=>e[`score_${d.key}`])) }));
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  const globalAvg = avgArr(filtered.map(e=>e.score_global));
+  const dimAvgs   = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
   const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
   const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
-  const spread    = strongest && weakest ? parseFloat((strongest.score - weakest.score).toFixed(1)) : null;
+  const spread    = strongest && weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
 
-  // ── Distribution ─────────────────────────────────────────────────────────
-  const distData = LV.map(l => ({
+  // ── Distribution ──────────────────────────────────────────────────────────
+  const distData = LV_META.map(l => ({
     ...l,
     count: filtered.filter(e=>Math.round(e.score_global)===l.v).length,
     pct: filtered.length ? Math.round(filtered.filter(e=>Math.round(e.score_global)===l.v).length/filtered.length*100) : 0,
   }));
 
-  // ── Radar data ────────────────────────────────────────────────────────────
-  const radarData = dimAvgs.map(d => ({ dim: d.label, value: d.score || 0, fullMark: 5 }));
+  // ── Radar ─────────────────────────────────────────────────────────────────
+  const radarData = dimAvgs.map(d => ({ dim: d.label, value: d.score||0, fullMark:5 }));
 
-  // ── Heatmap dirs × dims ───────────────────────────────────────────────────
-  const heatDirs = allDirs.length ? allDirs : ["Sin datos"];
-  const heatmap  = heatDirs.map(dir => {
+  // ── Heatmap ───────────────────────────────────────────────────────────────
+  const heatmap = allDirs.map(dir => {
     const rows = filtered.filter(e=>e.direccion===dir);
-    const r    = { dir, n: rows.length };
-    DIMS.forEach(d => { r[d.key] = avg(rows.map(e=>e[`score_${d.key}`])); });
-    r.global = avg(rows.map(e=>e.score_global));
+    const r = { dir, n: rows.length };
+    DIMS_META.forEach(d => { r[d.key] = avgArr(rows.map(e=>e[`score_${d.key}`])); });
+    r.global = avgArr(rows.map(e=>e.score_global));
     return r;
   }).filter(r=>r.n>0);
 
-  // ── Score by role ─────────────────────────────────────────────────────────
+  // ── By Role ────────────────────────────────────────────────────────────────
   const byRole = allRols.map(rol => {
     const rows = filtered.filter(e=>e.rol===rol);
-    return { rol, n: rows.length, score: avg(rows.map(e=>e.score_global)) };
+    return { rol, n: rows.length, score: avgArr(rows.map(e=>e.score_global)) };
   }).filter(r=>r.n>0).sort((a,b)=>(b.score||0)-(a.score||0));
 
-  // ── Timeline (by month) ───────────────────────────────────────────────────
+  // ── Timeline ───────────────────────────────────────────────────────────────
   const timeline = useMemo(() => {
     const map = {};
     filtered.forEach(e => {
       if (!e.created_at) return;
-      const mo = e.created_at.slice(0,7); // "2025-03"
+      const mo = e.created_at.slice(0,7);
       if (!map[mo]) map[mo] = [];
-      map[mo].push(e.score_global || 0);
+      map[mo].push(e.score_global||0);
     });
     return Object.entries(map).sort().map(([mo, vals]) => ({
       mo: mo.replace("-","·"),
@@ -567,20 +574,70 @@ function AnalyticsTab({ evaluaciones }) {
     }));
   }, [filtered]);
 
-  // ── Dimension drill-down ──────────────────────────────────────────────────
-  const drillDim = viewDim ? DIMS.find(d=>d.key===viewDim) : null;
-  const drillData = drillDim ? allDirs.map(dir => {
-    const rows = filtered.filter(e=>e.direccion===dir);
-    return { dir, score: avg(rows.map(e=>e[`score_${drillDim.key}`])) };
-  }).filter(r=>r.score) : [];
+  // ── Gaps Analysis (aggregate across all filtered evaluaciones) ─────────────
+  const gapsData = useMemo(() => {
+    // For each sub-dimension, average the scores across evaluaciones
+    // A "gap" exists when avg score ≤ 3
+    const subScores = {};
+    DIMS_META.forEach(d => {
+      d.subs.forEach((subLabel, idx) => {
+        const subKey = `${d.key}_sub${idx}`;
+        // Find respuestas for this sub-dim by dimension_key + position
+        // We use respuestas filtered by evaluacion_id of filtered evals
+        const filteredIds = new Set(filtered.map(e=>e.id));
+        const subResps = respuestas.filter(r =>
+          filteredIds.has(r.evaluacion_id) && r.dimension_key === d.key
+        );
+        // group by evaluacion_id, take the idx-th response for this dim
+        const evalGroups = {};
+        subResps.forEach(r => {
+          if (!evalGroups[r.evaluacion_id]) evalGroups[r.evaluacion_id] = [];
+          evalGroups[r.evaluacion_id].push(r);
+        });
+        const vals = Object.values(evalGroups)
+          .map(arr => arr.sort((a,b)=>a.subdimension_id?.localeCompare(b.subdimension_id))[idx]?.valor)
+          .filter(Boolean);
+        const avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : null;
+        subScores[subKey] = { dim: d, subLabel, avg, idx };
+      });
+    });
 
-  // ── Ranking table (sorted) ────────────────────────────────────────────────
+    // Also compute from dim-level scores when respuestas unavailable
+    // Supplement with dimension-level data
+    const gaps = [];
+    DIMS_META.forEach(d => {
+      const dimScore = avgArr(filtered.map(e=>e[`score_${d.key}`]));
+      if (dimScore && dimScore <= 3) {
+        gaps.push({
+          key: d.key,
+          dimLabel: d.label,
+          dimNum: d.num,
+          dimIcon: d.icon,
+          score: dimScore,
+          gap: parseFloat((5-dimScore).toFixed(1)),
+          n: filtered.filter(e=>e[`score_${d.key}`]).length,
+        });
+      }
+    });
+    return gaps.sort((a,b)=>a.score-b.score);
+  }, [filtered, respuestas]);
+
+  const critGaps = gapsData.filter(g=>g.score<=2);
+  const modGaps  = gapsData.filter(g=>g.score>2&&g.score<=3);
+
+  // ── Ranking ────────────────────────────────────────────────────────────────
   const ranking = [...filtered].sort((a,b) => {
     const va = a[sortDim]||0, vb = b[sortDim]||0;
     return sortAsc ? va-vb : vb-va;
-  }).slice(0, 10);
+  }).slice(0,10);
 
-  const RED = "#E8251F";
+  // ── Drilldown ─────────────────────────────────────────────────────────────
+  const drillDim  = viewDim ? DIMS_META.find(d=>d.key===viewDim) : null;
+  const drillData = drillDim ? allDirs.map(dir => {
+    const rows = filtered.filter(e=>e.direccion===dir);
+    return { dir, score: avgArr(rows.map(e=>e[`score_${drillDim.key}`])) };
+  }).filter(r=>r.score) : [];
+
   const PILL = (active, onClick, label, color) => (
     <button key={label} onClick={onClick} style={{
       padding:"5px 13px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
@@ -594,40 +651,28 @@ function AnalyticsTab({ evaluaciones }) {
     <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
 
       {/* ═══ FILTER BAR ═══ */}
-      <Card style={{ padding:"18px 22px" }}>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:16, alignItems:"flex-start" }}>
-
-          {/* Dirección */}
+      <AnalyticsCard style={{ padding:"18px 22px" }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:20, alignItems:"flex-start" }}>
           <div>
-            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
-              letterSpacing:".12em", marginBottom:7 }}>Dirección</div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase", letterSpacing:".12em", marginBottom:7 }}>Dirección</div>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-              {allDirs.map(d => PILL(filterDir.includes(d), ()=>toggle(filterDir,setFilterDir,d), d))}
+              {allDirs.map(d => PILL(filterDir.includes(d),()=>toggle(filterDir,setFilterDir,d),d))}
             </div>
           </div>
-
-          {/* Rol */}
           <div>
-            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
-              letterSpacing:".12em", marginBottom:7 }}>Rol</div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase", letterSpacing:".12em", marginBottom:7 }}>Rol</div>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-              {allRols.map(r => PILL(filterRol.includes(r), ()=>toggle(filterRol,setFilterRol,r), r))}
+              {allRols.map(r => PILL(filterRol.includes(r),()=>toggle(filterRol,setFilterRol,r),r))}
             </div>
           </div>
-
-          {/* Nivel */}
           <div>
-            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
-              letterSpacing:".12em", marginBottom:7 }}>Nivel</div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase", letterSpacing:".12em", marginBottom:7 }}>Nivel Global</div>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-              {LV.map(l => PILL(filterLvl.includes(l.v), ()=>toggle(filterLvl,setFilterLvl,l.v), l.label, l.c))}
+              {LV_META.map(l => PILL(filterLvl.includes(l.v),()=>toggle(filterLvl,setFilterLvl,l.v),l.label,l.c))}
             </div>
           </div>
-
-          {/* Clear + count */}
           <div style={{ marginLeft:"auto", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5 }}>
-            <div style={{ fontSize:18, fontWeight:900, color: hasFilters?RED:"#1A1A18",
-              lineHeight:1, letterSpacing:"-.02em" }}>
+            <div style={{ fontSize:20, fontWeight:900, color: hasFilters?RED:"#1A1A18", lineHeight:1, letterSpacing:"-.02em" }}>
               {filtered.length}<span style={{ fontSize:11, fontWeight:500, color:"#AAA" }}> / {evaluaciones.length}</span>
             </div>
             {hasFilters && (
@@ -638,55 +683,46 @@ function AnalyticsTab({ evaluaciones }) {
             )}
           </div>
         </div>
-      </Card>
+      </AnalyticsCard>
 
       {filtered.length === 0 ? (
-        <Card>
-          <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>
-            Sin evaluaciones con los filtros seleccionados
-          </div>
-        </Card>
+        <AnalyticsCard>
+          <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>Sin evaluaciones con los filtros seleccionados</div>
+        </AnalyticsCard>
       ) : (<>
 
-      {/* ═══ KPI ROW ═══ */}
+      {/* ═══ KPIs ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
         {[
-          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"—", color: globalAvg?lv(globalAvg).c:"#AAA" },
+          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"—", color: globalAvg?lvMeta(globalAvg).c:"#AAA" },
           { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"—", sub: strongest?.score?.toFixed(1), color:"#059669" },
-          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"—",   sub: weakest?.score?.toFixed(1),   color:"#E8251F" },
-          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"—", color: spread>=2?"#E8251F":spread>=1?"#D97706":"#059669" },
+          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"—",   sub: weakest?.score?.toFixed(1),   color:RED },
+          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"—", color: spread>=2?RED:spread>=1?"#D97706":"#059669" },
         ].map((k,i) => (
-          <Card key={i} style={{ padding:"18px 20px" }}>
+          <AnalyticsCard key={i} style={{ padding:"18px 20px" }}>
             <div style={{ fontSize:20, marginBottom:8 }}>{k.icon}</div>
-            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
-              letterSpacing:".12em", marginBottom:4 }}>{k.label}</div>
-            <div style={{ fontSize:k.sub?17:22, fontWeight:900, color:k.color, lineHeight:1.2,
-              letterSpacing:"-.02em" }}>{k.value}</div>
-            {k.sub && <div style={{ fontSize:12, color:"#AAA", marginTop:2 }}>{k.sub} / 5</div>}
-          </Card>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4 }}>{k.label}</div>
+            <div style={{ fontSize:k.sub?15:22, fontWeight:900, color:k.color, lineHeight:1.2, letterSpacing:"-.02em" }}>{k.value}</div>
+            {k.sub && <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>{k.sub} / 5</div>}
+          </AnalyticsCard>
         ))}
       </div>
 
-      {/* ═══ ROW 1: Distribución + Radar ═══ */}
+      {/* ═══ ROW: Distribución + Radar ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-
-        {/* Distribución niveles */}
-        <Card>
-          <SectionLabel>Distribución por Nivel</SectionLabel>
-          <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+        <AnalyticsCard>
+          <AnalyticsLabel>Distribución por Nivel Global</AnalyticsLabel>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {distData.map(l => (
               <div key={l.v} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ width:72, fontSize:11, fontWeight:600, color:l.c, flexShrink:0 }}>{l.label}</div>
+                <div style={{ width:76, fontSize:11, fontWeight:600, color:l.c, flexShrink:0 }}>{l.label}</div>
                 <MiniBar value={l.count} max={Math.max(...distData.map(x=>x.count),1)} color={l.c} />
-                <div style={{ fontSize:13, fontWeight:800, color:l.c, width:22, textAlign:"right",
-                  flexShrink:0 }}>{l.count}</div>
-                <div style={{ fontSize:10, color:"#CCC", width:30, flexShrink:0 }}>{l.pct}%</div>
+                <div style={{ fontSize:13, fontWeight:800, color:l.c, width:22, textAlign:"right", flexShrink:0 }}>{l.count}</div>
+                <div style={{ fontSize:10, color:"#CCC", width:32, flexShrink:0 }}>{l.pct}%</div>
               </div>
             ))}
           </div>
-          {/* Mini donut alternative: level pills */}
-          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:16, paddingTop:14,
-            borderTop:"1px solid #F0EDE9" }}>
+          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:14, paddingTop:12, borderTop:"1px solid #F0EDE9" }}>
             {distData.filter(l=>l.count>0).map(l => (
               <div key={l.v} style={{ padding:"3px 10px", borderRadius:99, fontSize:10, fontWeight:700,
                 background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>
@@ -694,11 +730,10 @@ function AnalyticsTab({ evaluaciones }) {
               </div>
             ))}
           </div>
-        </Card>
+        </AnalyticsCard>
 
-        {/* Radar */}
-        <Card>
-          <SectionLabel>Radar de Madurez Promedio</SectionLabel>
+        <AnalyticsCard>
+          <AnalyticsLabel>Radar de Madurez Promedio</AnalyticsLabel>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={radarData} margin={{ top:10, right:30, bottom:10, left:30 }}>
               <PolarGrid stroke="#F0EDE9" />
@@ -708,147 +743,101 @@ function AnalyticsTab({ evaluaciones }) {
               <Tooltip formatter={v=>[`${v} / 5`,"Score"]} contentStyle={{ borderRadius:8, fontSize:11 }} />
             </RadarChart>
           </ResponsiveContainer>
-        </Card>
+        </AnalyticsCard>
       </div>
 
-      {/* ═══ ROW 2: Dimensiones + Por Rol ═══ */}
+      {/* ═══ ROW: Dimensiones + Por Rol ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:14 }}>
-
-        {/* Score por dimensión — clickeable para drill-down */}
-        <Card>
-          <SectionLabel>Score por Dimensión {drillDim ? `— ${drillDim.label}` : "(click para desglosar)"}</SectionLabel>
+        <AnalyticsCard>
+          <AnalyticsLabel>Score por Dimensión {drillDim?`— ${drillDim.label}`:"(clic para desglosar)"}</AnalyticsLabel>
           {drillDim ? (
             <>
-              <button onClick={()=>setViewDim(null)} style={{
-                fontSize:11, color:RED, background:"none", border:"none",
-                cursor:"pointer", marginBottom:12, fontWeight:600, padding:0,
-              }}>← Volver a todas las dimensiones</button>
+              <button onClick={()=>setViewDim(null)} style={{ fontSize:11, color:RED, background:"none", border:"none", cursor:"pointer", marginBottom:12, fontWeight:600, padding:0 }}>← Volver</button>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {drillData.sort((a,b)=>(b.score||0)-(a.score||0)).map(r => {
-                  const l = lv(r.score);
+                  const l = lvMeta(r.score);
                   return (
                     <div key={r.dir} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <div style={{ width:100, fontSize:11, fontWeight:600, color:"#555",
-                        flexShrink:0, overflow:"hidden", textOverflow:"ellipsis",
-                        whiteSpace:"nowrap" }}>{r.dir}</div>
+                      <div style={{ width:100, fontSize:11, fontWeight:600, color:"#555", flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.dir}</div>
                       <MiniBar value={r.score} color={l.c} />
-                      <div style={{ fontSize:12, fontWeight:800, color:l.c,
-                        flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)}</div>
+                      <div style={{ fontSize:12, fontWeight:800, color:l.c, flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)}</div>
                     </div>
                   );
                 })}
               </div>
             </>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[...dimAvgs].sort((a,b)=>(b.score||0)-(a.score||0)).map(d => {
-                const l = d.score ? lv(d.score) : null;
+                const l = d.score ? lvMeta(d.score) : null;
                 return (
-                  <div key={d.key} onClick={()=>setViewDim(d.key)} style={{
-                    display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-                    padding:"7px 10px", borderRadius:10, transition:"background .12s",
-                  }}
-                  onMouseEnter={e=>e.currentTarget.style.background="#F7F5F2"}
-                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                  >
-                    <div style={{ width:24, fontSize:9, fontWeight:700, color:"#CCC",
-                      flexShrink:0 }}>{d.num}</div>
-                    <div style={{ width:110, fontSize:11, fontWeight:600, color:"#555",
-                      flexShrink:0 }}>{d.label}</div>
+                  <div key={d.key} onClick={()=>setViewDim(d.key)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"7px 10px", borderRadius:10, transition:"background .12s" }}
+                    onMouseEnter={e=>e.currentTarget.style.background="#F7F5F2"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <div style={{ width:20, fontSize:13, flexShrink:0 }}>{d.icon}</div>
+                    <div style={{ width:24, fontSize:9, fontWeight:700, color:"#CCC", flexShrink:0 }}>{d.num}</div>
+                    <div style={{ width:110, fontSize:11, fontWeight:600, color:"#555", flexShrink:0 }}>{d.label}</div>
                     <MiniBar value={d.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
-                      flexShrink:0, width:28, textAlign:"right" }}>
-                      {d.score?.toFixed(1)||"—"}
-                    </div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{d.score?.toFixed(1)||"—"}</div>
                     <div style={{ fontSize:9, color:"#CCC", width:10 }}>›</div>
                   </div>
                 );
               })}
             </div>
           )}
-        </Card>
+        </AnalyticsCard>
 
-        {/* Score por Rol */}
-        <Card>
-          <SectionLabel>Score por Rol</SectionLabel>
-          {byRole.length === 0 ? (
-            <div style={{ color:"#CCC", fontSize:12, textAlign:"center", paddingTop:24 }}>Sin datos</div>
-          ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        <AnalyticsCard>
+          <AnalyticsLabel>Score por Rol</AnalyticsLabel>
+          {byRole.length === 0 ? <div style={{ color:"#CCC", fontSize:12, textAlign:"center", paddingTop:24 }}>Sin datos</div> : (
+            <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
               {byRole.map(r => {
-                const l = r.score ? lv(r.score) : null;
+                const l = r.score ? lvMeta(r.score) : null;
                 return (
                   <div key={r.rol} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ width:80, fontSize:11, fontWeight:600, color:"#555",
-                      flexShrink:0, overflow:"hidden", textOverflow:"ellipsis",
-                      whiteSpace:"nowrap" }}>{r.rol}</div>
+                    <div style={{ width:82, fontSize:11, fontWeight:600, color:"#555", flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.rol}</div>
                     <MiniBar value={r.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
-                      flexShrink:0, width:28, textAlign:"right" }}>
-                      {r.score?.toFixed(1)||"—"}
-                    </div>
-                    <div style={{ fontSize:9, color:"#CCC", width:18, flexShrink:0,
-                      textAlign:"right" }}>n={r.n}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)||"—"}</div>
+                    <div style={{ fontSize:9, color:"#CCC", width:22, flexShrink:0, textAlign:"right" }}>n={r.n}</div>
                   </div>
                 );
               })}
             </div>
           )}
-        </Card>
+        </AnalyticsCard>
       </div>
 
       {/* ═══ HEATMAP ═══ */}
       {heatmap.length > 0 && (
-        <Card>
-          <SectionLabel>Heatmap Dirección × Dimensión</SectionLabel>
+        <AnalyticsCard>
+          <AnalyticsLabel>Heatmap Dirección × Dimensión</AnalyticsLabel>
           <div style={{ overflowX:"auto" }}>
-            <table style={{ width:"100%", borderCollapse:"separate", borderSpacing:"3px 3px",
-              fontSize:11 }}>
+            <table style={{ width:"100%", borderCollapse:"separate", borderSpacing:"3px 3px", fontSize:11 }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign:"left", padding:"4px 8px", color:"#CCC",
-                    fontSize:9.5, fontWeight:700 }}>Dirección</th>
-                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5,
-                    fontWeight:700, textAlign:"center" }}>n</th>
-                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5,
-                    fontWeight:700, textAlign:"center", background:"#F7F5F2",
-                    borderRadius:6 }}>⭐ Global</th>
-                  {DIMS.map(d=>(
+                  <th style={{ textAlign:"left", padding:"4px 8px", color:"#CCC", fontSize:9.5, fontWeight:700 }}>Dirección</th>
+                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5, fontWeight:700, textAlign:"center" }}>n</th>
+                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5, fontWeight:700, textAlign:"center", background:"#F7F5F2", borderRadius:6 }}>⭐ Global</th>
+                  {DIMS_META.map(d=>(
                     <th key={d.key} onClick={()=>setViewDim(viewDim===d.key?null:d.key)}
-                      style={{ padding:"4px 8px", color: viewDim===d.key?RED:"#CCC",
-                        fontSize:9, fontWeight:700, textAlign:"center", cursor:"pointer",
-                        whiteSpace:"nowrap" }} title={d.label}>
-                      {d.num} {viewDim===d.key?"↗":""}
-                    </th>
+                      style={{ padding:"4px 8px", color:viewDim===d.key?RED:"#CCC", fontSize:9, fontWeight:700, textAlign:"center", cursor:"pointer", whiteSpace:"nowrap" }}
+                      title={d.label}>{d.num} {d.icon}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {heatmap.sort((a,b)=>(b.global||0)-(a.global||0)).map(row=>(
                   <tr key={row.dir}>
-                    <td style={{ padding:"6px 8px", fontWeight:700, color:"#1A1A18",
-                      fontSize:12, whiteSpace:"nowrap" }}>{row.dir}</td>
-                    <td style={{ padding:"6px 8px", color:"#AAA", fontSize:11,
-                      textAlign:"center" }}>{row.n}</td>
-                    <td style={{ padding:"6px 8px", textAlign:"center", borderRadius:8,
-                      background: row.global?lv(row.global).c+"22":"#F3F2F0",
-                      color: row.global?lv(row.global).c:"#CCC",
-                      fontWeight:800, fontSize:13, minWidth:44 }}>
+                    <td style={{ padding:"6px 8px", fontWeight:700, color:"#1A1A18", fontSize:12, whiteSpace:"nowrap" }}>{row.dir}</td>
+                    <td style={{ padding:"6px 8px", color:"#AAA", fontSize:11, textAlign:"center" }}>{row.n}</td>
+                    <td style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background: row.global?lvMeta(row.global).c+"22":"#F3F2F0", color:row.global?lvMeta(row.global).c:"#CCC", fontWeight:800, fontSize:13, minWidth:44 }}>
                       {row.global?.toFixed(1)||"—"}
                     </td>
-                    {DIMS.map(d=>{
-                      const v=row[d.key];
-                      const l=v?lv(v):null;
+                    {DIMS_META.map(d=>{
+                      const v=row[d.key]; const l=v?lvMeta(v):null;
                       return (
-                        <td key={d.key} onClick={()=>setViewDim(d.key)}
-                          title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"—"}`}
-                          style={{ padding:"6px 8px", textAlign:"center", borderRadius:8,
-                            background: l?l.c+"20":"#F3F2F0",
-                            color: l?l.c:"#CCC",
-                            fontWeight:700, fontSize:12, minWidth:42,
-                            cursor:"pointer", transition:"opacity .12s",
-                            outline: viewDim===d.key?`2px solid ${RED}`:"none",
-                          }}>
+                        <td key={d.key} onClick={()=>setViewDim(d.key)} title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"—"}`}
+                          style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background:l?l.c+"22":"#F3F2F0", color:l?l.c:"#CCC", fontWeight:700, fontSize:12, minWidth:42, cursor:"pointer", outline:viewDim===d.key?`2px solid ${RED}`:"none" }}>
                           {v?.toFixed(1)||"—"}
                         </td>
                       );
@@ -859,51 +848,158 @@ function AnalyticsTab({ evaluaciones }) {
             </table>
           </div>
           <div style={{ marginTop:12, display:"flex", gap:8, flexWrap:"wrap" }}>
-            {LV.map(l=>(
+            {LV_META.map(l=>(
               <div key={l.v} style={{ display:"flex", alignItems:"center", gap:5, fontSize:10, color:"#AAA" }}>
-                <div style={{ width:10, height:10, borderRadius:3, background:l.c+"30",
-                  border:`1px solid ${l.c}50` }}/>
+                <div style={{ width:10, height:10, borderRadius:3, background:l.c+"30", border:`1px solid ${l.c}50` }}/>
                 {l.label}
               </div>
             ))}
           </div>
-        </Card>
+        </AnalyticsCard>
       )}
 
       {/* ═══ TIMELINE ═══ */}
       {timeline.length >= 2 && (
-        <Card>
-          <SectionLabel>Evolución Score Promedio (por mes)</SectionLabel>
+        <AnalyticsCard>
+          <AnalyticsLabel>Evolución Score Promedio (por mes)</AnalyticsLabel>
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={timeline} margin={{ left:-10, right:20, top:8, bottom:0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EDE9" />
               <XAxis dataKey="mo" tick={{ fontSize:10, fill:"#AAA" }} />
               <YAxis domain={[0,5]} tick={{ fontSize:9, fill:"#AAA" }} tickCount={6} />
-              <Tooltip
-                formatter={(v,n,p)=>[`${v} / 5  (n=${p.payload.n})`,"Score promedio"]}
-                contentStyle={{ borderRadius:8, fontSize:11 }}
-              />
-              <Line type="monotone" dataKey="avg" stroke={RED} strokeWidth={2.5}
-                dot={{ r:4, fill:RED }} activeDot={{ r:6 }} />
+              <Tooltip formatter={(v,n,p)=>[`${v} / 5  (n=${p.payload.n})`,"Score promedio"]} contentStyle={{ borderRadius:8, fontSize:11 }} />
+              <Line type="monotone" dataKey="avg" stroke={RED} strokeWidth={2.5} dot={{ r:4, fill:RED }} activeDot={{ r:6 }} />
             </LineChart>
           </ResponsiveContainer>
-        </Card>
+        </AnalyticsCard>
       )}
 
-      {/* ═══ TOP 10 RANKING ═══ */}
-      <Card>
+      {/* ═══ BRECHAS & ROADMAP ═══ */}
+      <AnalyticsCard>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
+          <AnalyticsLabel>Análisis de Brechas y Hoja de Ruta</AnalyticsLabel>
+          <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+            {[
+              { id:"critical", label:`🚨 Críticas (${critGaps.length})`, c:"#DC2626" },
+              { id:"moderate", label:`⚡ Moderadas (${modGaps.length})`, c:"#D97706" },
+              { id:"roadmap",  label:"🗺️ Hoja de Ruta",                  c:"#059669" },
+            ].map(t=>(
+              <button key={t.id} onClick={()=>setGapsView(t.id)} style={{
+                padding:"6px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+                border:`1.5px solid ${gapsView===t.id?t.c:"#E8E4DF"}`,
+                background: gapsView===t.id?t.c+"15":"#FAFAFA",
+                color: gapsView===t.id?t.c:"#AAA", transition:"all .15s",
+              }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+
+        {gapsView === "critical" && (
+          critGaps.length === 0
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>✅ No hay brechas críticas en la selección actual</div>
+            : <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {critGaps.map(g=>{
+                  const l = lvMeta(g.score);
+                  return (
+                    <div key={g.key} style={{ background:"#FFF8F8", border:"1px solid #FECACA", borderRadius:14, padding:"16px 18px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                        <div style={{ fontSize:22, flexShrink:0 }}>{g.dimIcon}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                            <span style={{ fontSize:9, fontWeight:700, color:RED, background:RED+"15", padding:"2px 8px", borderRadius:99 }}>{g.dimNum}</span>
+                            <span style={{ fontSize:13, fontWeight:700, color:"#1A1A18" }}>{g.dimLabel}</span>
+                            <span style={{ padding:"3px 9px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{g.score.toFixed(1)} · {l.label}</span>
+                          </div>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <div style={{ flex:1, height:6, background:"#F0EDE9", borderRadius:99, overflow:"hidden" }}>
+                              <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:l.c, borderRadius:99 }} />
+                            </div>
+                            <span style={{ fontSize:12, fontWeight:800, color:"#DC2626", flexShrink:0 }}>+{g.gap.toFixed(1)} niveles de brecha</span>
+                          </div>
+                        </div>
+                        <div style={{ flexShrink:0, textAlign:"center", minWidth:48 }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:"#AAA", textTransform:"uppercase" }}>n</div>
+                          <div style={{ fontSize:20, fontWeight:900, color:"#555" }}>{g.n}</div>
+                          <div style={{ fontSize:9, color:"#AAA" }}>evals</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+        )}
+
+        {gapsView === "moderate" && (
+          modGaps.length === 0
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas moderadas</div>
+            : <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {modGaps.map(g=>{
+                  const l = lvMeta(g.score);
+                  return (
+                    <div key={g.key} style={{ background:"#FFFBF0", border:"1px solid #FDE68A", borderRadius:14, padding:"14px 16px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                        <span style={{ fontSize:18 }}>{g.dimIcon}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>{g.dimLabel}</div>
+                          <div style={{ fontSize:9.5, color:"#AAA" }}>{g.dimNum} · n={g.n}</div>
+                        </div>
+                        <span style={{ padding:"3px 9px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c }}>{g.score.toFixed(1)}</span>
+                      </div>
+                      <div style={{ height:5, background:"#F0EDE9", borderRadius:99, overflow:"hidden" }}>
+                        <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:l.c, borderRadius:99 }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+        )}
+
+        {gapsView === "roadmap" && (
+          gapsData.length === 0
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas identificadas</div>
+            : <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
+                {[
+                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#FEF2F2", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
+                  { t:"Mediano Plazo",sub:"6–12 meses",   c:"#D97706", bg:"#FFFBEB", bdr:"#FDE68A", icon:"⚡", items: [...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+                  { t:"Largo Plazo",  sub:"12–24 meses",  c:"#059669", bg:"#ECFDF5", bdr:"#A7F3D0", icon:"🏆", items: modGaps.slice(3,7) },
+                ].map(ph=>(
+                  <div key={ph.t} style={{ borderRadius:14, border:`1.5px solid ${ph.bdr}`, background:ph.bg, overflow:"hidden" }}>
+                    <div style={{ padding:"12px 16px", borderBottom:`1px solid ${ph.bdr}`, display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:15 }}>{ph.icon}</span>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:800, color:ph.c }}>{ph.t}</div>
+                        <div style={{ fontSize:9.5, color:ph.c, opacity:.7 }}>{ph.sub}</div>
+                      </div>
+                    </div>
+                    <div style={{ padding:"12px 16px", display:"flex", flexDirection:"column", gap:8 }}>
+                      {ph.items.length > 0 ? ph.items.map((g,j)=>(
+                        <div key={j} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ fontSize:14 }}>{g.dimIcon}</span>
+                          <span style={{ fontSize:11, color:"#555", flex:1 }}>{g.dimLabel}</span>
+                          <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99,
+                            background:lvMeta(g.score).c+"18", color:lvMeta(g.score).c }}>{g.score.toFixed(1)}</span>
+                        </div>
+                      )) : <div style={{ fontSize:11, color:"#AAA", fontStyle:"italic" }}>Sin brechas en este horizonte</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+        )}
+      </AnalyticsCard>
+
+      {/* ═══ RANKING ═══ */}
+      <AnalyticsCard>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-          <SectionLabel>Ranking Top 10</SectionLabel>
-          <div style={{ display:"flex", gap:5 }}>
-            {["score_global",...DIMS.map(d=>`score_${d.key}`)].map(k=>(
-              <button key={k} onClick={()=>{ if(sortDim===k) setSortAsc(a=>!a); else{ setSortDim(k); setSortAsc(false); }}}
-                style={{
-                  padding:"4px 10px", borderRadius:8, fontSize:9.5, fontWeight:600,
-                  cursor:"pointer", border:`1px solid ${sortDim===k?RED:"#E8E4DF"}`,
-                  background: sortDim===k?RED+"12":"#FAFAFA",
-                  color: sortDim===k?RED:"#AAA",
-                }}>
-                {k==="score_global"?"Global":DIMS.find(d=>`score_${d.key}`===k)?.num||k}
+          <AnalyticsLabel>Ranking Top 10</AnalyticsLabel>
+          <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+            {["score_global",...DIMS_META.map(d=>`score_${d.key}`)].map(k=>(
+              <button key={k} onClick={()=>{ if(sortDim===k) setSortAsc(a=>!a); else{ setSortDim(k); setSortAsc(false); }}} style={{
+                padding:"4px 10px", borderRadius:8, fontSize:9.5, fontWeight:600, cursor:"pointer",
+                border:`1px solid ${sortDim===k?RED:"#E8E4DF"}`,
+                background: sortDim===k?RED+"12":"#FAFAFA",
+                color: sortDim===k?RED:"#AAA",
+              }}>
+                {k==="score_global"?"Global":DIMS_META.find(d=>`score_${d.key}`===k)?.num||k}
                 {sortDim===k?(sortAsc?"↑":"↓"):""}
               </button>
             ))}
@@ -911,46 +1007,28 @@ function AnalyticsTab({ evaluaciones }) {
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
           {ranking.map((e,i)=>{
-            const l = e.score_global?lv(e.score_global):null;
+            const l = e.score_global?lvMeta(e.score_global):null;
             return (
-              <div key={e.id} style={{ display:"grid",
-                gridTemplateColumns:"22px 1fr 80px 70px",
-                alignItems:"center", gap:12,
-                padding:"8px 12px", borderRadius:10,
-                background: i===0?"#FFF8F7":"#FAFAF8",
-                border:`1px solid ${i===0?"#FDDCDA":"#F0EDE9"}`,
-              }}>
-                <div style={{ fontSize:11, fontWeight:800,
-                  color:i===0?RED:"#CCC" }}>#{i+1}</div>
+              <div key={e.id} style={{ display:"grid", gridTemplateColumns:"22px 1fr 100px 80px", alignItems:"center", gap:12,
+                padding:"8px 12px", borderRadius:10, background:i===0?"#FFF8F7":"#FAFAF8",
+                border:`1px solid ${i===0?"#FDDCDA":"#F0EDE9"}` }}>
+                <div style={{ fontSize:11, fontWeight:800, color:i===0?RED:"#CCC" }}>#{i+1}</div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>
-                    {e.direccion||"—"}
-                    <span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"—"}</span>
+                    {e.direccion||"—"}<span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"—"}</span>
                   </div>
-                  <div style={{ fontSize:9.5, color:"#CCC", marginTop:1 }}>
-                    {e.created_at?.slice(0,10)||""}
-                  </div>
+                  <div style={{ fontSize:9.5, color:"#CCC", marginTop:1 }}>{e.created_at?.slice(0,10)||""}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <MiniBar value={e[sortDim]||0} color={l?.c||"#E8E4DF"} />
-                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
-                    flexShrink:0, width:26, textAlign:"right" }}>
-                    {e[sortDim]?.toFixed(1)||"—"}
-                  </span>
+                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:26, textAlign:"right" }}>{e[sortDim]?.toFixed(1)||"—"}</span>
                 </div>
-                {l && (
-                  <span style={{ padding:"3px 8px", borderRadius:99, fontSize:9.5,
-                    fontWeight:700, background:l.c+"18", color:l.c,
-                    border:`1px solid ${l.c}30`, textAlign:"center",
-                    whiteSpace:"nowrap" }}>
-                    {l.label}
-                  </span>
-                )}
+                {l && <span style={{ padding:"3px 8px", borderRadius:99, fontSize:9.5, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30`, textAlign:"center", whiteSpace:"nowrap" }}>{l.label}</span>}
               </div>
             );
           })}
         </div>
-      </Card>
+      </AnalyticsCard>
 
       </>)}
     </div>
@@ -1228,6 +1306,822 @@ function DownloadsTab({ evaluaciones, respuestas }) {
   );
 }
 
+// ─── REPORT TAB ───────────────────────────────────────────────────────────────
+function ReportTab({ evaluaciones, respuestas }) {
+  const [filterDir, setFilterDir] = useState([]);
+  const [filterRol, setFilterRol] = useState([]);
+  const [titulo,    setTitulo]    = useState("Diagnóstico de Madurez de Inventarios");
+  const [subtitulo, setSubtitulo] = useState("Kearney · Supply Chain Assessment");
+  const [generating, setGenerating] = useState(false);
+  const [sections, setSections] = useState({
+    portada:       true,
+    resumen_kpis:  true,
+    distribucion:  true,
+    heatmap:       true,
+    por_rol:       true,
+    brechas_crit:  true,
+    brechas_mod:   true,
+    roadmap:       true,
+    ranking:       true,
+  });
+
+  const SECTION_LABELS = {
+    portada:       { icon:"🎨", label:"Portada",                  desc:"Portada con título, fecha y resumen ejecutivo" },
+    resumen_kpis:  { icon:"⭐", label:"KPIs Ejecutivos",          desc:"Score global, dispersión, dimensión fuerte/débil" },
+    distribucion:  { icon:"📊", label:"Distribución por Nivel",   desc:"Cuántas evaluaciones hay en cada nivel de madurez" },
+    heatmap:       { icon:"🌡️", label:"Heatmap Dirección × Dim.", desc:"Tabla de scores promedio por dirección y dimensión" },
+    por_rol:       { icon:"👤", label:"Score por Rol",            desc:"Comparativa de madurez por rol del evaluador" },
+    brechas_crit:  { icon:"🚨", label:"Brechas Críticas",         desc:"Dimensiones en nivel 1–2, acción inmediata" },
+    brechas_mod:   { icon:"⚡", label:"Brechas Moderadas",        desc:"Dimensiones en nivel 3, potencial de mejora" },
+    roadmap:       { icon:"🗺️", label:"Hoja de Ruta",             desc:"Plan de acción en 3 horizontes temporales" },
+    ranking:       { icon:"🏆", label:"Ranking de Evaluaciones",  desc:"Top evaluaciones ordenadas por score global" },
+  };
+
+  const allDirs = useMemo(() => [...new Set(evaluaciones.map(e=>e.direccion).filter(Boolean))].sort(), [evaluaciones]);
+  const allRols = useMemo(() => [...new Set(evaluaciones.map(e=>e.rol).filter(Boolean))].sort(), [evaluaciones]);
+
+  function toggleDir(d) { setFilterDir(a => a.includes(d)?a.filter(x=>x!==d):[...a,d]); }
+  function toggleRol(r) { setFilterRol(a => a.includes(r)?a.filter(x=>x!==r):[...a,r]); }
+  function toggleSection(k) { setSections(s => ({ ...s, [k]: !s[k] })); }
+
+  const filtered = useMemo(() => evaluaciones.filter(e => {
+    if (filterDir.length && !filterDir.includes(e.direccion)) return false;
+    if (filterRol.length && !filterRol.includes(e.rol)) return false;
+    return true;
+  }), [evaluaciones, filterDir, filterRol]);
+
+  function avgArr(arr) {
+    const a = arr.filter(x=>x!=null&&!isNaN(x));
+    return a.length ? parseFloat((a.reduce((s,x)=>s+x,0)/a.length).toFixed(2)) : null;
+  }
+
+  function lvColor(v) {
+    if (!v) return "#AAA";
+    const r = Math.round(v);
+    return ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][r-1]||"#AAA";
+  }
+  function lvLabel(v) {
+    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"—";
+  }
+
+  async function generatePDF() {
+    setGenerating(true);
+    try {
+      // Load jsPDF dynamically
+      if (!window.jspdf) {
+        await new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+      const W = 210, H = 297;
+      const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
+      const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
+
+      // ── helpers ──────────────────────────────────────────────────────────
+      function setFont(weight="normal", size=10, color=DARK) {
+        doc.setFont("helvetica", weight);
+        doc.setFontSize(size);
+        doc.setTextColor(...color);
+      }
+      function rect(x,y,w,h,r,fillRGB) {
+        doc.setFillColor(...fillRGB);
+        doc.roundedRect(x,y,w,h,r,r,"F");
+      }
+      function hline(y, color=[232,228,224]) {
+        doc.setDrawColor(...color);
+        doc.setLineWidth(0.3);
+        doc.line(16, y, W-16, y);
+      }
+      function pill(x, y, text, bgRGB, textRGB) {
+        setFont("bold", 7.5, textRGB);
+        const tw = doc.getTextWidth(text);
+        doc.setFillColor(...bgRGB);
+        doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
+        doc.text(text, x, y);
+      }
+      function miniBar(x, y, value, max, color, barW=40) {
+        doc.setFillColor(235,233,228);
+        doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
+        if (value && max) {
+          doc.setFillColor(...color);
+          doc.roundedRect(x, y, Math.max(1.5, (value/max)*barW), 2.5, 1, 1, "F");
+        }
+      }
+      function newPage(header=true) {
+        doc.addPage();
+        if (header) {
+          rect(0, 0, W, 14, 0, RED);
+          setFont("bold", 9, [255,255,255]);
+          doc.text(titulo, 16, 9.5);
+          setFont("normal", 7.5, [255,200,200]);
+          doc.text(now, W-16, 9.5, { align:"right" });
+        }
+        return 20;
+      }
+      function checkY(y, needed=30) {
+        if (y + needed > H - 20) return newPage();
+        return y;
+      }
+
+      // ── data ─────────────────────────────────────────────────────────────
+      const globalAvg = avgArr(filtered.map(e=>e.score_global));
+      const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
+      const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
+      const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
+      const spread    = strongest&&weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
+      const LV_NAMES  = ["","Básico","Emergente","Robusto","End-to-End","Pivote"];
+      const LV_COLORS_RGB = [[120,113,108],[217,119,6],[37,99,235],[124,58,237],[5,150,105]];
+
+      const gapsData = DIMS_META.map(d => {
+        const sc = avgArr(filtered.map(e=>e[`score_${d.key}`]));
+        if (!sc || sc > 3) return null;
+        return { ...d, score:sc, gap:parseFloat((5-sc).toFixed(1)), n:filtered.filter(e=>e[`score_${d.key}`]).length };
+      }).filter(Boolean).sort((a,b)=>a.score-b.score);
+      const critGaps = gapsData.filter(g=>g.score<=2);
+      const modGaps  = gapsData.filter(g=>g.score>2);
+
+      const byRoleData = [...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol=>{
+        const rows = filtered.filter(e=>e.rol===rol);
+        return { rol, n:rows.length, score:avgArr(rows.map(e=>e.score_global)) };
+      }).filter(r=>r.score).sort((a,b)=>b.score-a.score);
+
+      const heatDirs = [...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
+      const heatRows = heatDirs.map(dir => {
+        const rows = filtered.filter(e=>e.direccion===dir);
+        const r = { dir, n:rows.length, global:avgArr(rows.map(e=>e.score_global)) };
+        DIMS_META.forEach(d => { r[d.key] = avgArr(rows.map(e=>e[`score_${d.key}`])); });
+        return r;
+      });
+
+      const distData = [1,2,3,4,5].map(v => ({
+        v, label: LV_NAMES[v],
+        count: filtered.filter(e=>Math.round(e.score_global)===v).length,
+        color: LV_COLORS_RGB[v-1],
+      }));
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PORTADA
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.portada) {
+        // Red hero
+        rect(0, 0, W, 110, 0, RED);
+        // Dot grid pattern
+        doc.setFillColor(255,255,255);
+        for (let gx = 10; gx < W; gx += 14) {
+          for (let gy = 10; gy < 110; gy += 14) {
+            doc.circle(gx, gy, 0.4, "F");
+          }
+        }
+        // Decorative circles
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        doc.circle(W-20, 20, 60, "F");
+        doc.circle(30, 95, 35, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
+
+        // Logo area
+        rect(16, 16, 42, 9, 3, [200,20,15]);
+        setFont("bold", 9, [255,255,255]);
+        doc.text("KEARNEY", 37, 21.5, { align:"center" });
+
+        // Title
+        setFont("bold", 28, [255,255,255]);
+        const titleLines = doc.splitTextToSize(titulo, W-40);
+        let ty = 48;
+        titleLines.forEach(line => { doc.text(line, 16, ty); ty += 11; });
+
+        setFont("normal", 12, [255,200,200]);
+        doc.text(subtitulo, 16, ty+4);
+
+        // Date pill
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
+        doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
+        setFont("bold", 8, [255,255,255]);
+        doc.text(`📅 ${now}`, 18, ty+17);
+
+        // Summary box
+        rect(16, 118, W-32, 44, 6, [255,248,248]);
+        doc.setDrawColor(232,37,31);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(16, 118, W-32, 44, 6, 6);
+
+        setFont("bold", 8, MID);
+        doc.text("RESUMEN EJECUTIVO", 24, 128);
+        hline(131, [255,220,218]);
+
+        // KPI boxes on cover
+        const kpis = [
+          { label:"Evaluaciones", value: String(filtered.length) },
+          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
+          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
+        ];
+        kpis.forEach((k,i) => {
+          const kx = 24 + i*(W-48)/4;
+          rect(kx, 134, (W-48)/4-4, 20, 4, [255,241,241]);
+          setFont("bold", 16, RED);
+          doc.text(k.value, kx+((W-48)/4-4)/2, 146, { align:"center" });
+          setFont("normal", 7, MID);
+          doc.text(k.label, kx+((W-48)/4-4)/2, 152, { align:"center" });
+        });
+
+        // Filtros usados
+        let fy = 170;
+        if (filterDir.length || filterRol.length) {
+          setFont("bold", 8, MID);
+          doc.text("Filtros aplicados:", 16, fy); fy += 6;
+          if (filterDir.length) {
+            setFont("normal", 7.5, MID);
+            doc.text(`Dirección: ${filterDir.join(", ")}`, 20, fy); fy += 5;
+          }
+          if (filterRol.length) {
+            setFont("normal", 7.5, MID);
+            doc.text(`Rol: ${filterRol.join(", ")}`, 20, fy); fy += 5;
+          }
+        }
+
+        // Sections included
+        setFont("bold", 8, MID);
+        doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
+        const included = Object.entries(sections).filter(([,v])=>v&&k!=="portada").map(([k])=>SECTION_LABELS[k]?.label||k);
+        setFont("normal", 7.5, MID);
+        const incText = included.join("  ·  ");
+        const incLines = doc.splitTextToSize(incText, W-32);
+        incLines.forEach((line,i) => doc.text(line, 16, Math.max(fy+4,178)+6+i*4.5));
+
+        // Footer on cover
+        rect(0, H-14, W, 14, 0, [30,30,28]);
+        setFont("normal", 7.5, [150,148,144]);
+        doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PAGE: KPIs EJECUTIVOS
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.resumen_kpis) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("KPIs Ejecutivos", 16, y); y += 4;
+        hline(y); y += 8;
+
+        // 4 big KPI boxes
+        const kpiBox = (x, bw, icon, label, value, sub, rgb) => {
+          rect(x, y, bw-3, 28, 5, [248,246,243]);
+          doc.setDrawColor(...rgb, 60);
+          doc.setLineWidth(0.5);
+          doc.roundedRect(x, y, bw-3, 28, 5, 5);
+          setFont("normal", 11, []);
+          doc.setTextColor(...rgb);
+          doc.text(icon, x+5, y+9);
+          setFont("bold", 18, rgb);
+          doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
+          setFont("normal", 7, MID);
+          doc.text(label, x+(bw-3)/2, y+25, { align:"center" });
+          if (sub) {
+            setFont("normal", 6.5, LIGHT);
+            doc.text(sub, x+(bw-3)/2, y+28.5, { align:"center" });
+          }
+        };
+        const bw = (W-32)/4;
+        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
+        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
+        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
+        y += 36;
+
+        // Dim scores row
+        setFont("bold", 9, DARK);
+        doc.text("Score promedio por dimensión", 16, y); y += 6;
+        DIMS_META.forEach((d,i) => {
+          const sc = dimAvgs.find(x=>x.key===d.key)?.score;
+          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
+          const dx = 16 + i*(W-32)/7;
+          const dw = (W-32)/7 - 3;
+          rect(dx, y, dw, 22, 4, [248,246,243]);
+          setFont("bold", 7, rgb);
+          doc.text(d.num, dx+dw/2, y+6, { align:"center" });
+          setFont("bold", 13, rgb);
+          doc.text(sc?.toFixed(1)||"—", dx+dw/2, y+15, { align:"center" });
+          miniBar(dx+2, y+18, sc||0, 5, rgb, dw-4);
+        });
+        y += 30;
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PAGE: DISTRIBUCIÓN
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.distribucion) {
+        let y = checkY(999); // force new page for this section
+        y = newPage(); 
+        setFont("bold", 16, RED);
+        doc.text("Distribución por Nivel de Madurez", 16, y); y += 4;
+        hline(y); y += 10;
+
+        const maxCount = Math.max(...distData.map(d=>d.count), 1);
+        const barAreaH = 60;
+        const barW = (W-60) / 5;
+
+        distData.forEach((l, i) => {
+          const bx = 30 + i * barW;
+          const bh = l.count > 0 ? Math.max(4, (l.count/maxCount)*barAreaH) : 0;
+          // Bar BG
+          doc.setFillColor(240,238,233);
+          doc.roundedRect(bx, y, barW-4, barAreaH, 3, 3, "F");
+          // Bar fill
+          if (bh > 0) {
+            doc.setFillColor(...l.color);
+            doc.roundedRect(bx, y+barAreaH-bh, barW-4, bh, 3, 3, "F");
+          }
+          // Count on top
+          setFont("bold", 12, l.color);
+          doc.text(String(l.count), bx+(barW-4)/2, y+barAreaH-bh-2, { align:"center" });
+          // Label
+          setFont("bold", 7.5, l.color);
+          doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
+          // Pct
+          setFont("normal", 7, MID);
+          doc.text(`${l.pct}%`, bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
+        });
+        y += barAreaH + 20;
+
+        // Pill summary
+        distData.filter(d=>d.count>0).forEach(l => {
+          pill(16, y, `${l.label}: ${l.count} eval. (${l.pct}%)`, [...l.color, 0.15].slice(0,3), l.color);
+          y += 7;
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PAGE: HEATMAP
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.heatmap && heatRows.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("Heatmap Dirección × Dimensión", 16, y); y += 4;
+        hline(y); y += 8;
+
+        const cols = ["Dirección","n","Global",...DIMS_META.map(d=>d.num)];
+        const colW  = [42, 10, 18, ...Array(7).fill((W-32-42-10-18)/7)];
+        let cx = 16;
+
+        // Header row
+        rect(16, y, W-32, 7, 2, [248,246,243]);
+        cols.forEach((col,i) => {
+          setFont("bold", 7, MID);
+          doc.text(col, cx+colW[i]/2, y+4.8, { align:"center" });
+          cx += colW[i];
+        });
+        y += 8;
+
+        heatRows.sort((a,b)=>(b.global||0)-(a.global||0)).forEach(row => {
+          y = checkY(y, 10);
+          cx = 16;
+          // Dir
+          setFont("bold", 8, DARK);
+          doc.text(row.dir, cx+2, y+4.8);
+          cx += colW[0];
+          // n
+          setFont("normal", 7.5, MID);
+          doc.text(String(row.n), cx+colW[1]/2, y+4.8, { align:"center" });
+          cx += colW[1];
+          // Global
+          const gl = row.global ? LV_COLORS_RGB[Math.round(row.global)-1] : [200,198,192];
+          rect(cx, y+0.5, colW[2]-1, 6.5, 2, [...gl].map(c=>Math.min(255,c+200)));
+          setFont("bold", 8, gl);
+          doc.text(row.global?.toFixed(1)||"—", cx+colW[2]/2, y+4.8, { align:"center" });
+          cx += colW[2];
+          // Dims
+          DIMS_META.forEach(d => {
+            const v = row[d.key];
+            const rgb = v ? LV_COLORS_RGB[Math.round(v)-1] : [200,198,192];
+            if (v) {
+              rect(cx+0.5, y+0.5, colW[3]-1, 6.5, 2, [...rgb].map(c=>Math.min(255,c+200)));
+            }
+            setFont(v?"bold":"normal", v?8:7, v?rgb:LIGHT);
+            doc.text(v?.toFixed(1)||"—", cx+colW[3]/2, y+4.8, { align:"center" });
+            cx += colW[3];
+          });
+          hline(y+8, [240,238,233]);
+          y += 9;
+        });
+
+        // Legend
+        y += 6;
+        setFont("bold", 7, MID);
+        doc.text("Referencia de colores:", 16, y); y += 5;
+        ["#1","Básico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
+          if (i%2===0) return;
+          const lx = 16 + Math.floor(i/2)*42;
+          const rgb = LV_COLORS_RGB[Math.floor(i/2)];
+          doc.setFillColor(...rgb.map(c=>Math.min(255,c+200)));
+          doc.roundedRect(lx-1, y-3.5, 40, 5, 1.5, 1.5, "F");
+          setFont("bold", 7, rgb);
+          doc.text(lbl, lx+20, y, { align:"center" });
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // POR ROL
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.por_rol && byRoleData.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("Score Promedio por Rol", 16, y); y += 4;
+        hline(y); y += 10;
+
+        byRoleData.forEach((r,i) => {
+          y = checkY(y, 12);
+          const sc = r.score;
+          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
+          setFont("bold", 8, rgb);
+          doc.text(`#${i+1}`, 16, y+3);
+          setFont("bold", 10, DARK);
+          doc.text(r.rol, 26, y+3);
+          setFont("normal", 8, MID);
+          doc.text(`n=${r.n}`, 110, y+3);
+          miniBar(120, y, sc||0, 5, rgb, 55);
+          setFont("bold", 11, rgb);
+          doc.text(sc?.toFixed(2)||"—", W-16, y+3, { align:"right" });
+          hline(y+7, [240,238,233]);
+          y += 10;
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // BRECHAS CRÍTICAS
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.brechas_crit) {
+        let y = newPage();
+        rect(0, 0, W, 14, 0, RED); // override header to red
+        setFont("bold", 9, [255,255,255]);
+        doc.text(titulo, 16, 9.5);
+        setFont("bold", 16, RED);
+        y = 20;
+        doc.text("🚨 Brechas Críticas — Nivel 1–2", 16, y); y += 4;
+        hline(y); y += 6;
+        setFont("normal", 9, MID);
+        doc.text(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`, 16, y); y += 8;
+
+        if (critGaps.length === 0) {
+          rect(16, y, W-32, 14, 4, [236,253,245]);
+          setFont("bold", 9, [5,150,105]);
+          doc.text("✅  No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
+          y += 20;
+        } else {
+          critGaps.forEach(g => {
+            y = checkY(y, 28);
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(16, y, W-32, 24, 4, [255,248,248]);
+            doc.setDrawColor(254,202,202);
+            doc.roundedRect(16, y, W-32, 24, 4, 4);
+            // Icon + title
+            setFont("bold", 11, DARK);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+8);
+            // Score badge
+            rect(W-50, y+3, 32, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
+            setFont("bold", 8, rgb);
+            doc.text(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`, W-34, y+7.5, { align:"center" });
+            // Gap
+            setFont("bold", 8, [220,38,38]);
+            doc.text(`+${g.gap.toFixed(1)} niveles de brecha`, 22, y+15);
+            // Minibar
+            miniBar(22, y+18.5, g.score, 5, rgb, W-52);
+            setFont("normal", 7, MID);
+            doc.text(`${g.n} evaluaciones promediadas`, W-16, y+22, { align:"right" });
+            y += 28;
+          });
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // BRECHAS MODERADAS
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.brechas_mod) {
+        let y = newPage();
+        setFont("bold", 16, [217,119,6]);
+        doc.text("⚡ Brechas Moderadas — Nivel 3", 16, y); y += 4;
+        hline(y,[254,230,138]); y += 8;
+
+        if (modGaps.length === 0) {
+          setFont("normal", 10, MID);
+          doc.text("Sin brechas moderadas identificadas.", 16, y);
+        } else {
+          modGaps.forEach(g => {
+            y = checkY(y, 22);
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(16, y, W-32, 18, 4, [255,251,240]);
+            doc.setDrawColor(253,230,138);
+            doc.roundedRect(16, y, W-32, 18, 4, 4);
+            setFont("bold", 10, DARK);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+7);
+            miniBar(22, y+11, g.score, 5, rgb, W-52);
+            setFont("bold", 8, rgb);
+            doc.text(`${g.score.toFixed(1)} / 5`, W-16, y+8, { align:"right" });
+            setFont("normal", 7, MID);
+            doc.text(`n=${g.n}`, W-16, y+15, { align:"right" });
+            y += 22;
+          });
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // ROADMAP
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.roadmap && gapsData.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("🗺️ Hoja de Ruta Priorizada", 16, y); y += 4;
+        hline(y); y += 8;
+
+        const phases = [
+          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
+          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
+        ];
+        const colW2 = (W-38)/3;
+        phases.forEach((ph,pi) => {
+          const px = 16 + pi*(colW2+3);
+          rect(px, y, colW2, 12, 4, ph.bgRGB);
+          doc.setDrawColor(...ph.rgb,80);
+          doc.roundedRect(px, y, colW2, 12, 4, 4);
+          setFont("bold", 9, ph.rgb);
+          doc.text(ph.t, px+5, y+6);
+          setFont("normal", 7, [...ph.rgb].map(c=>Math.min(200,c+40)));
+          doc.text(ph.sub, px+5, y+10.5);
+        });
+        y += 16;
+
+        const maxItems = Math.max(...phases.map(p=>p.items.length));
+        for (let row=0; row < maxItems; row++) {
+          y = checkY(y, 14);
+          phases.forEach((ph,pi) => {
+            const px = 16 + pi*(colW2+3);
+            const g = ph.items[row];
+            if (!g) return;
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(px, y, colW2, 11, 3, [250,249,247]);
+            setFont("bold", 8.5, DARK);
+            doc.text(`${g.dimIcon} ${g.dimLabel}`, px+4, y+5);
+            miniBar(px+4, y+7, g.score, 5, rgb, colW2-18);
+            setFont("bold", 8, rgb);
+            doc.text(g.score.toFixed(1), px+colW2-4, y+5, { align:"right" });
+          });
+          y += 14;
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // RANKING
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.ranking) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("🏆 Ranking de Evaluaciones", 16, y); y += 4;
+        hline(y); y += 8;
+
+        const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
+        // Header
+        rect(16, y, W-32, 7, 2, [248,246,243]);
+        setFont("bold", 7.5, MID);
+        const RCols = [[16,"#",8],[26,"Dirección",50],[78,"Rol",36],[116,"Score",18],[136,"Nivel",28],[166,"Fecha",30]];
+        RCols.forEach(([cx,lbl])=>{ doc.text(lbl, cx, y+4.8); });
+        y += 8;
+
+        sorted.forEach((e,i) => {
+          y = checkY(y, 10);
+          const rgb = e.score_global ? LV_COLORS_RGB[Math.round(e.score_global)-1] : [180,178,174];
+          if (i===0) rect(16, y-0.5, W-32, 9, 2, [255,248,248]);
+          setFont("bold", 8, i===0?RED:MID);
+          doc.text(`#${i+1}`, 16, y+4.5);
+          setFont(i<3?"bold":"normal", 8, DARK);
+          doc.text((e.direccion||"—").slice(0,22), 26, y+4.5);
+          setFont("normal", 8, MID);
+          doc.text((e.rol||"—").slice(0,18), 78, y+4.5);
+          setFont("bold", 9, rgb);
+          doc.text(e.score_global?.toFixed(2)||"—", 116, y+4.5);
+          rect(136, y+0.5, 28, 6, 2, [...rgb].map(c=>Math.min(255,c+200)));
+          setFont("bold", 7, rgb);
+          doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
+          setFont("normal", 7, LIGHT);
+          doc.text(e.created_at?.slice(0,10)||"—", 166, y+4.5);
+          hline(y+8.5,[240,238,233]);
+          y += 10;
+        });
+      }
+
+      // ── Page numbers ──────────────────────────────────────────────────────
+      const totalPages = doc.getNumberOfPages();
+      for (let p=1; p<=totalPages; p++) {
+        doc.setPage(p);
+        if (p > 1 || !sections.portada) {
+          setFont("normal", 7, LIGHT);
+          doc.text(`Página ${p} de ${totalPages}`, W-16, H-5, { align:"right" });
+          setFont("normal", 7, LIGHT);
+          doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
+        }
+      }
+
+      const fname = `Reporte_Madurez_${new Date().toISOString().slice(0,10)}.pdf`;
+      doc.save(fname);
+    } catch(err) {
+      console.error("PDF error:", err);
+      alert("Error generando PDF: " + err.message);
+    }
+    setGenerating(false);
+  }
+
+  const RED  = "#E8251F";
+  const secCount = Object.values(sections).filter(Boolean).length;
+
+  return (
+    <div style={{ display:"flex", gap:24 }}>
+
+      {/* ── LEFT: Config panel ── */}
+      <div style={{ width:320, flexShrink:0, display:"flex", flexDirection:"column", gap:16 }}>
+
+        {/* Título y subtítulo */}
+        <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF", padding:"22px 20px" }}>
+          <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:14 }}>
+            Contenido del reporte
+          </div>
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:5 }}>Título</div>
+            <input value={titulo} onChange={e=>setTitulo(e.target.value)} style={{
+              width:"100%", padding:"9px 12px", borderRadius:9, border:"1px solid #E8E4DF",
+              fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none",
+            }}/>
+          </div>
+          <div>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:5 }}>Subtítulo</div>
+            <input value={subtitulo} onChange={e=>setSubtitulo(e.target.value)} style={{
+              width:"100%", padding:"9px 12px", borderRadius:9, border:"1px solid #E8E4DF",
+              fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none",
+            }}/>
+          </div>
+        </div>
+
+        {/* Filtros */}
+        <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF", padding:"22px 20px" }}>
+          <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:14 }}>Datos a incluir</div>
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Dirección</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+              {allDirs.map(d=>(
+                <button key={d} onClick={()=>toggleDir(d)} style={{
+                  padding:"4px 11px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
+                  border:`1.5px solid ${filterDir.includes(d)?RED:"#E8E4DF"}`,
+                  background:filterDir.includes(d)?RED+"18":"#FAFAFA",
+                  color:filterDir.includes(d)?RED:"#999",
+                }}>{d}</button>
+              ))}
+              {!allDirs.length && <div style={{ fontSize:11, color:"#CCC" }}>Sin datos</div>}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Rol</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+              {allRols.map(r=>(
+                <button key={r} onClick={()=>toggleRol(r)} style={{
+                  padding:"4px 11px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
+                  border:`1.5px solid ${filterRol.includes(r)?RED:"#E8E4DF"}`,
+                  background:filterRol.includes(r)?RED+"18":"#FAFAFA",
+                  color:filterRol.includes(r)?RED:"#999",
+                }}>{r}</button>
+              ))}
+              {!allRols.length && <div style={{ fontSize:11, color:"#CCC" }}>Sin datos</div>}
+            </div>
+          </div>
+          <div style={{ marginTop:12, padding:"9px 12px", borderRadius:9, background:"#F7F5F2",
+            fontSize:11, fontWeight:600, color:"#555", display:"flex", justifyContent:"space-between" }}>
+            <span>Evaluaciones incluidas</span>
+            <span style={{ color:RED, fontWeight:800 }}>{filtered.length}</span>
+          </div>
+        </div>
+
+        {/* Secciones checklist */}
+        <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF", padding:"22px 20px" }}>
+          <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:14 }}>
+            Secciones del PDF
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {Object.entries(SECTION_LABELS).map(([k,s])=>(
+              <label key={k} style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer",
+                padding:"8px 10px", borderRadius:10,
+                background: sections[k]?"#FFF8F7":"#FAFAF8",
+                border:`1px solid ${sections[k]?"#FDDCDA":"#F0EDE9"}`,
+                transition:"all .15s" }}>
+                <input type="checkbox" checked={!!sections[k]} onChange={()=>toggleSection(k)}
+                  style={{ marginTop:1, accentColor:RED, cursor:"pointer" }}/>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color: sections[k]?"#1A1A18":"#AAA" }}>
+                    {s.icon} {s.label}
+                  </div>
+                  <div style={{ fontSize:10, color:"#CCC", marginTop:2, lineHeight:1.4 }}>{s.desc}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+          <div style={{ marginTop:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:11, color:"#AAA" }}>{secCount} sección{secCount!==1?"es":""} seleccionada{secCount!==1?"s":""}</span>
+            <div style={{ display:"flex", gap:6 }}>
+              <button onClick={()=>setSections(Object.fromEntries(Object.keys(SECTION_LABELS).map(k=>[k,true])))} style={{
+                fontSize:10, color:RED, background:"none", border:"none", cursor:"pointer", fontWeight:600, padding:"2px 4px" }}>Todas</button>
+              <button onClick={()=>setSections(Object.fromEntries(Object.keys(SECTION_LABELS).map(k=>[k,false])))} style={{
+                fontSize:10, color:"#AAA", background:"none", border:"none", cursor:"pointer", padding:"2px 4px" }}>Ninguna</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── RIGHT: Preview + Generate ── */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", gap:14 }}>
+
+        {/* PDF Preview card */}
+        <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF",
+          overflow:"hidden", boxShadow:"0 8px 32px rgba(0,0,0,0.06)" }}>
+          {/* Cover preview */}
+          <div style={{ background:"linear-gradient(150deg,#C80F0A 0%,#E8251F 55%,#C01010 100%)",
+            padding:"32px 28px 28px", position:"relative", overflow:"hidden" }}>
+            {/* dot grid */}
+            <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)",
+              backgroundSize:"20px 20px", pointerEvents:"none" }}/>
+            <div style={{ position:"relative", zIndex:1 }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,.5)", textTransform:"uppercase",
+                letterSpacing:".18em", marginBottom:10 }}>Vista previa · Portada</div>
+              <div style={{ fontSize:22, fontWeight:900, color:"#FFFFFF", lineHeight:1.25, letterSpacing:"-.02em",
+                marginBottom:6, maxWidth:380 }}>{titulo||"Sin título"}</div>
+              <div style={{ fontSize:13, color:"rgba(255,200,200,.9)", marginBottom:16 }}>{subtitulo}</div>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                {[
+                  { l:"Evaluaciones", v:filtered.length },
+                  { l:"Score Global", v:avgArr(filtered.map(e=>e.score_global))?.toFixed(2)||"—" },
+                  { l:"Secciones PDF", v:secCount },
+                ].map(k=>(
+                  <div key={k.l} style={{ background:"rgba(255,255,255,.15)", borderRadius:10,
+                    padding:"8px 14px", textAlign:"center" }}>
+                    <div style={{ fontSize:18, fontWeight:900, color:"#FFF" }}>{k.v}</div>
+                    <div style={{ fontSize:9.5, color:"rgba(255,200,200,.8)", marginTop:2 }}>{k.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sections included list */}
+          <div style={{ padding:"20px 24px" }}>
+            <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:12 }}>
+              Secciones incluidas en el PDF
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+              {Object.entries(sections).filter(([,v])=>v).map(([k])=>(
+                <div key={k} style={{ padding:"4px 11px", borderRadius:99, fontSize:11, fontWeight:600,
+                  background:"#F7F5F2", border:"1px solid #E8E4DF", color:"#555" }}>
+                  {SECTION_LABELS[k]?.icon} {SECTION_LABELS[k]?.label}
+                </div>
+              ))}
+              {!secCount && <div style={{ fontSize:12, color:"#CCC" }}>Selecciona al menos una sección</div>}
+            </div>
+          </div>
+        </div>
+
+        {/* Generate button */}
+        <button onClick={generatePDF} disabled={generating || filtered.length===0 || secCount===0}
+          style={{
+            padding:"18px", borderRadius:14, border:"none", width:"100%",
+            background: (generating||filtered.length===0||secCount===0)
+              ? "#E8E4DF"
+              : "linear-gradient(135deg,#E8251F,#B91A15)",
+            color: (generating||filtered.length===0||secCount===0)?"#AAA":"#FFFFFF",
+            fontWeight:800, fontSize:15, cursor: generating||filtered.length===0||secCount===0?"not-allowed":"pointer",
+            boxShadow: generating?"none":"0 8px 24px rgba(232,37,31,0.35)",
+            transition:"all .2s", letterSpacing:"-.01em",
+          }}>
+          {generating ? "⏳ Generando PDF..." : "⬇ Generar y Descargar PDF"}
+        </button>
+
+        {filtered.length === 0 && (
+          <div style={{ textAlign:"center", fontSize:12, color:"#AAA" }}>
+            Selecciona al menos una dirección o rol para incluir datos
+          </div>
+        )}
+        {filtered.length > 0 && secCount === 0 && (
+          <div style={{ textAlign:"center", fontSize:12, color:"#AAA" }}>
+            Selecciona al menos una sección para generar el PDF
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
 function ConfirmModal({ count, onConfirm, onCancel }) {
   return (
@@ -1337,6 +2231,7 @@ export default function ControlApp() {
     { id: "monitor",   icon: "📊", label: "Monitoreo" },
     { id: "analytics", icon: "📈", label: "Analytics" },
     { id: "links",     icon: "🔗", label: "Links" },
+    { id: "reporte",   icon: "📄", label: "Reporte PDF" },
     { id: "downloads", icon: "⬇",  label: "Descargas" },
   ];
 
@@ -1398,6 +2293,7 @@ export default function ControlApp() {
             {tab === "monitor" && "Vista general de todas las evaluaciones registradas"}
             {tab === "links" && "Genera y gestiona links de acceso al diagnóstico"}
             {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
+            {tab === "reporte" && "Genera un reporte PDF personalizado con portada y secciones seleccionables"}
             {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
           </div>
         </div>
@@ -1410,6 +2306,7 @@ export default function ControlApp() {
           />
         )}
         {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
+        {tab === "reporte" && <ReportTab evaluaciones={evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
         {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
       </div>
