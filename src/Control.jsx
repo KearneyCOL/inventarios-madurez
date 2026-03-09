@@ -337,39 +337,6 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             color: "#1A1A18", fontSize: 13, outline: "none",
           }}
         />
-        <button onClick={() => {
-          const rows = filtered.map(e => ({
-            "ID": e.id,
-            "Dirección": e.direccion || "",
-            "Rol": e.rol || "",
-            "Fecha": formatDate(e.created_at),
-            "Score Global": e.score_global || "",
-            "Nivel Global": getLevelLabel(e.score_global),
-            ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
-          }));
-          const ws = XLSX.utils.json_to_sheet(rows);
-          ws["!cols"] = [{wch:36},{wch:20},{wch:18},{wch:18},{wch:16},{wch:14},...Array(7).fill({wch:16})];
-          const ws2 = XLSX.utils.json_to_sheet(respuestas
-            .filter(r => filtered.some(e => e.id === r.evaluacion_id))
-            .map(r => ({
-              "Evaluacion ID": r.evaluacion_id,
-              "Sub-dimensión": r.subdimension_id,
-              "Dimensión": r.dimension_key,
-              "Valor": r.valor,
-              "Nivel": getLevelLabel(r.valor),
-            }))
-          );
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Evaluaciones");
-          XLSX.utils.book_append_sheet(wb, ws2, "Respuestas Detalle");
-          XLSX.writeFile(wb, `Consolidado_Madurez_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }} className="btn-action" style={{
-          padding: "10px 18px", borderRadius: 10, border: "none",
-          background: "linear-gradient(135deg,#059669,#047857)",
-          color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
-          whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(5,150,105,0.3)",
-          display: "flex", alignItems: "center", gap: 6,
-        }}>⬇ Descargar todo</button>
         {selected.length > 0 && (
           <button onClick={() => onDelete(selected)} className="btn-action" style={{
             padding: "10px 18px", borderRadius: 10, border: "1px solid #E8251F40",
@@ -1415,7 +1382,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
 
-      //  helpers 
+      // ── helpers ──────────────────────────────────────────────────────────
       function setFont(weight="normal", size=10, color=DARK) {
         doc.setFont("helvetica", weight);
         doc.setFontSize(size);
@@ -1435,9 +1402,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         const tw = doc.getTextWidth(text);
         doc.setFillColor(...bgRGB);
         doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
-        doc.text(safeStr(text), x, y);
+        doc.text(text, x, y);
       }
-      function safeStr(v) { if(!v&&v!==0) return "-"; return String(v).replace(/[^\x00-\xFF]/g,"").replace(/\s+/g," ").trim()||"-"; }
       function miniBar(x, y, value, max, color, barW=40) {
         doc.setFillColor(235,233,228);
         doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
@@ -1451,7 +1417,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         if (header) {
           rect(0, 0, W, 14, 0, RED);
           setFont("bold", 9, [255,255,255]);
-          doc.text(safeStr(titulo), 16, 9.5);
+          doc.text(titulo, 16, 9.5);
           setFont("normal", 7.5, [255,200,200]);
           doc.text(now, W-16, 9.5, { align:"right" });
         }
@@ -1462,7 +1428,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         return y;
       }
 
-      //  data 
+      // ── data ─────────────────────────────────────────────────────────────
       const globalAvg = avgArr(filtered.map(e=>e.score_global));
       const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
       const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
@@ -1498,9 +1464,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         color: LV_COLORS_RGB[v-1],
       }));
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // PORTADA
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.portada) {
         // Red hero
         rect(0, 0, W, 110, 0, RED);
@@ -1513,10 +1479,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
         // Decorative circles
         doc.setFillColor(255,255,255);
-        
         doc.circle(W-20, 20, 60, "F");
         doc.circle(30, 95, 35, "F");
-        
 
         // Logo area
         rect(16, 16, 42, 9, 3, [200,20,15]);
@@ -1525,20 +1489,18 @@ function ReportTab({ evaluaciones, respuestas }) {
 
         // Title
         setFont("bold", 28, [255,255,255]);
-        const titleLines = doc.splitTextToSize(safeStr(titulo), W-40);
+        const titleLines = doc.splitTextToSize(titulo, W-40);
         let ty = 48;
-        titleLines.forEach(line => { doc.text(safeStr(line), 16, ty); ty += 11; });
+        titleLines.forEach(line => { doc.text(line, 16, ty); ty += 11; });
 
         setFont("normal", 12, [255,200,200]);
-        doc.text(safeStr(subtitulo), 16, ty+4);
+        doc.text(subtitulo, 16, ty+4);
 
         // Date pill
         doc.setFillColor(255,255,255);
-        
         doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
-        
         setFont("bold", 8, [255,255,255]);
-        doc.text(safeStr(` ${now}`), 18, ty+17);
+        doc.text(` ${now}`, 18, ty+17);
 
         // Summary box
         rect(16, 118, W-32, 44, 6, [255,248,248]);
@@ -1573,11 +1535,11 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.text("Filtros aplicados:", 16, fy); fy += 6;
           if (filterDir.length) {
             setFont("normal", 7.5, MID);
-            doc.text(safeStr(`Dirección: ${filterDir.join(", ")}`), 20, fy); fy += 5;
+            doc.text(`Dirección: ${filterDir.join(", ")}`, 20, fy); fy += 5;
           }
           if (filterRol.length) {
             setFont("normal", 7.5, MID);
-            doc.text(safeStr(`Rol: ${filterRol.join(", ")}`), 20, fy); fy += 5;
+            doc.text(`Rol: ${filterRol.join(", ")}`, 20, fy); fy += 5;
           }
         }
 
@@ -1587,18 +1549,18 @@ function ReportTab({ evaluaciones, respuestas }) {
         const included = Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
         setFont("normal", 7.5, MID);
         const incText = included.join("  ·  ");
-        const incLines = doc.splitTextToSize(safeStr(incText), W-32);
-        incLines.forEach((line,i) => doc.text(safeStr(line), 16, Math.max(fy+4,178)+6+i*4.5));
+        const incLines = doc.splitTextToSize(incText, W-32);
+        incLines.forEach((line,i) => doc.text(line, 16, Math.max(fy+4,178)+6+i*4.5));
 
         // Footer on cover
         rect(0, H-14, W, 14, 0, [30,30,28]);
         setFont("normal", 7.5, [150,148,144]);
-        doc.text(safeStr(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`), W/2, H-6, { align:"center" });
+        doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // PAGE: KPIs EJECUTIVOS
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.resumen_kpis) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1613,21 +1575,21 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.roundedRect(x, y, bw-3, 28, 5, 5);
           setFont("normal", 11, []);
           doc.setTextColor(...rgb);
-          doc.text(safeStr(""), x+5, y+9);
+          doc.text(icon, x+5, y+9);
           setFont("bold", 18, rgb);
-          doc.text(safeStr(value), x+(bw-3)/2, y+19, { align:"center" });
+          doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
           setFont("normal", 7, MID);
-          doc.text(safeStr(label), x+(bw-3)/2, y+25, { align:"center" });
+          doc.text(label, x+(bw-3)/2, y+25, { align:"center" });
           if (sub) {
             setFont("normal", 6.5, LIGHT);
-            doc.text(safeStr(sub), x+(bw-3)/2, y+28.5, { align:"center" });
+            doc.text(sub, x+(bw-3)/2, y+28.5, { align:"center" });
           }
         };
         const bw = (W-32)/4;
-        kpiBox(16, bw, "", "Score Global Prom.", globalAvg?.toFixed(2)||"-", `${filtered.length} evaluaciones`, RED);
-        kpiBox(16+bw, bw, "", "Dimensión más fuerte", strongest?.num||"-", strongest?.label, [5,150,105]);
-        kpiBox(16+bw*2, bw, "", "Dimensión más débil", weakest?.num||"-", weakest?.label, [220,38,38]);
-        kpiBox(16+bw*3, bw, "", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
+        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"-", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"-", strongest?.label, [5,150,105]);
+        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"-", weakest?.label, [220,38,38]);
+        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
         y += 36;
 
         // Dim scores row
@@ -1648,9 +1610,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         y += 30;
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // PAGE: DISTRIBUCIÓN
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.distribucion) {
         let y = checkY(999); // force new page for this section
         y = newPage(); 
@@ -1681,7 +1643,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
           // Pct
           setFont("normal", 7, MID);
-          doc.text(safeStr(`${l.pct}%`), bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
+          doc.text(`${l.pct}%`, bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
         });
         y += barAreaH + 20;
 
@@ -1692,9 +1654,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // PAGE: HEATMAP
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.heatmap && heatRows.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1709,7 +1671,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         rect(16, y, W-32, 7, 2, [248,246,243]);
         cols.forEach((col,i) => {
           setFont("bold", 7, MID);
-          doc.text(safeStr(col), cx+colW[i]/2, y+4.8, { align:"center" });
+          doc.text(col, cx+colW[i]/2, y+4.8, { align:"center" });
           cx += colW[i];
         });
         y += 8;
@@ -1719,7 +1681,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           cx = 16;
           // Dir
           setFont("bold", 8, DARK);
-          doc.text(safeStr(row.dir), cx+2, y+4.8);
+          doc.text(row.dir, cx+2, y+4.8);
           cx += colW[0];
           // n
           setFont("normal", 7.5, MID);
@@ -1757,13 +1719,13 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.setFillColor(...rgb.map(c=>Math.min(255,c+200)));
           doc.roundedRect(lx-1, y-3.5, 40, 5, 1.5, 1.5, "F");
           setFont("bold", 7, rgb);
-          doc.text(safeStr(lbl), lx+20, y, { align:"center" });
+          doc.text(lbl, lx+20, y, { align:"center" });
         });
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // POR ROL
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.por_rol && byRoleData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1775,11 +1737,11 @@ function ReportTab({ evaluaciones, respuestas }) {
           const sc = r.score;
           const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
           setFont("bold", 8, rgb);
-          doc.text(safeStr(`#${i+1}`), 16, y+3);
+          doc.text(`#${i+1}`, 16, y+3);
           setFont("bold", 10, DARK);
-          doc.text(safeStr(r.rol), 26, y+3);
+          doc.text(r.rol, 26, y+3);
           setFont("normal", 8, MID);
-          doc.text(safeStr(`n=${r.n}`), 110, y+3);
+          doc.text(`n=${r.n}`, 110, y+3);
           miniBar(120, y, sc||0, 5, rgb, 55);
           setFont("bold", 11, rgb);
           doc.text(sc?.toFixed(2)||"-", W-16, y+3, { align:"right" });
@@ -1788,25 +1750,25 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // BRECHAS CRÍTICAS
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.brechas_crit) {
         let y = newPage();
         rect(0, 0, W, 14, 0, RED); // override header to red
         setFont("bold", 9, [255,255,255]);
-        doc.text(safeStr(titulo), 16, 9.5);
+        doc.text(titulo, 16, 9.5);
         setFont("bold", 16, RED);
         y = 20;
-        doc.text("Brechas Criticas - Nivel 1-2", 16, y); y += 4;
+        doc.text(" Brechas Críticas - Nivel 1-2", 16, y); y += 4;
         hline(y); y += 6;
         setFont("normal", 9, MID);
-        doc.text(safeStr(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`), 16, y); y += 8;
+        doc.text(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`, 16, y); y += 8;
 
         if (critGaps.length === 0) {
           rect(16, y, W-32, 14, 4, [236,253,245]);
           setFont("bold", 9, [5,150,105]);
-          doc.text("  No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
+          doc.text(" No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
           y += 20;
         } else {
           critGaps.forEach(g => {
@@ -1817,30 +1779,30 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.roundedRect(16, y, W-32, 24, 4, 4);
             // Icon + title
             setFont("bold", 11, DARK);
-            doc.text(safeStr(`${g.dimIcon}  ${g.dimLabel}`), 22, y+8);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+8);
             // Score badge
             rect(W-50, y+3, 32, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
             setFont("bold", 8, rgb);
-            doc.text(safeStr(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`), W-34, y+7.5, { align:"center" });
+            doc.text(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`, W-34, y+7.5, { align:"center" });
             // Gap
             setFont("bold", 8, [220,38,38]);
-            doc.text(safeStr(`+${g.gap.toFixed(1)} niveles de brecha`), 22, y+15);
+            doc.text(`+${g.gap.toFixed(1)} niveles de brecha`, 22, y+15);
             // Minibar
             miniBar(22, y+18.5, g.score, 5, rgb, W-52);
             setFont("normal", 7, MID);
-            doc.text(safeStr(`${g.n} evaluaciones promediadas`), W-16, y+22, { align:"right" });
+            doc.text(`${g.n} evaluaciones promediadas`, W-16, y+22, { align:"right" });
             y += 28;
           });
         }
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // BRECHAS MODERADAS
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.brechas_mod) {
         let y = newPage();
         setFont("bold", 16, [217,119,6]);
-        doc.text("Brechas Moderadas - Nivel 3", 16, y); y += 4;
+        doc.text(" Brechas Moderadas - Nivel 3", 16, y); y += 4;
         hline(y,[254,230,138]); y += 8;
 
         if (modGaps.length === 0) {
@@ -1854,30 +1816,30 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.setDrawColor(253,230,138);
             doc.roundedRect(16, y, W-32, 18, 4, 4);
             setFont("bold", 10, DARK);
-            doc.text(safeStr(`${g.dimIcon}  ${g.dimLabel}`), 22, y+7);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+7);
             miniBar(22, y+11, g.score, 5, rgb, W-52);
             setFont("bold", 8, rgb);
-            doc.text(safeStr(`${g.score.toFixed(1)} / 5`), W-16, y+8, { align:"right" });
+            doc.text(`${g.score.toFixed(1)} / 5`, W-16, y+8, { align:"right" });
             setFont("normal", 7, MID);
-            doc.text(safeStr(`n=${g.n}`), W-16, y+15, { align:"right" });
+            doc.text(`n=${g.n}`, W-16, y+15, { align:"right" });
             y += 22;
           });
         }
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // ROADMAP
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.roadmap && gapsData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text("Hoja de Ruta Priorizada", 16, y); y += 4;
+        doc.text(" Hoja de Ruta Priorizada", 16, y); y += 4;
         hline(y); y += 8;
 
         const phases = [
-          { t:"Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
-          { t:"Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
-          { t:"Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
+          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
+          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
         ];
         const colW2 = (W-38)/3;
         phases.forEach((ph,pi) => {
@@ -1886,9 +1848,9 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.setDrawColor(...ph.rgb,80);
           doc.roundedRect(px, y, colW2, 12, 4, 4);
           setFont("bold", 9, ph.rgb);
-          doc.text(safeStr(ph.t), px+5, y+6);
+          doc.text(ph.t, px+5, y+6);
           setFont("normal", 7, [...ph.rgb].map(c=>Math.min(200,c+40)));
-          doc.text(safeStr(ph.sub), px+5, y+10.5);
+          doc.text(ph.sub, px+5, y+10.5);
         });
         y += 16;
 
@@ -1902,7 +1864,7 @@ function ReportTab({ evaluaciones, respuestas }) {
             const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
             rect(px, y, colW2, 11, 3, [250,249,247]);
             setFont("bold", 8.5, DARK);
-            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), px+4, y+5);
+            doc.text(`${g.dimIcon} ${g.dimLabel}`, px+4, y+5);
             miniBar(px+4, y+7, g.score, 5, rgb, colW2-18);
             setFont("bold", 8, rgb);
             doc.text(g.score.toFixed(1), px+colW2-4, y+5, { align:"right" });
@@ -1911,13 +1873,13 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
       }
 
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       // RANKING
-      // 
+      // ══════════════════════════════════════════════════════════════════════
       if (sections.ranking) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text("Ranking de Evaluaciones", 16, y); y += 4;
+        doc.text(" Ranking de Evaluaciones", 16, y); y += 4;
         hline(y); y += 8;
 
         const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
@@ -1925,7 +1887,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         rect(16, y, W-32, 7, 2, [248,246,243]);
         setFont("bold", 7.5, MID);
         const RCols = [[16,"#",8],[26,"Dirección",50],[78,"Rol",36],[116,"Score",18],[136,"Nivel",28],[166,"Fecha",30]];
-        RCols.forEach(([cx,lbl])=>{ doc.text(safeStr(lbl), cx, y+4.8); });
+        RCols.forEach(([cx,lbl])=>{ doc.text(lbl, cx, y+4.8); });
         y += 8;
 
         sorted.forEach((e,i) => {
@@ -1933,7 +1895,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           const rgb = e.score_global ? LV_COLORS_RGB[Math.round(e.score_global)-1] : [180,178,174];
           if (i===0) rect(16, y-0.5, W-32, 9, 2, [255,248,248]);
           setFont("bold", 8, i===0?RED:MID);
-          doc.text(safeStr(`#${i+1}`), 16, y+4.5);
+          doc.text(`#${i+1}`, 16, y+4.5);
           setFont(i<3?"bold":"normal", 8, DARK);
           doc.text((e.direccion||"-").slice(0,22), 26, y+4.5);
           setFont("normal", 8, MID);
@@ -1950,13 +1912,13 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      //  Page numbers 
+      // ── Page numbers ──────────────────────────────────────────────────────
       const totalPages = doc.internal.getNumberOfPages();
       for (let p=1; p<=totalPages; p++) {
         doc.setPage(p);
         if (p > 1 || !sections.portada) {
           setFont("normal", 7, LIGHT);
-          doc.text(safeStr(`Página ${p} de ${totalPages}`), W-16, H-5, { align:"right" });
+          doc.text(`Página ${p} de ${totalPages}`, W-16, H-5, { align:"right" });
           setFont("normal", 7, LIGHT);
           doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
         }
@@ -2004,6 +1966,16 @@ function ReportTab({ evaluaciones, respuestas }) {
         {/* Filtros */}
         <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF", padding:"22px 20px" }}>
           <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:14 }}>Datos a incluir</div>
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Consolidado</div>
+            <button onClick={()=>{ setFilterDir([]); setFilterRol([]); }} style={{
+              padding:"6px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+              border:`1.5px solid ${!filterDir.length&&!filterRol.length?RED:"#E8E4DF"}`,
+              background:!filterDir.length&&!filterRol.length?RED+"18":"#FAFAFA",
+              color:!filterDir.length&&!filterRol.length?RED:"#999",
+            }}>Todas las evaluaciones ({evaluaciones.length})</button>
+          </div>
+          <div style={{ height:1, background:"#F0EDE9", marginBottom:14 }} />
           <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Dirección</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
