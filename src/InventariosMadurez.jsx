@@ -333,12 +333,10 @@ function CountUp({to,decimals=0,duration=800}) {
 
 // ─── REGISTRO FORM (modal de inicio) ─────────────────────────────────────────
 const DIRECCIONES = [
-  "Dirección de Tecnología","Dirección Comercial","Dirección de Operaciones",
-  "Dirección de Supply Chain","Dirección Financiera","Dirección de Logística",
-  "Otra",
+  "Supply Chain","Ingeniería","Implementación","OyM","UMM","UMC",
 ];
 const ROLES = [
-  "Gerente / Director","Coordinador / Jefe","Analista","Consultor","Otro",
+  "Director","Gerente","Jefe","Ingeniero","Analista",
 ];
 
 function RegistroForm({onStart}) {
