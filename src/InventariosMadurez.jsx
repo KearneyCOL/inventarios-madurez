@@ -848,6 +848,50 @@ function SummaryTab({answers, perfil}) {
   return (
     <div style={{maxWidth:1100,margin:"0 auto",padding:"36px 36px 52px"}}>
 
+
+      {/* ─── INSIGHTS ─── */}
+      {(()=>{
+        const scores=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean).map(Number);
+        if(!scores.length) return null;
+        const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
+        const max=Math.max(...scores), min=Math.min(...scores);
+        const spread=parseFloat((max-min).toFixed(1));
+        const allFive=Object.values(answers).filter(v=>v>0).every(v=>v===5);
+        const highCount=Object.values(answers).filter(v=>v===5).length;
+        const totalAns=Object.values(answers).filter(v=>v>0).length;
+        const suspicious=totalAns>=10&&highCount/totalAns>0.7;
+        const strongDim=DIMS.reduce((best,d)=>{const sc=getDimScore(d,answers);return sc&&sc>=(best.sc||0)?{d,sc}:best},{}).d;
+        const weakDim=DIMS.reduce((worst,d)=>{const sc=getDimScore(d,answers);return sc&&sc<=(worst.sc||99)?{d,sc}:worst},{}).d;
+        return (
+          <div className="fade-up" style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+            {suspicious&&(
+              <div style={{background:"#FFFBEB",border:"1.5px solid #FDE68A",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18}}>⚠️</span>
+                <div style={{fontSize:12,color:"#92400E",lineHeight:1.6}}>
+                  <strong>Posible sesgo de respuesta:</strong> más del 70% de las respuestas son nivel 5. Te recomendamos revisar que los puntajes reflejen la situación actual verificable, no la aspiración.
+                </div>
+              </div>
+            )}
+            {spread>=2&&strongDim&&weakDim&&(
+              <div style={{background:"#F0F9FF",border:"1.5px solid #BAE6FD",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18}}>💡</span>
+                <div style={{fontSize:12,color:"#0C4A6E",lineHeight:1.6}}>
+                  <strong>Alta dispersión ({spread} niveles):</strong> Fortaleza clara en <strong>{strongDim?.label}</strong>, brecha significativa en <strong>{weakDim?.label}</strong>. Considera alinear estas dimensiones antes de avanzar al siguiente nivel.
+                </div>
+              </div>
+            )}
+            {spread<1.5&&scores.length>=5&&(
+              <div style={{background:"#F0FDF4",border:"1.5px solid #BBF7D0",borderRadius:14,padding:"12px 18px",display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:18}}>✅</span>
+                <div style={{fontSize:12,color:"#14532D",lineHeight:1.6}}>
+                  <strong>Alta consistencia:</strong> Las dimensiones están alineadas (dispersión {spread} niveles). El crecimiento puede ser balanceado y transversal.
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* BOTÓN DESCARGA */}
       <div className="fade-up" style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
         <button onClick={descargarExcel} className="btn-red" style={{
@@ -1178,11 +1222,22 @@ function ScrollIndicator({ scrollRef }) {
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
+
+// ─── LOCAL STORAGE ────────────────────────────────────────────────────────────
+const LS_ANSWERS = "madurez_answers";
+const LS_PERFIL  = "madurez_perfil";
+function loadLS(key, fallback) {
+  try { const s=localStorage.getItem(key); return s?JSON.parse(s):fallback; } catch{ return fallback; }
+}
+function saveLS(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch{}
+}
+
 export default function App() {
-  const [answers,setAnswers] = useState(emptyAnswers);
-  const [perfil,setPerfil] = useState(null);
+  const [answers,setAnswers] = useState(()=>loadLS(LS_ANSWERS,emptyAnswers()));
+  const [perfil,setPerfil] = useState(()=>loadLS(LS_PERFIL,null));
   const [showPerfil,setShowPerfil] = useState(false);
-  const [showRegistro,setShowRegistro] = useState(true);
+  const [showRegistro,setShowRegistro] = useState(()=>!loadLS(LS_PERFIL,null));
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
@@ -1195,8 +1250,11 @@ export default function App() {
   const [confirmReset, setConfirmReset] = useState(false);
 
   function doReset() {
-    setAnswers(emptyAnswers);
+    const empty=emptyAnswers();
+    setAnswers(empty);
+    saveLS(LS_ANSWERS,empty);
     setPerfil(null);
+    localStorage.removeItem(LS_PERFIL);
     setActiveDim(0);
     setActiveSub(0);
     setView("intro");
@@ -1224,6 +1282,10 @@ export default function App() {
     document.head.appendChild(s);
     return()=>s.remove();
   },[]);
+
+  // ─── PERSISTIR EN LOCALSTORAGE ──────────────────────────────────────────
+  useEffect(()=>{ saveLS(LS_ANSWERS, answers); },[answers]);
+  useEffect(()=>{ if(perfil) saveLS(LS_PERFIL, perfil); },[perfil]);
 
   // ─── GUARDAR EN SUPABASE AL LLEGAR AL RESUMEN ────────────────────────────
   const guardadoRef = useRef(false);
@@ -1372,6 +1434,11 @@ export default function App() {
                       </div>
                       {sc&&<span className="display" style={{fontSize:12,fontWeight:900,color:getLv(Math.round(sc)).c,flexShrink:0}}>{sc}</span>}
                     </div>
+                    {sc&&(
+                      <div style={{marginTop:4,height:3,background:T.borderSm,borderRadius:99,overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${(sc/5)*100}%`,background:getLv(Math.round(sc)).c,borderRadius:99,transition:"width .4s"}}/>
+                      </div>
+                    )}
                   </button>
                   {active&&(
                     <div style={{paddingLeft:30,paddingBottom:6,background:"#FFFAF9"}}>

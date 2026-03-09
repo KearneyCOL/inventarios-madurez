@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer } from "recharts";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -449,17 +450,173 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
   );
 }
 
+// ─── ANALYTICS TAB ────────────────────────────────────────────────────────────
+function AnalyticsTab({ evaluaciones }) {
+  const [filterDir, setFilterDir] = useState("Todas");
+  const DIRS = ["Todas", ...Array.from(new Set(evaluaciones.map(e => e.direccion).filter(Boolean)))];
+
+  const filtered = filterDir === "Todas" ? evaluaciones : evaluaciones.filter(e => e.direccion === filterDir);
+
+  // Score distribution
+  const distData = [1,2,3,4,5].map(v => ({
+    name: ["Básico","Emergente","Robusto","E2E","Pivote"][v-1],
+    count: filtered.filter(e => Math.round(e.score_global) === v).length,
+    color: ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][v-1],
+  }));
+
+  // Avg score by dimension
+  const dimData = DIMS.map(d => {
+    const vals = filtered.map(e => e[`score_${d.key}`]).filter(Boolean);
+    const avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : 0;
+    return { name: d.num+" "+d.label.slice(0,10), avg, color: avg>=4?"#059669":avg>=3?"#2563EB":avg>=2?"#D97706":"#E8251F" };
+  });
+
+  // Heatmap by direccion x dim
+  const allDirs = Array.from(new Set(evaluaciones.map(e => e.direccion).filter(Boolean)));
+  const heatmap = allDirs.map(dir => {
+    const evals = evaluaciones.filter(e => e.direccion === dir);
+    const row = { dir, count: evals.length };
+    DIMS.forEach(d => {
+      const vals = evals.map(e => e[`score_${d.key}`]).filter(Boolean);
+      row[d.key] = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)) : null;
+    });
+    return row;
+  });
+
+  const heatColor = (v) => {
+    if (!v) return "#F3F2F0";
+    if (v >= 4) return "#05966920";
+    if (v >= 3) return "#2563EB20";
+    if (v >= 2) return "#D9770620";
+    return "#E8251F20";
+  };
+  const heatText = (v) => {
+    if (!v) return "#BBB";
+    if (v >= 4) return "#059669";
+    if (v >= 3) return "#2563EB";
+    if (v >= 2) return "#D97706";
+    return "#E8251F";
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+      {/* Filter */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {DIRS.map(d => (
+          <button key={d} onClick={() => setFilterDir(d)} style={{
+            padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer",
+            border: `1.5px solid ${filterDir===d?"#E8251F":"#E8E4DF"}`,
+            background: filterDir===d?"#E8251F18":"#FFFFFF",
+            color: filterDir===d?"#E8251F":"#999",
+          }}>{d}</button>
+        ))}
+      </div>
+
+      {/* Charts row */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+        {/* Distribution */}
+        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
+            Distribución por Nivel Global
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={distData} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EDE9" />
+              <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#AAA" }} />
+              <YAxis tick={{ fontSize: 9, fill: "#AAA" }} allowDecimals={false} />
+              <Tooltip formatter={(v) => [v, "Evaluaciones"]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
+              <Bar dataKey="count" radius={[6,6,0,0]}>
+                {distData.map((e,i) => <Cell key={i} fill={e.color} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Avg by dimension */}
+        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
+            Score Promedio por Dimensión
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={dimData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F0EDE9" />
+              <XAxis type="number" domain={[0,5]} tick={{ fontSize: 9, fill: "#AAA" }} tickCount={6} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 8.5, fill: "#888" }} width={80} />
+              <Tooltip formatter={(v) => [v+" / 5", "Score"]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
+              <Bar dataKey="avg" radius={[0,6,6,0]} barSize={12}>
+                {dimData.map((e,i) => <Cell key={i} fill={e.color} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Heatmap */}
+      {heatmap.length > 0 && (
+        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
+            Heatmap por Dirección × Dimensión
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 4, fontSize: 11 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", padding: "4px 8px", color: "#BBB", fontWeight: 600, fontSize: 10 }}>Dirección</th>
+                  <th style={{ padding: "4px 8px", color: "#BBB", fontWeight: 600, fontSize: 10 }}>N</th>
+                  {DIMS.map(d => <th key={d.key} style={{ padding: "4px 6px", color: "#BBB", fontWeight: 600, fontSize: 9, textAlign: "center" }}>{d.num}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {heatmap.map(row => (
+                  <tr key={row.dir}>
+                    <td style={{ padding: "5px 8px", fontWeight: 600, color: "#1A1A18", fontSize: 12, whiteSpace: "nowrap" }}>{row.dir}</td>
+                    <td style={{ padding: "5px 8px", color: "#AAA", fontSize: 11, textAlign: "center" }}>{row.count}</td>
+                    {DIMS.map(d => (
+                      <td key={d.key} style={{
+                        padding: "5px 8px", textAlign: "center", borderRadius: 8,
+                        background: heatColor(row[d.key]),
+                        color: heatText(row[d.key]),
+                        fontWeight: 700, fontSize: 12, minWidth: 38,
+                      }}>{row[d.key] ?? "—"}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─── LINKS TAB ────────────────────────────────────────────────────────────────
 function LinksTab() {
   const [links, setLinks] = useState([]);
   const [copied, setCopied] = useState(null);
+  const [loadingLinks, setLoadingLinks] = useState(true);
   const BASE = window.location.origin.includes("admin")
     ? window.location.origin.replace("admin.", "")
     : "https://inventarios-madurez.vercel.app";
 
-  function generate() {
+  useEffect(() => {
+    supabase.from("links").select("*").order("created_at", { ascending: false })
+      .then(({ data }) => { setLinks(data || []); setLoadingLinks(false); });
+  }, []);
+
+  async function generate() {
     const id = Math.random().toString(36).slice(2, 10).toUpperCase();
-    setLinks(l => [{ id, url: `${BASE}?ref=${id}`, created: new Date().toISOString() }, ...l]);
+    const newLink = { id, url: `${BASE}?ref=${id}`, created_at: new Date().toISOString() };
+    const { data } = await supabase.from("links").insert([{ id, url: newLink.url }]).select();
+    setLinks(l => [data?.[0] || newLink, ...l]);
+  }
+
+  async function deleteLink(id) {
+    await supabase.from("links").delete().eq("id", id);
+    setLinks(l => l.filter(x => x.id !== id));
   }
 
   function copy(url, id) {
@@ -516,7 +673,7 @@ function LinksTab() {
                     background: "#E8251F18", padding: "2px 8px", borderRadius: 99 }}>
                     REF: {link.id}
                   </span>
-                  <span style={{ fontSize: 10, color: "#BBB" }}>{formatDate(link.created)}</span>
+                  <span style={{ fontSize: 10, color: "#BBB" }}>{formatDate(link.created_at || link.created)}</span>
                 </div>
                 <div style={{ fontSize: 12, color: "#AAA", fontFamily: "monospace",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link.url}</div>
@@ -528,7 +685,7 @@ function LinksTab() {
                   color: copied === link.id ? "#fff" : "#888",
                   fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all .2s",
                 }}>{copied === link.id ? "✓ Copiado" : "📋 Copiar"}</button>
-                <button onClick={() => setLinks(l => l.filter(x => x.id !== link.id))}
+                <button onClick={() => deleteLink(link.id)}
                   className="btn-action" style={{
                     padding: "8px 12px", borderRadius: 9, border: "1px solid #E8251F30",
                     background: "#E8251F10", color: "#E8251F", fontSize: 12, cursor: "pointer",
@@ -545,8 +702,19 @@ function LinksTab() {
 // ─── DOWNLOADS TAB ────────────────────────────────────────────────────────────
 function DownloadsTab({ evaluaciones, respuestas }) {
   const [downloading, setDownloading] = useState(null);
+  const [filterDir, setFilterDir] = useState("Todas");
+  const [filterRol, setFilterRol] = useState("Todos");
+
+  const DIRS = ["Todas", ...Array.from(new Set(evaluaciones.map(e => e.direccion).filter(Boolean)))];
+  const ROLES = ["Todos", ...Array.from(new Set(evaluaciones.map(e => e.rol).filter(Boolean)))];
+
+  const filtered = evaluaciones.filter(e =>
+    (filterDir === "Todas" || e.direccion === filterDir) &&
+    (filterRol === "Todos"  || e.rol      === filterRol)
+  );
 
   function dlAgregado() {
+    const evaluaciones = filtered;
     setDownloading("all");
     setTimeout(() => {
       const rows = evaluaciones.map(e => ({
@@ -601,6 +769,26 @@ function DownloadsTab({ evaluaciones, respuestas }) {
 
   return (
     <div>
+      {/* Filtros */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".08em" }}>Filtrar:</div>
+        <select value={filterDir} onChange={e => setFilterDir(e.target.value)} style={{
+          padding: "7px 12px", borderRadius: 9, border: "1px solid #E8E4DF",
+          background: "#FFFFFF", fontSize: 12, color: "#1A1A18", cursor: "pointer",
+        }}>
+          {DIRS.map(d => <option key={d}>{d}</option>)}
+        </select>
+        <select value={filterRol} onChange={e => setFilterRol(e.target.value)} style={{
+          padding: "7px 12px", borderRadius: 9, border: "1px solid #E8E4DF",
+          background: "#FFFFFF", fontSize: 12, color: "#1A1A18", cursor: "pointer",
+        }}>
+          {ROLES.map(r => <option key={r}>{r}</option>)}
+        </select>
+        {(filterDir !== "Todas" || filterRol !== "Todos") && (
+          <span style={{ fontSize: 11, color: "#E8251F", fontWeight: 600 }}>{filtered.length} evaluaciones filtradas</span>
+        )}
+      </div>
+
       {/* Agregado */}
       <div style={{
         background: "#FFFFFF", border: "1px solid #E8E4DF", borderRadius: 18,
@@ -615,17 +803,17 @@ function DownloadsTab({ evaluaciones, respuestas }) {
           </div>
           <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
             <span style={{ fontSize: 11, color: "#059669", background: "#05966918", padding: "3px 10px",
-              borderRadius: 99, border: "1px solid #05966930" }}>{evaluaciones.length} evaluaciones</span>
+              borderRadius: 99, border: "1px solid #05966930" }}>{filtered.length} evaluaciones</span>
             <span style={{ fontSize: 11, color: "#2563EB", background: "#2563EB18", padding: "3px 10px",
               borderRadius: 99, border: "1px solid #2563EB30" }}>{respuestas.length} respuestas</span>
           </div>
         </div>
-        <button onClick={dlAgregado} className="btn-action" disabled={evaluaciones.length === 0} style={{
+        <button onClick={dlAgregado} className="btn-action" disabled={filtered.length === 0} style={{
           padding: "13px 26px", borderRadius: 12, border: "none", whiteSpace: "nowrap",
-          background: evaluaciones.length === 0 ? "#2A2A28" : "linear-gradient(135deg,#059669,#047857)",
+          background: filtered.length === 0 ? "#2A2A28" : "linear-gradient(135deg,#059669,#047857)",
           color: evaluaciones.length === 0 ? "#444" : "#fff",
-          fontWeight: 700, fontSize: 13, cursor: evaluaciones.length === 0 ? "not-allowed" : "pointer",
-          boxShadow: evaluaciones.length === 0 ? "none" : "0 4px 14px rgba(5,150,105,0.35)",
+          fontWeight: 700, fontSize: 13, cursor: filtered.length === 0 ? "not-allowed" : "pointer",
+          boxShadow: filtered.length === 0 ? "none" : "0 4px 14px rgba(5,150,105,0.35)",
         }}>{downloading === "all" ? "⏳ Generando..." : "⬇ Descargar Excel"}</button>
       </div>
 
@@ -633,14 +821,14 @@ function DownloadsTab({ evaluaciones, respuestas }) {
       <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase",
         letterSpacing: ".1em", marginBottom: 14 }}>Descargas individuales</div>
 
-      {evaluaciones.length === 0 ? (
+      {filtered.length === 0 ? (
         <div style={{ padding: "40px", textAlign: "center", color: "#AAA", fontSize: 13,
           background: "#FFFFFF", borderRadius: 16, border: "1px dashed #E8E4DF" }}>
           No hay evaluaciones para descargar
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {evaluaciones.map(e => (
+          {filtered.map(e => (
             <div key={e.id} style={{
               display: "flex", alignItems: "center", gap: 16,
               padding: "16px 20px", borderRadius: 12,
@@ -782,6 +970,7 @@ export default function ControlApp() {
 
   const TABS = [
     { id: "monitor",   icon: "📊", label: "Monitoreo" },
+    { id: "analytics", icon: "📈", label: "Analytics" },
     { id: "links",     icon: "🔗", label: "Links" },
     { id: "downloads", icon: "⬇",  label: "Descargas" },
   ];
@@ -843,6 +1032,7 @@ export default function ControlApp() {
           <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
             {tab === "monitor" && "Vista general de todas las evaluaciones registradas"}
             {tab === "links" && "Genera y gestiona links de acceso al diagnóstico"}
+            {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
             {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
           </div>
         </div>
@@ -854,6 +1044,7 @@ export default function ControlApp() {
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
         {tab === "links" && <LinksTab />}
         {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
       </div>
