@@ -1100,60 +1100,86 @@ function SummaryTab({answers, perfil}) {
 
 // ─── SCROLL INDICATOR ─────────────────────────────────────────────────────────
 function ScrollIndicator({ scrollRef }) {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     const el = scrollRef?.current;
     if (!el) return;
-    function check() {
-      setShow(el.scrollHeight > el.clientHeight + 16 && el.scrollTop < el.scrollHeight - el.clientHeight - 16);
+    // Small delay so the DOM has rendered before measuring
+    const tid = setTimeout(() => {
+      const hasScroll = el.scrollHeight > el.clientHeight + 20;
+      setShow(hasScroll);
+    }, 300);
+    function onScroll() {
+      const nearBottom = el.scrollTop >= el.scrollHeight - el.clientHeight - 40;
+      setShow(!nearBottom);
     }
-    check();
-    el.addEventListener("scroll", check);
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+    el.addEventListener("scroll", onScroll);
+    return () => { clearTimeout(tid); el.removeEventListener("scroll", onScroll); };
   }, [scrollRef]);
 
   if (!show) return null;
 
-  const sideStyle = {
-    position:"absolute", bottom:18, zIndex:50,
-    display:"flex", flexDirection:"column", alignItems:"center", gap:2,
-    pointerEvents:"none",
-  };
-  const arrowBox = {
-    background:"rgba(255,255,255,0.92)",
-    border:`1.5px solid ${T.borderSm}`,
-    borderRadius:10,
-    padding:"7px 9px",
-    boxShadow:"0 4px 16px rgba(0,0,0,0.10)",
-    display:"flex", flexDirection:"column", alignItems:"center", gap:1,
-  };
-  const arrow = (opacity) => (
-    <svg className="scroll-arrow" width="14" height="9" viewBox="0 0 14 9" fill="none" style={{opacity}}>
-      <path d="M1 1L7 7L13 1" stroke={T.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+  const sideBtn = (side) => (
+    <div
+      onClick={() => {
+        const el = scrollRef?.current;
+        if (el) el.scrollBy({ top: 200, behavior: "smooth" });
+      }}
+      style={{
+        position:"fixed",
+        [side]: 10,
+        top:"50%",
+        transform:"translateY(-50%)",
+        zIndex:999,
+        display:"flex",
+        flexDirection:"column",
+        alignItems:"center",
+        gap:6,
+        cursor:"pointer",
+        userSelect:"none",
+        pointerEvents:"all",
+      }}
+    >
+      <div style={{
+        background:"rgba(255,255,255,0.96)",
+        border:`1.5px solid ${T.redSoft}`,
+        borderRadius:14,
+        padding:"12px 10px",
+        boxShadow:"0 6px 24px rgba(0,0,0,0.13)",
+        display:"flex",
+        flexDirection:"column",
+        alignItems:"center",
+        gap:8,
+        maxWidth:52,
+      }}>
+        {/* Vertical text */}
+        <span style={{
+          fontSize:9,
+          fontWeight:700,
+          color:T.red,
+          textTransform:"uppercase",
+          letterSpacing:".1em",
+          writingMode:"vertical-rl",
+          textOrientation:"mixed",
+          transform: side==="left" ? "rotate(180deg)" : "none",
+          lineHeight:1.3,
+        }}>Scroll hacia abajo</span>
+        {/* Animated arrow */}
+        <svg
+          className="scroll-arrow"
+          width="16" height="22" viewBox="0 0 16 22" fill="none"
+        >
+          <path d="M8 1v16M1 11l7 8 7-8" stroke={T.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+    </div>
   );
-  const label = {
-    fontSize:8, fontWeight:700, color:T.inkSoft,
-    textTransform:"uppercase", letterSpacing:".1em", marginTop:2,
-  };
 
   return (
     <>
-      <div style={{...sideStyle, left:14}}>
-        <div style={arrowBox}>
-          {arrow(0.4)}{arrow(0.7)}{arrow(1)}
-          <span style={label}>Bajar</span>
-        </div>
-      </div>
-      <div style={{...sideStyle, right:14}}>
-        <div style={arrowBox}>
-          {arrow(0.4)}{arrow(0.7)}{arrow(1)}
-          <span style={label}>Bajar</span>
-        </div>
-      </div>
+      {sideBtn("left")}
+      {sideBtn("right")}
     </>
   );
 }
