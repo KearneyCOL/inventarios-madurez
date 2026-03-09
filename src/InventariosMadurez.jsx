@@ -760,7 +760,10 @@ function ModeloTab() {
 
 // ─── SUMMARY TAB ──────────────────────────────────────────────────────────────
 function SummaryTab({answers, perfil}) {
-  const globalScore=useMemo(()=>{\n    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);\n    return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;\n  },[answers]);
+  const globalScore=useMemo(()=>{
+    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);
+    return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;
+  },[answers]);
 
   function descargarExcel() {
     const LEVEL_LABELS = ["","Básico","Emergente","Robusto","End-to-End","Pivote"];
