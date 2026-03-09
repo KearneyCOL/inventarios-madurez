@@ -1378,6 +1378,43 @@ function ReportTab({ evaluaciones, respuestas }) {
       }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+
+      // Sanitize ALL text passed to jsPDF (removes emoji, em-dash, en-dash, non-latin1)
+      const _origText = doc.text.bind(doc);
+      doc.text = function(text, ...args) {
+        const clean = (v) => {
+          if (v == null) return '-';
+          if (Array.isArray(v)) return v.map(clean);
+          return String(v)
+            .replace(/[\u0080-\u009F\u00AD\u2000-\uFFFF]/g, (c) => {
+              // Allow accented latin chars (\u00C0-\u024F) but strip everything else
+              const code = c.charCodeAt(0);
+              if (code >= 0x00C0 && code <= 0x024F) return c; // Latin Extended
+              if (code === 0x00B7) return '.'; // middle dot
+              if (code === 0x2013 || code === 0x2014) return '-'; // en/em dash
+              if (code === 0x2019 || code === 0x2018) return "'"; // curly quotes
+              if (code === 0x201C || code === 0x201D) return '"'; // curly double quotes
+              if (code === 0x00D7) return 'x'; // multiplication sign
+              return ''; // strip everything else (emoji, etc.)
+            })
+            .replace(/\s{2,}/g, ' ').trim() || '-';
+        };
+        return _origText(clean(text), ...args);
+      };
+      const _origSplit = doc.splitTextToSize.bind(doc);
+      doc.splitTextToSize = function(text, ...args) {
+        if (typeof text === 'string') {
+          text = doc.text.__proto__ ? text : text; // just use it
+          text = String(text).replace(/[\u2000-\uFFFF]/g, (c) => {
+            const code = c.charCodeAt(0);
+            if (code >= 0x00C0 && code <= 0x024F) return c;
+            if (code === 0x2013 || code === 0x2014) return '-';
+            return '';
+          }).replace(/\s{2,}/g, ' ').trim();
+        }
+        return _origSplit(text, ...args);
+      };
+
       const W = 210, H = 297;
       const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
@@ -1479,8 +1516,10 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
         // Decorative circles
         doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
         doc.circle(W-20, 20, 60, "F");
         doc.circle(30, 95, 35, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
 
         // Logo area
         rect(16, 16, 42, 9, 3, [200,20,15]);
@@ -1498,7 +1537,9 @@ function ReportTab({ evaluaciones, respuestas }) {
 
         // Date pill
         doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
         doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
         setFont("bold", 8, [255,255,255]);
         doc.text(` ${now}`, 18, ty+17);
 
