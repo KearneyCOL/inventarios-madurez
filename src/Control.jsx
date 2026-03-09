@@ -1,0 +1,707 @@
+import React, { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+import * as XLSX from "xlsx";
+
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const PASSWORD = "kearney2025";
+
+const DIMS = [
+  { key: "estrategia",      label: "Estrategia",      num: "01" },
+  { key: "caracterizacion", label: "Caracterización", num: "02" },
+  { key: "procesos",        label: "Procesos",         num: "03" },
+  { key: "roles",           label: "Roles",            num: "04" },
+  { key: "herramientas",    label: "Herramientas",     num: "05" },
+  { key: "indicadores",     label: "Indicadores",      num: "06" },
+  { key: "abastecimiento",  label: "Abastecimiento",   num: "07" },
+];
+
+const LEVEL_LABELS = ["", "Básico", "Emergente", "Robusto", "End-to-End", "Pivote"];
+const LEVEL_COLORS = ["", "#78716C", "#D97706", "#2563EB", "#7C3AED", "#059669"];
+
+const GS = `
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;font-family:'Outfit',system-ui,sans-serif;}
+body{margin:0;background:#0F0F0E;color:#F5F3EF;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#2A2A28;border-radius:99px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-up{animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both;}
+.fade-up-1{animation:fadeUp .4s .06s cubic-bezier(.22,1,.36,1) both;}
+.fade-up-2{animation:fadeUp .4s .12s cubic-bezier(.22,1,.36,1) both;}
+.fade-up-3{animation:fadeUp .4s .18s cubic-bezier(.22,1,.36,1) both;}
+.fade-up-4{animation:fadeUp .4s .24s cubic-bezier(.22,1,.36,1) both;}
+.spin{animation:spin .8s linear infinite;}
+.row-hover{transition:background .12s;cursor:pointer;}
+.row-hover:hover{background:rgba(255,255,255,0.04)!important;}
+.btn-action{transition:all .15s cubic-bezier(.22,1,.36,1);}
+.btn-action:hover{transform:translateY(-1px);opacity:.88;}
+.nav-item{transition:all .15s;cursor:pointer;border-radius:10px;}
+.nav-item:hover{background:rgba(255,255,255,0.06)!important;}
+.nav-item.active{background:rgba(232,37,31,0.15)!important;}
+`;
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function getLevelLabel(v) { return LEVEL_LABELS[Math.round(v)] || "—"; }
+function getLevelColor(v) { return LEVEL_COLORS[Math.round(v)] || "#78716C"; }
+function formatDate(d) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("es-CO", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function ScoreBadge({ v, sm }) {
+  if (!v) return <span style={{ color: "#444", fontSize: sm ? 11 : 13 }}>—</span>;
+  const c = getLevelColor(v);
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 5,
+      padding: sm ? "2px 7px" : "3px 10px", borderRadius: 99,
+      background: c + "18", border: `1px solid ${c}40`,
+      fontSize: sm ? 10 : 12, fontWeight: 700, color: c,
+    }}>
+      <span style={{ width: sm ? 5 : 6, height: sm ? 5 : 6, borderRadius: "50%", background: c }} />
+      {parseFloat(v).toFixed(1)}
+    </span>
+  );
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function Login({ onLogin }) {
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+
+  function attempt() {
+    if (pw === PASSWORD) onLogin();
+    else setErr(true);
+  }
+
+  return (
+    <div style={{
+      minHeight: "100vh", display: "flex", alignItems: "center",
+      justifyContent: "center",
+      background: "radial-gradient(ellipse at 60% 40%,#1a0a0a 0%,#0F0F0E 60%)",
+    }}>
+      <div className="fade-up" style={{
+        width: 360, padding: "48px 40px",
+        background: "#161614", borderRadius: 20,
+        border: "1px solid #2A2A28",
+        boxShadow: "0 40px 100px rgba(0,0,0,0.5)",
+      }}>
+        <div style={{ marginBottom: 32, textAlign: "center" }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: 14, margin: "0 auto 16px",
+            background: "linear-gradient(135deg,#E8251F,#B91A15)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 22, boxShadow: "0 8px 24px rgba(232,37,31,0.35)",
+          }}>🛡️</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#F5F3EF" }}>Admin Panel</div>
+          <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>Kearney · Inventarios Madurez</div>
+        </div>
+
+        <input
+          type="password" placeholder="Contraseña"
+          value={pw}
+          onChange={e => { setPw(e.target.value); setErr(false); }}
+          onKeyDown={e => e.key === "Enter" && attempt()}
+          style={{
+            width: "100%", padding: "12px 16px", borderRadius: 10, marginBottom: 8,
+            background: "#1E1E1C", border: `1.5px solid ${err ? "#E8251F" : "#2A2A28"}`,
+            color: "#F5F3EF", fontSize: 14, outline: "none",
+          }}
+        />
+        {err && <div style={{ fontSize: 11, color: "#E8251F", marginBottom: 12 }}>Contraseña incorrecta</div>}
+
+        <button onClick={attempt} className="btn-action" style={{
+          width: "100%", padding: "12px", borderRadius: 10, border: "none",
+          background: "linear-gradient(135deg,#E8251F,#B91A15)",
+          color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
+          boxShadow: "0 4px 14px rgba(232,37,31,0.35)",
+        }}>Entrar →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── STAT CARD ────────────────────────────────────────────────────────────────
+function StatCard({ icon, label, value, color, delay }) {
+  return (
+    <div className={`fade-up-${delay}`} style={{
+      background: "#161614", borderRadius: 16, padding: "22px 24px",
+      border: "1px solid #2A2A28",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 10 }}>{label}</div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: color || "#F5F3EF", letterSpacing: "-.02em", lineHeight: 1 }}>{value}</div>
+        </div>
+        <div style={{
+          width: 40, height: 40, borderRadius: 10, fontSize: 18,
+          background: (color || "#E8251F") + "18",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MONITOR TAB ──────────────────────────────────────────────────────────────
+function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete, loading }) {
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const avgScore = evaluaciones.length
+    ? (evaluaciones.reduce((a, e) => a + (e.score_global || 0), 0) / evaluaciones.length).toFixed(2)
+    : null;
+
+  const completas = evaluaciones.filter(e =>
+    respuestas.filter(r => r.evaluacion_id === e.id).length === 35
+  ).length;
+
+  const filtered = evaluaciones
+    .filter(e => {
+      const q = search.toLowerCase();
+      return !q || (e.empresa || "").toLowerCase().includes(q) || (e.evaluador || "").toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      let va = a[sortBy], vb = b[sortBy];
+      if (typeof va === "string") { va = va?.toLowerCase(); vb = vb?.toLowerCase(); }
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  function toggleSort(col) {
+    if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortDir("desc"); }
+  }
+
+  const SortIcon = ({ col }) => (
+    <span style={{ marginLeft: 3, opacity: sortBy === col ? 1 : 0.3, fontSize: 9 }}>
+      {sortBy === col ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+    </span>
+  );
+
+  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px";
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 28 }}>
+        <StatCard icon="📋" label="Total evaluaciones" value={evaluaciones.length} delay={1} />
+        <StatCard icon="⭐" label="Score promedio" value={avgScore || "—"} color="#D97706" delay={2} />
+        <StatCard icon="📊" label="Respuestas totales" value={respuestas.length} color="#2563EB" delay={3} />
+        <StatCard icon="✅" label="Completas (35 resp)" value={completas} color="#059669" delay={4} />
+      </div>
+
+      <div style={{ display: "flex", gap: 12, marginBottom: 16, alignItems: "center" }}>
+        <input
+          placeholder="Buscar por empresa o evaluador..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, padding: "10px 14px", borderRadius: 10,
+            background: "#1E1E1C", border: "1px solid #2A2A28",
+            color: "#F5F3EF", fontSize: 13, outline: "none",
+          }}
+        />
+        {selected.length > 0 && (
+          <button onClick={() => onDelete(selected)} className="btn-action" style={{
+            padding: "10px 18px", borderRadius: 10, border: "1px solid #E8251F40",
+            background: "#E8251F18", color: "#E8251F",
+            fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+          }}>🗑 Eliminar ({selected.length})</button>
+        )}
+      </div>
+
+      <div style={{ background: "#161614", borderRadius: 16, border: "1px solid #2A2A28", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ display: "grid", gridTemplateColumns: COL, padding: "12px 20px",
+          background: "#1A1A18", borderBottom: "1px solid #2A2A28", gap: 8, alignItems: "center" }}>
+          <input type="checkbox"
+            checked={selected.length === filtered.length && filtered.length > 0}
+            onChange={() => selected.length === filtered.length ? setSelected([]) : setSelected(filtered.map(e => e.id))}
+            style={{ cursor: "pointer" }}
+          />
+          {[{l:"Empresa",c:"empresa"},{l:"Evaluador",c:"evaluador"},{l:"Global",c:"score_global"}].map(h => (
+            <div key={h.c} onClick={() => toggleSort(h.c)}
+              style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+                letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
+              {h.l}<SortIcon col={h.c} />
+            </div>
+          ))}
+          {DIMS.map(d => (
+            <div key={d.key} style={{ fontSize: 9, fontWeight: 700, color: "#444",
+              textTransform: "uppercase", letterSpacing: ".06em" }}>{d.num}</div>
+          ))}
+          <div onClick={() => toggleSort("created_at")}
+            style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+              letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
+            Fecha<SortIcon col="created_at" />
+          </div>
+        </div>
+
+        {/* Rows */}
+        {loading ? (
+          <div style={{ padding: "48px", textAlign: "center" }}>
+            <div className="spin" style={{ display: "inline-block", width: 22, height: 22,
+              border: "2px solid #333", borderTopColor: "#E8251F", borderRadius: "50%" }} />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: "48px", textAlign: "center", color: "#555", fontSize: 13 }}>
+            No hay evaluaciones aún
+          </div>
+        ) : filtered.map((e, i) => (
+          <div key={e.id} className="row-hover"
+            onClick={() => setSelected(s => s.includes(e.id) ? s.filter(x => x !== e.id) : [...s, e.id])}
+            style={{
+              display: "grid", gridTemplateColumns: COL,
+              padding: "13px 20px", gap: 8, alignItems: "center",
+              borderBottom: i < filtered.length - 1 ? "1px solid #1A1A18" : "none",
+              background: selected.includes(e.id) ? "rgba(232,37,31,0.06)" : "transparent",
+            }}>
+            <input type="checkbox" checked={selected.includes(e.id)} onChange={() => {}}
+              onClick={ev => ev.stopPropagation()} style={{ cursor: "pointer" }} />
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#F5F3EF",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {e.empresa || <span style={{ color: "#444" }}>Sin empresa</span>}
+            </div>
+            <div style={{ fontSize: 12, color: "#888", overflow: "hidden",
+              textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {e.evaluador || <span style={{ color: "#444" }}>Anónimo</span>}
+            </div>
+            <ScoreBadge v={e.score_global} />
+            {DIMS.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`]} sm />)}
+            <div style={{ fontSize: 11, color: "#555" }}>{formatDate(e.created_at)}</div>
+          </div>
+        ))}
+      </div>
+
+      {filtered.length > 0 && (
+        <div style={{ marginTop: 10, fontSize: 11, color: "#444" }}>
+          {filtered.length} evaluaciones · {selected.length} seleccionadas
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── LINKS TAB ────────────────────────────────────────────────────────────────
+function LinksTab() {
+  const [links, setLinks] = useState([]);
+  const [copied, setCopied] = useState(null);
+  const BASE = window.location.origin.includes("admin")
+    ? window.location.origin.replace("admin.", "")
+    : "https://inventarios-madurez.vercel.app";
+
+  function generate() {
+    const id = Math.random().toString(36).slice(2, 10).toUpperCase();
+    setLinks(l => [{ id, url: `${BASE}?ref=${id}`, created: new Date().toISOString() }, ...l]);
+  }
+
+  function copy(url, id) {
+    navigator.clipboard.writeText(url);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F3EF" }}>Links de acceso</div>
+          <div style={{ fontSize: 12, color: "#555", marginTop: 3 }}>Genera links únicos para compartir la evaluación</div>
+        </div>
+        <button onClick={generate} className="btn-action" style={{
+          padding: "11px 22px", borderRadius: 11, border: "none",
+          background: "linear-gradient(135deg,#E8251F,#B91A15)",
+          color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer",
+          boxShadow: "0 4px 14px rgba(232,37,31,0.35)",
+        }}>+ Generar link</button>
+      </div>
+
+      <div style={{ padding: "16px 20px", borderRadius: 12, background: "#161614",
+        border: "1px solid #2A2A28", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 18 }}>🌐</span>
+        <div>
+          <div style={{ fontSize: 10, color: "#555", fontWeight: 700, marginBottom: 2 }}>URL BASE</div>
+          <div style={{ fontSize: 13, color: "#888", fontFamily: "monospace" }}>{BASE}</div>
+        </div>
+      </div>
+
+      {links.length === 0 ? (
+        <div style={{ padding: "60px", textAlign: "center", background: "#161614",
+          borderRadius: 16, border: "1px dashed #2A2A28" }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
+          <div style={{ fontSize: 14, color: "#555" }}>No hay links generados aún</div>
+          <div style={{ fontSize: 12, color: "#444", marginTop: 4 }}>Haz click en "Generar link" para crear uno</div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {links.map(link => (
+            <div key={link.id} className="fade-up" style={{
+              padding: "18px 20px", borderRadius: 14,
+              background: "#161614", border: "1px solid #2A2A28",
+              display: "flex", alignItems: "center", gap: 16,
+            }}>
+              <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                background: "#E8251F18", border: "1px solid #E8251F30",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔗</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 4, alignItems: "center" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#E8251F",
+                    background: "#E8251F18", padding: "2px 8px", borderRadius: 99 }}>
+                    REF: {link.id}
+                  </span>
+                  <span style={{ fontSize: 10, color: "#444" }}>{formatDate(link.created)}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link.url}</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button onClick={() => copy(link.url, link.id)} className="btn-action" style={{
+                  padding: "8px 16px", borderRadius: 9, border: "1px solid #2A2A28",
+                  background: copied === link.id ? "#059669" : "#1E1E1C",
+                  color: copied === link.id ? "#fff" : "#888",
+                  fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all .2s",
+                }}>{copied === link.id ? "✓ Copiado" : "📋 Copiar"}</button>
+                <button onClick={() => setLinks(l => l.filter(x => x.id !== link.id))}
+                  className="btn-action" style={{
+                    padding: "8px 12px", borderRadius: 9, border: "1px solid #E8251F30",
+                    background: "#E8251F10", color: "#E8251F", fontSize: 12, cursor: "pointer",
+                  }}>🗑</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DOWNLOADS TAB ────────────────────────────────────────────────────────────
+function DownloadsTab({ evaluaciones, respuestas }) {
+  const [downloading, setDownloading] = useState(null);
+
+  function dlAgregado() {
+    setDownloading("all");
+    setTimeout(() => {
+      const rows = evaluaciones.map(e => ({
+        "ID": e.id, "Empresa": e.empresa || "", "Evaluador": e.evaluador || "",
+        "Cargo": e.cargo || "", "Fecha": formatDate(e.created_at),
+        "Score Global": e.score_global || "", "Nivel Global": getLevelLabel(e.score_global),
+        ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws["!cols"] = [{ wch:36 },{wch:20},{wch:20},{wch:18},{wch:22},{wch:14},{wch:14},...Array(7).fill({wch:16})];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Evaluaciones");
+
+      const ws2 = XLSX.utils.json_to_sheet(respuestas.map(r => ({
+        "Evaluacion ID": r.evaluacion_id, "Sub-dimensión": r.subdimension_id,
+        "Dimensión": r.dimension_key, "Valor": r.valor, "Nivel": getLevelLabel(r.valor),
+        "Fecha": formatDate(r.created_at),
+      })));
+      XLSX.utils.book_append_sheet(wb, ws2, "Respuestas Detalle");
+      XLSX.writeFile(wb, `Inventarios_Madurez_${new Date().toISOString().slice(0,10)}.xlsx`);
+      setDownloading(null);
+    }, 600);
+  }
+
+  function dlIndividual(e) {
+    setDownloading(e.id);
+    setTimeout(() => {
+      const resps = respuestas.filter(r => r.evaluacion_id === e.id);
+      const ws1 = XLSX.utils.json_to_sheet([
+        { Campo: "ID", Valor: e.id },
+        { Campo: "Empresa", Valor: e.empresa || "" },
+        { Campo: "Evaluador", Valor: e.evaluador || "" },
+        { Campo: "Cargo", Valor: e.cargo || "" },
+        { Campo: "Fecha", Valor: formatDate(e.created_at) },
+        { Campo: "Score Global", Valor: e.score_global || "" },
+        { Campo: "Nivel Global", Valor: getLevelLabel(e.score_global) },
+        ...DIMS.map(d => ({ Campo: `Score ${d.label}`, Valor: e[`score_${d.key}`] || "" })),
+      ]);
+      ws1["!cols"] = [{ wch: 22 }, { wch: 36 }];
+      const ws2 = XLSX.utils.json_to_sheet(resps.map(r => ({
+        "Sub-dimensión": r.subdimension_id, "Dimensión": r.dimension_key,
+        "Valor": r.valor, "Nivel": getLevelLabel(r.valor),
+      })));
+      ws2["!cols"] = [{ wch: 16 }, { wch: 18 }, { wch: 10 }, { wch: 14 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, "Resumen");
+      XLSX.utils.book_append_sheet(wb, ws2, "Respuestas");
+      const nombre = (e.empresa || e.evaluador || e.id.slice(0, 8)).replace(/\s+/g, "_");
+      XLSX.writeFile(wb, `Eval_${nombre}_${new Date().toISOString().slice(0,10)}.xlsx`);
+      setDownloading(null);
+    }, 400);
+  }
+
+  return (
+    <div>
+      {/* Agregado */}
+      <div style={{
+        background: "#161614", border: "1px solid #2A2A28", borderRadius: 18,
+        padding: "28px 32px", marginBottom: 24,
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
+      }}>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F3EF", marginBottom: 6 }}>📦 Descarga agregada</div>
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+            Todas las evaluaciones en un Excel con dos hojas:<br/>
+            <span style={{ color: "#888" }}>Evaluaciones (resumen) + Respuestas Detalle</span>
+          </div>
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <span style={{ fontSize: 11, color: "#059669", background: "#05966918", padding: "3px 10px",
+              borderRadius: 99, border: "1px solid #05966930" }}>{evaluaciones.length} evaluaciones</span>
+            <span style={{ fontSize: 11, color: "#2563EB", background: "#2563EB18", padding: "3px 10px",
+              borderRadius: 99, border: "1px solid #2563EB30" }}>{respuestas.length} respuestas</span>
+          </div>
+        </div>
+        <button onClick={dlAgregado} className="btn-action" disabled={evaluaciones.length === 0} style={{
+          padding: "13px 26px", borderRadius: 12, border: "none", whiteSpace: "nowrap",
+          background: evaluaciones.length === 0 ? "#2A2A28" : "linear-gradient(135deg,#059669,#047857)",
+          color: evaluaciones.length === 0 ? "#444" : "#fff",
+          fontWeight: 700, fontSize: 13, cursor: evaluaciones.length === 0 ? "not-allowed" : "pointer",
+          boxShadow: evaluaciones.length === 0 ? "none" : "0 4px 14px rgba(5,150,105,0.35)",
+        }}>{downloading === "all" ? "⏳ Generando..." : "⬇ Descargar Excel"}</button>
+      </div>
+
+      {/* Individuales */}
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+        letterSpacing: ".1em", marginBottom: 14 }}>Descargas individuales</div>
+
+      {evaluaciones.length === 0 ? (
+        <div style={{ padding: "40px", textAlign: "center", color: "#555", fontSize: 13,
+          background: "#161614", borderRadius: 16, border: "1px dashed #2A2A28" }}>
+          No hay evaluaciones para descargar
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {evaluaciones.map(e => (
+            <div key={e.id} style={{
+              display: "flex", alignItems: "center", gap: 16,
+              padding: "16px 20px", borderRadius: 12,
+              background: "#161614", border: "1px solid #2A2A28",
+            }}>
+              <div style={{ width: 38, height: 38, borderRadius: 9, flexShrink: 0,
+                background: "#2563EB18", display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: 16 }}>📄</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#F5F3EF",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {e.empresa || "Sin empresa"}{e.evaluador ? ` · ${e.evaluador}` : ""}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 4, alignItems: "center" }}>
+                  <ScoreBadge v={e.score_global} sm />
+                  <span style={{ fontSize: 11, color: "#444" }}>
+                    {respuestas.filter(r => r.evaluacion_id === e.id).length}/35 resp.
+                  </span>
+                  <span style={{ fontSize: 11, color: "#444" }}>{formatDate(e.created_at)}</span>
+                </div>
+              </div>
+              <button onClick={() => dlIndividual(e)} className="btn-action" style={{
+                padding: "8px 16px", borderRadius: 9, border: "1px solid #2563EB40",
+                background: "#2563EB18", color: "#2563EB",
+                fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+              }}>{downloading === e.id ? "⏳..." : "⬇ Excel"}</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
+function ConfirmModal({ count, onConfirm, onCancel }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 1000, backdropFilter: "blur(4px)",
+    }}>
+      <div className="fade-up" style={{
+        width: 360, background: "#161614", borderRadius: 18,
+        border: "1px solid #2A2A28", padding: "32px",
+        boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+      }}>
+        <div style={{ fontSize: 32, textAlign: "center", marginBottom: 16 }}>🗑️</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F3EF", textAlign: "center", marginBottom: 8 }}>
+          ¿Eliminar {count} evaluación{count > 1 ? "es" : ""}?
+        </div>
+        <div style={{ fontSize: 12, color: "#555", textAlign: "center", marginBottom: 28, lineHeight: 1.7 }}>
+          Esta acción no se puede deshacer. Se eliminarán también todas las respuestas asociadas.
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={onCancel} className="btn-action" style={{
+            flex: 1, padding: "11px", borderRadius: 10, border: "1px solid #2A2A28",
+            background: "#1E1E1C", color: "#888", fontWeight: 600, fontSize: 13, cursor: "pointer",
+          }}>Cancelar</button>
+          <button onClick={onConfirm} className="btn-action" style={{
+            flex: 1, padding: "11px", borderRadius: 10, border: "none",
+            background: "linear-gradient(135deg,#E8251F,#B91A15)",
+            color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer",
+          }}>Eliminar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
+export default function ControlApp() {
+  const [authed, setAuthed] = useState(false);
+  const [tab, setTab] = useState("monitor");
+  const [evaluaciones, setEvaluaciones] = useState([]);
+  const [respuestas, setRespuestas] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    const s = document.createElement("style");
+    s.textContent = GS;
+    document.head.appendChild(s);
+    return () => s.remove();
+  }, []);
+
+  async function fetchData() {
+    setLoading(true);
+    const [{ data: evals }, { data: resps }] = await Promise.all([
+      supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
+      supabase.from("respuestas").select("*"),
+    ]);
+    setEvaluaciones(evals || []);
+    setRespuestas(resps || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { if (authed) fetchData(); }, [authed]);
+
+  function showToast(msg, type = "success") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  async function doDelete() {
+    const ids = confirmDelete;
+    setConfirmDelete(null);
+    try {
+      await supabase.from("respuestas").delete().in("evaluacion_id", ids);
+      await supabase.from("evaluaciones").delete().in("id", ids);
+      setSelected([]);
+      await fetchData();
+      showToast(`${ids.length} evaluación${ids.length > 1 ? "es" : ""} eliminada${ids.length > 1 ? "s" : ""}`);
+    } catch {
+      showToast("Error al eliminar", "error");
+    }
+  }
+
+  if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+
+  const TABS = [
+    { id: "monitor",   icon: "📊", label: "Monitoreo" },
+    { id: "links",     icon: "🔗", label: "Links" },
+    { id: "downloads", icon: "⬇",  label: "Descargas" },
+  ];
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", background: "#0F0F0E" }}>
+
+      {/* Sidebar */}
+      <div style={{
+        width: 220, flexShrink: 0, background: "#111110",
+        borderRight: "1px solid #1E1E1C",
+        display: "flex", flexDirection: "column", padding: "24px 16px",
+      }}>
+        <div style={{ marginBottom: 32, padding: "0 8px" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#F5F3EF" }}>⚡ Admin Panel</div>
+          <div style={{ fontSize: 10, color: "#444", marginTop: 2 }}>Kearney · Inventarios</div>
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+          {TABS.map(t => (
+            <div key={t.id} onClick={() => setTab(t.id)}
+              className={`nav-item ${tab === t.id ? "active" : ""}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px",
+                color: tab === t.id ? "#E8251F" : "#666",
+                fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
+              }}>
+              <span style={{ fontSize: 16 }}>{t.icon}</span>{t.label}
+            </div>
+          ))}
+        </div>
+
+        <button onClick={fetchData} className="btn-action" style={{
+          padding: "10px 12px", borderRadius: 10, border: "1px solid #2A2A28",
+          background: "#1A1A18", color: "#555", fontSize: 12,
+          fontWeight: 600, cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          <span className={loading ? "spin" : ""} style={{ display: "inline-block" }}>🔄</span>
+          {loading ? "Cargando..." : "Actualizar"}
+        </button>
+
+        <button onClick={() => setAuthed(false)} className="btn-action" style={{
+          marginTop: 8, padding: "10px 12px", borderRadius: 10,
+          border: "1px solid #2A2A28", background: "transparent",
+          color: "#444", fontSize: 12, cursor: "pointer",
+        }}>🚪 Cerrar sesión</button>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflow: "auto", padding: "32px 36px" }}>
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#F5F3EF", letterSpacing: "-.02em" }}>
+            {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
+          </div>
+          <div style={{ fontSize: 12, color: "#444", marginTop: 3 }}>
+            {tab === "monitor" && "Vista general de todas las evaluaciones registradas"}
+            {tab === "links" && "Genera y gestiona links de acceso al diagnóstico"}
+            {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
+          </div>
+        </div>
+
+        {tab === "monitor" && (
+          <MonitorTab
+            evaluaciones={evaluaciones} respuestas={respuestas}
+            selected={selected} setSelected={setSelected}
+            onDelete={ids => setConfirmDelete(ids)} loading={loading}
+          />
+        )}
+        {tab === "links" && <LinksTab />}
+        {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
+      </div>
+
+      {confirmDelete && (
+        <ConfirmModal count={confirmDelete.length} onConfirm={doDelete} onCancel={() => setConfirmDelete(null)} />
+      )}
+
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 2000,
+          padding: "12px 20px", borderRadius: 12,
+          background: toast.type === "error" ? "#E8251F" : "#059669",
+          color: "#fff", fontWeight: 600, fontSize: 13,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+          animation: "fadeIn .3s ease",
+        }}>
+          {toast.type === "error" ? "❌" : "✅"} {toast.msg}
+        </div>
+      )}
+    </div>
+  );
+}
