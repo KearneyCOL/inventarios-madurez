@@ -3,6 +3,65 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, Cell, CartesianGrid
 } from "recharts";
+import { createClient } from "@supabase/supabase-js";
+
+// ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+async function guardarEvaluacion(answers) {
+  try {
+    // Calcular scores por dimensión
+    const scores = {};
+    DIMS.forEach(d => {
+      const vals = d.subs.map(s => answers[s.id]).filter(v => v > 0);
+      scores[d.key] = vals.length
+        ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2))
+        : null;
+    });
+
+    const scoreGlobal = parseFloat(
+      (Object.values(scores).filter(Boolean).reduce((a, b) => a + b, 0) /
+        Object.values(scores).filter(Boolean).length).toFixed(2)
+    );
+
+    // Insertar evaluación
+    const { data, error } = await supabase.from("evaluaciones").insert([{
+      score_global:          scoreGlobal,
+      score_estrategia:      scores.estrategia,
+      score_caracterizacion: scores.caracterizacion,
+      score_procesos:        scores.procesos,
+      score_roles:           scores.roles,
+      score_herramientas:    scores.herramientas,
+      score_indicadores:     scores.indicadores,
+      score_abastecimiento:  scores.abastecimiento,
+    }]).select();
+
+    if (error) { console.error("Error guardando evaluación:", error); return; }
+
+    // Insertar respuestas individuales
+    const filas = [];
+    DIMS.forEach(d => {
+      d.subs.forEach(s => {
+        if (answers[s.id] > 0) {
+          filas.push({
+            evaluacion_id:   data[0].id,
+            subdimension_id: s.id,
+            dimension_key:   d.key,
+            valor:           answers[s.id],
+          });
+        }
+      });
+    });
+
+    await supabase.from("respuestas").insert(filas);
+    console.log("✅ Evaluación guardada correctamente en Supabase");
+  } catch (err) {
+    console.error("Error inesperado:", err);
+  }
+}
 
 // ─── GLOBAL STYLES ────────────────────────────────────────────────────────────
 const GS = `
@@ -896,6 +955,16 @@ export default function App() {
     document.head.appendChild(s);
     return()=>s.remove();
   },[]);
+
+  // ─── GUARDAR EN SUPABASE AL LLEGAR AL RESUMEN ────────────────────────────
+  const guardadoRef = useRef(false);
+  useEffect(() => {
+    if (view === "summary" && !guardadoRef.current) {
+      guardadoRef.current = true;
+      guardarEvaluacion(answers);
+    }
+    if (view !== "summary") guardadoRef.current = false;
+  }, [view]);
 
   const dim=DIMS[activeDim];
   const sub=dim.subs[activeSub];
