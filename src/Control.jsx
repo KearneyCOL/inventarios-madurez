@@ -385,15 +385,16 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
           </div>
         ) : filtered.map((e, i) => (
           <div key={e.id} className="row-hover"
-            onClick={() => setSelected(s => s.includes(e.id) ? s.filter(x => x !== e.id) : [...s, e.id])}
             style={{
               display: "grid", gridTemplateColumns: COL,
               padding: "13px 20px", gap: 8, alignItems: "center",
               borderBottom: i < filtered.length - 1 ? "1px solid #F0EDE9" : "none",
               background: selected.includes(e.id) ? "rgba(232,37,31,0.04)" : "transparent",
+              cursor: "default",
             }}>
-            <input type="checkbox" checked={selected.includes(e.id)} onChange={() => {}}
-              onClick={ev => ev.stopPropagation()} style={{ cursor: "pointer" }} />
+            <input type="checkbox" checked={selected.includes(e.id)}
+              onChange={() => setSelected(s => s.includes(e.id) ? s.filter(x => x !== e.id) : [...s, e.id])}
+              style={{ cursor: "pointer" }} />
             <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {e.direccion || <span style={{ color: "#CCC" }}>Sin dirección</span>}
@@ -406,7 +407,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             {DIMS.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`]} sm />)}
             <div style={{ fontSize: 11, color: "#AAA" }}>{formatDate(e.created_at)}</div>
             <button
-              onClick={ev => { ev.stopPropagation(); onDelete([e.id]); }}
+              onClick={() => onDelete([e.id])}
               className="btn-action"
               style={{
                 width: 32, height: 32, borderRadius: 8, border: "1px solid #E8251F30",
@@ -417,7 +418,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               title="Eliminar"
             >🗑</button>
             <button
-              onClick={ev => { ev.stopPropagation(); setDetail(e); }}
+              onClick={() => setDetail(e)}
               className="btn-action"
               style={{
                 width: 32, height: 32, borderRadius: 8, border: "1px solid #2563EB30",
