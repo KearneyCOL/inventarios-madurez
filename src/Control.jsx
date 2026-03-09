@@ -1376,808 +1376,841 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
 
-      // ── Design Tokens (matches app: Outfit font, #E8251F red, warm neutrals) ──
-      const W = 210, H = 297;
-      const M = 18;          // margin
-      const COL = W - M * 2; // content width
+      // ─── DESIGN TOKENS (extracted directly from the app) ────────────────────
+      const W = 210, H = 297, M = 16;
+      const CONTENT_W = W - M * 2;
 
-      const C = {
-        red:      [232, 37,  31],
-        redDk:    [180, 15,  10],
-        redLt:    [255, 242, 241],
-        redMid:   [253, 220, 218],
-        ink:      [17,  17,  16],
-        inkMid:   [85,  84,  80],
-        inkSoft:  [150, 147, 140],
-        inkFaint: [187, 185, 180],
-        border:   [232, 228, 223],
-        surface:  [247, 245, 242],
-        card:     [255, 255, 255],
-        warm1:    [250, 248, 245],
-        lv1:      [120, 113, 108],
-        lv2:      [217, 119,   6],
-        lv3:      [37,  99,  235],
-        lv4:      [124, 58,  237],
-        lv5:      [5,  150,  105],
-      };
+      // Exact colors from LV_META + app palette
+      const LV = [
+        { c:[120,113,108], bg:[250,250,248], label:"Basico"     },  // #78716C / #FAFAF8
+        { c:[217,119,  6], bg:[255,251,235], label:"Emergente"  },  // #D97706 / #FFFBEB
+        { c:[ 37, 99,235], bg:[239,246,255], label:"Robusto"    },  // #2563EB / #EFF6FF
+        { c:[124, 58,237], bg:[245,243,255], label:"End-to-End" },  // #7C3AED / #F5F3FF
+        { c:[  5,150,105], bg:[236,253,245], label:"Pivote"     },  // #059669 / #ECFDF5
+      ];
+      function lv(v)   { return LV[Math.max(0,Math.round(v)-1)] || LV[0]; }
+      function lvC(v)  { return lv(v).c; }
+      function lvBg(v) { return lv(v).bg; }
+      function lvL(v)  { return lv(v).label; }
 
-      const LV_RGB   = [C.lv1, C.lv2, C.lv3, C.lv4, C.lv5];
-      const LV_NAMES = ["", "Basico", "Emergente", "Robusto", "End-to-End", "Pivote"];
-      const LV_BG    = [[245,244,242],[255,251,235],[239,246,255],[245,243,255],[236,253,245]];
+      // App color palette
+      const RED     = [232, 37,  31];   // #E8251F
+      const RED_DK  = [192, 16,  16];   // #C01010
+      const RED_LT  = [255,248,247];    // #FFF8F7
+      const RED_MID = [253,220,218];    // #FDDCDA
+      const INK     = [ 26, 26, 24];   // #1A1A18
+      const INK2    = [ 42, 42, 40];   // #2A2A28
+      const MID     = [120,116,108];    // #78716C (approx #999 mapped)
+      const SOFT    = [170,168,163];    // #AAA
+      const FAINT   = [209,208,203];    // #D1D0CB
+      const BORDER  = [232,228,223];    // #E8E4DF
+      const SURF    = [247,245,242];    // #F7F5F2
+      const WARM    = [250,248,245];    // #FAFAF8
+      const WHITE   = [255,255,255];
 
-      function lvRgb(v)  { return LV_RGB[Math.max(0, Math.round(v) - 1)]  || C.inkFaint; }
-      function lvBg(v)   { return LV_BG[Math.max(0, Math.round(v) - 1)]   || [245,244,242]; }
-      function lvName(v) { return LV_NAMES[Math.round(v)] || "-"; }
-
-      function avgA(arr) {
-        const a = arr.filter(x => x != null && !isNaN(x));
-        return a.length ? parseFloat((a.reduce((s,x) => s+x, 0) / a.length).toFixed(2)) : null;
-      }
-      // ASCII-safe text — strips anything jsPDF Helvetica can't render
+      // ASCII-safe text (jsPDF Helvetica = latin-1 only)
       function T(v) {
         if (v == null) return "-";
         return String(v)
-          .replace(/[\u0100-\uFFFF]/g, c => {
-            if (c==='\u2013'||c==='\u2014') return '-';
-            if (c==='\u00D7') return 'x';
-            if (c==='\u2212') return '-';
-            if (c==='\u00B7') return '.';
-            return '';
-          })
-          .replace(/\s{2,}/g, ' ').trim() || '-';
+          .replace(/\u00e1/g,"a").replace(/\u00e9/g,"e").replace(/\u00ed/g,"i")
+          .replace(/\u00f3/g,"o").replace(/\u00fa/g,"u").replace(/\u00f1/g,"n")
+          .replace(/\u00c1/g,"A").replace(/\u00c9/g,"E").replace(/\u00cd/g,"I")
+          .replace(/\u00d3/g,"O").replace(/\u00da/g,"U").replace(/\u00d1/g,"N")
+          .replace(/[\u2013\u2014]/g,"-").replace(/\u00d7/g,"x").replace(/\u2212/g,"-")
+          .replace(/\u00b7/g,".").replace(/[^\x00-\xFF]/g,"")
+          .replace(/\s{2,}/g," ").trim() || "-";
       }
 
-      // ── Drawing primitives ─────────────────────────────────────────────────
-      function fill(rgb) { doc.setFillColor(rgb[0], rgb[1], rgb[2]); }
-      function stroke(rgb, w) { doc.setDrawColor(rgb[0], rgb[1], rgb[2]); if(w) doc.setLineWidth(w); }
-      function box(x, y, w, h, r, rgb) { fill(rgb); doc.roundedRect(x, y, w, h, r, r, "F"); }
-      function boxS(x, y, w, h, r, fRgb, sRgb, sw) {
-        fill(fRgb); stroke(sRgb, sw||0.3); doc.roundedRect(x, y, w, h, r, r, "FD");
-      }
-      function line(x1, y1, x2, y2, rgb, w) {
-        stroke(rgb||C.border, w||0.3); doc.line(x1, y1, x2, y2);
-      }
-      function circle(x, y, r, rgb) { fill(rgb); doc.circle(x, y, r, "F"); }
+      // ─── DRAW PRIMITIVES ────────────────────────────────────────────────────
+      function F(rgb)           { doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
+      function S(rgb,w)         { doc.setDrawColor(rgb[0],rgb[1],rgb[2]); if(w!=null) doc.setLineWidth(w); }
+      function rect(x,y,w,h,r,rgb)       { F(rgb); doc.roundedRect(x,y,w,h,r,r,"F"); }
+      function rectS(x,y,w,h,r,f,s,sw)  { F(f); S(s,sw||0.25); doc.roundedRect(x,y,w,h,r,r,"FD"); }
+      function hline(y,x1,x2,rgb,w)     { S(rgb||BORDER,w||0.25); doc.line(x1||M,y,x2||(W-M),y); }
+      function dot(x,y,r,rgb)            { F(rgb); doc.circle(x,y,r,"F"); }
 
-      function sf(weight, size, rgb) {
-        doc.setFont("helvetica", weight);
-        doc.setFontSize(size);
-        if (rgb) doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      function sf(wt,sz,rgb) {
+        doc.setFont("helvetica",wt); doc.setFontSize(sz);
+        if(rgb) doc.setTextColor(rgb[0],rgb[1],rgb[2]);
       }
-      function txt(text, x, y, opts) { doc.text(T(text), x, y, opts||{}); }
-      function txtR(text, x, y) { doc.text(T(text), x, y, { align:"right" }); }
-      function txtC(text, x, y, w) { doc.text(T(text), x + (w||0)/2, y, { align:"center" }); }
+      function tx(t,x,y,o)  { doc.text(T(t),x,y,o||{}); }
+      function txR(t,x,y)   { doc.text(T(t),x,y,{align:"right"}); }
+      function txC(t,x,y,w) { doc.text(T(t),x+(w/2),y,{align:"center"}); }
 
-      function bar(x, y, val, max, rgb, bw, bh) {
-        bh = bh||3;
-        box(x, y, bw, bh, bh/2, C.border);
-        if (val && max) box(x, y, Math.max(bh, (val/max)*bw), bh, bh/2, rgb);
+      // Progress bar — app-style warm track + colored fill
+      function pbar(x,y,val,max,rgb,bw,bh) {
+        bh=bh||2.5; const r=bh/2;
+        rect(x,y,bw,bh,r,BORDER);
+        if(val&&max) rect(x,y,Math.max(bh,(val/max)*bw),bh,r,rgb);
       }
 
-      // ── Page structure ─────────────────────────────────────────────────────
-      let pageNum = 0;
+      // ── Card: white bg, #E8E4DF border, radius 14 (matches app cards) ──────
+      function card(x,y,w,h,r) { rectS(x,y,w,h,r||14,WHITE,BORDER,0.35); }
 
-      function addPage(opts) {
-        if (pageNum > 0) doc.addPage();
-        pageNum++;
-        const o = opts || {};
+      // Left accent bar (matches app section-header style)
+      function accentBar(x,y,h,rgb) { rect(x,y,3.5,h,2,rgb||RED); }
 
-        if (o.cover) return; // cover handles its own layout
-
-        // Header bar
-        box(0, 0, W, 16, 0, o.darkHeader ? C.ink : C.red);
-
-        // Red accent left stripe (thin)
-        if (!o.darkHeader) {
-          box(0, 0, 3, 16, 0, C.redDk);
-        }
-
-        // Document title (left)
-        sf("bold", 7.5, [255,255,255]);
-        txt(T(titulo).toUpperCase(), 8, 10.5);
-
-        // Section name (right)
-        if (o.section) {
-          sf("normal", 7, [255, 200, 200]);
-          txtR(T(o.section).toUpperCase(), W - M, 10.5);
-        }
-
-        // Thin bottom line on header
-        box(0, 15.5, W, 0.5, 0, C.redDk);
-
-        return 24; // starting Y
+      // ─── DATA ───────────────────────────────────────────────────────────────
+      const now = new Date().toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"});
+      function avg(arr) {
+        const a=arr.filter(x=>x!=null&&!isNaN(x));
+        return a.length?parseFloat((a.reduce((s,x)=>s+x,0)/a.length).toFixed(2)):null;
       }
 
-      function pageFooter(p, total) {
-        // Left: doc info
-        sf("normal", 6.5, C.inkFaint);
-        txt("Kearney  |  Diagnostico de Madurez de Inventarios  |  Confidencial", M, H - 7);
-        // Right: page number with decorative element
-        box(W - M - 18, H - 11, 18, 7, 2, C.surface);
-        stroke(C.border, 0.3); doc.roundedRect(W - M - 18, H - 11, 18, 7, 2, 2);
-        sf("bold", 7, C.inkMid);
-        txtC(p + " / " + total, W - M - 18, H - 5.5, 18);
-        // Footer line
-        line(M, H - 14, W - M, H - 14, C.border, 0.3);
+      const gAvg  = avg(filtered.map(e=>e.score_global));
+      const dAvgs = DIMS_META.map(d=>({...d, score:avg(filtered.map(e=>e[`score_${d.key}`]))}));
+      const best  = [...dAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
+      const worst = [...dAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
+      const sprd  = best&&worst ? parseFloat((best.score-worst.score).toFixed(1)) : null;
+
+      const gaps = DIMS_META.map(d=>{
+        const sc=avg(filtered.map(e=>e[`score_${d.key}`]));
+        if(!sc||sc>3) return null;
+        return {...d,score:sc,gap:parseFloat((5-sc).toFixed(1)),n:filtered.filter(e=>e[`score_${d.key}`]).length};
+      }).filter(Boolean).sort((a,b)=>a.score-b.score);
+      const critG=gaps.filter(g=>g.score<=2);
+      const modG =gaps.filter(g=>g.score>2);
+
+      const byRole=[...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol=>{
+        const rows=filtered.filter(e=>e.rol===rol);
+        return{rol,n:rows.length,score:avg(rows.map(e=>e.score_global))};
+      }).filter(r=>r.score).sort((a,b)=>b.score-a.score);
+
+      const heatDirs=[...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
+      const heatRows=heatDirs.map(dir=>{
+        const rows=filtered.filter(e=>e.direccion===dir);
+        const r={dir,n:rows.length,global:avg(rows.map(e=>e.score_global))};
+        DIMS_META.forEach(d=>{r[d.key]=avg(rows.map(e=>e[`score_${d.key}`]));});
+        return r;
+      }).sort((a,b)=>(b.global||0)-(a.global||0));
+
+      const dist=LV.map((l,i)=>({
+        ...l,v:i+1,
+        count:filtered.filter(e=>Math.round(e.score_global)===i+1).length,
+        pct:filtered.length?Math.round(filtered.filter(e=>Math.round(e.score_global)===i+1).length/filtered.length*100):0,
+      }));
+
+      // ─── PAGE ANATOMY ────────────────────────────────────────────────────────
+      let _page=0;
+      let _curSection="";
+
+      function newPage(section) {
+        if(_page>0) doc.addPage();
+        _page++;
+        _curSection=section||_curSection;
+
+        // Solid red header strip — matches app sidebar top
+        rect(0,0,W,13,0,RED);
+        // Subtle left-edge darkening
+        rect(0,0,4,13,0,RED_DK);
+
+        // App title (left) — uppercase, tracked, small
+        sf("bold",7,WHITE);
+        doc.setCharSpace(0.8);
+        tx(T(titulo).toUpperCase().slice(0,30),7,8.8);
+        doc.setCharSpace(0);
+
+        // Section (right)
+        sf("normal",6.5,[255,210,208]);
+        doc.setCharSpace(0.5);
+        txR(T(_curSection).toUpperCase(),W-M,8.8);
+        doc.setCharSpace(0);
+
+        return 20; // first usable Y
       }
 
-      // ── Section header inside page ─────────────────────────────────────────
-      function sectionTitle(text, sub, y) {
-        // Left accent bar
-        box(M, y, 3, sub ? 10 : 7, 1.5, C.red);
-        sf("bold", 14, C.ink);
-        txt(text, M + 7, y + (sub ? 6 : 5));
-        if (sub) { sf("normal", 8, C.inkSoft); txt(sub, M + 7, y + 11); }
-        return y + (sub ? 18 : 14);
+      function footer(p,total) {
+        // Top footer line
+        hline(H-13,M,W-M,BORDER,0.25);
+
+        // Left: branding text
+        sf("normal",6,SOFT);
+        tx("Kearney  |  Diagnostico de Madurez de Inventarios  |  Confidencial",M,H-8);
+
+        // Right: page chip — matches app pill/badge style
+        const chipW=20, chipX=W-M-chipW;
+        rect(chipX,H-12,chipW,7,3.5,SURF);
+        S(BORDER,0.25); doc.roundedRect(chipX,H-12,chipW,7,3.5,3.5);
+        sf("bold",6.5,MID);
+        txC(p+" / "+total,chipX,H-7,chipW);
       }
 
-      function divider(y) { line(M, y, W-M, y, C.border, 0.25); return y + 4; }
-
-      function checkY(y, needed) {
-        if (y + (needed||30) > H - 20) {
-          const ny = addPage({ section: currentSection });
+      function checkY(y,need) {
+        if(y+(need||28)>H-18){
+          const ny=newPage();
           return ny;
         }
         return y;
       }
 
-      let currentSection = "";
+      // ─── SECTION HEADER (inside page body) ──────────────────────────────────
+      function secHead(title,sub,y) {
+        accentBar(M,y,sub?12:8);
+        sf("bold",15,INK); tx(title,M+7,y+(sub?7:6));
+        if(sub){ sf("normal",8,SOFT); tx(sub,M+7,y+13); }
+        hline(y+(sub?18:13),M,W-M,BORDER,0.2);
+        return y+(sub?24:18);
+      }
 
-      // ── Data ──────────────────────────────────────────────────────────────
-      const now = new Date().toLocaleDateString("es-CO", {day:"2-digit", month:"long", year:"numeric"});
-      const globalAvg = avgA(filtered.map(e => e.score_global));
-      const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgA(filtered.map(e => e[`score_${d.key}`])) }));
-      const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
-      const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
-      const spread = strongest&&weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
+      // Label style matching app: uppercase, tracked, #999 color
+      function label(text,x,y) {
+        sf("normal",6.5,SOFT);
+        doc.setCharSpace(0.6);
+        tx(text.toUpperCase(),x,y);
+        doc.setCharSpace(0);
+      }
 
-      const gapsData = DIMS_META.map(d => {
-        const sc = avgA(filtered.map(e => e[`score_${d.key}`]));
-        if (!sc || sc > 3) return null;
-        return { ...d, score:sc, gap:parseFloat((5-sc).toFixed(1)), n:filtered.filter(e=>e[`score_${d.key}`]).length };
-      }).filter(Boolean).sort((a,b)=>a.score-b.score);
-      const critGaps = gapsData.filter(g=>g.score<=2);
-      const modGaps  = gapsData.filter(g=>g.score>2);
+      // ═══════════════════════════════════════════════════════════════════════
+      // PORTADA — Full editorial cover
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.portada){
+        newPage("Portada");
 
-      const byRoleData = [...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol => {
-        const rows = filtered.filter(e=>e.rol===rol);
-        return { rol, n:rows.length, score:avgA(rows.map(e=>e.score_global)) };
-      }).filter(r=>r.score).sort((a,b)=>b.score-a.score);
+        // ── Full-bleed gradient hero (top 62%) ──
+        // Base red
+        rect(0,0,W,165,0,RED);
+        // Gradient simulation with overlapping rects (dark top, lighter mid)
+        rect(0,0,W,30,0,RED_DK);
+        rect(0,125,W,40,0,[210,22,18]);
 
-      const heatDirs = [...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
-      const heatRows = heatDirs.map(dir => {
-        const rows = filtered.filter(e=>e.direccion===dir);
-        const r = { dir, n:rows.length, global:avgA(rows.map(e=>e.score_global)) };
-        DIMS_META.forEach(d => { r[d.key] = avgA(rows.map(e=>e[`score_${d.key}`])); });
-        return r;
-      }).sort((a,b)=>(b.global||0)-(a.global||0));
+        // ── Geometric decoration — large circle cutout style ──
+        // Background circles (darker red, offset)
+        F([200,18,14]); doc.circle(W+8,  -8, 62,"F");
+        F([185,12,10]); doc.circle(W-12, 28, 35,"F");
+        F([210,22,18]); doc.circle(-12,  150,55,"F");
+        F([220,28,22]); doc.circle(W-8,  155,30,"F");
 
-      const distData = [1,2,3,4,5].map(v => ({
-        v, label:LV_NAMES[v], rgb:LV_RGB[v-1],
-        count:filtered.filter(e=>Math.round(e.score_global)===v).length,
-        pct: filtered.length ? Math.round(filtered.filter(e=>Math.round(e.score_global)===v).length/filtered.length*100) : 0,
-      }));
+        // ── Fine dot grid ──
+        F([255,255,255]);
+        for(let gx=M;gx<W-M;gx+=9)
+          for(let gy=6;gy<160;gy+=9)
+            doc.circle(gx,gy,0.22,"F");
 
-      // ══════════════════════════════════════════════════════════════════════
-      // PORTADA
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.portada) {
-        addPage({ cover: true });
+        // ── KEARNEY logo block ──
+        rect(M,M,40,10,2,RED_DK);
+        // Inner highlight line
+        rect(M,M,40,1.5,0,[255,255,255]);
+        sf("bold",9,WHITE); doc.setCharSpace(2.5);
+        txC("KEARNEY",M,M+7,40);
+        doc.setCharSpace(0);
 
-        // Full bleed red hero (top 60%)
-        box(0, 0, W, 175, 0, C.red);
-
-        // Geometric accent shapes
-        // Large circle top-right (decorative)
-        fill([200, 20, 15]);
-        doc.circle(W - 10, -10, 55, "F");
-        fill([215, 28, 22]);
-        doc.circle(W + 5, 30, 35, "F");
-        // Bottom arc shape
-        fill([210, 24, 18]);
-        doc.circle(20, 180, 40, "F");
-
-        // Dot grid pattern (subtle)
-        fill([255,255,255]);
-        for (let gx = M; gx < W - M; gx += 10)
-          for (let gy = 8; gy < 170; gy += 10)
-            doc.circle(gx, gy, 0.28, "F");
-
-        // ── TOP: Kearney brand strip ──
-        box(M, M, 50, 11, 2, C.redDk);
-        sf("bold", 10, [255,255,255]);
-        txtC("KEARNEY", M, M+7.5, 50);
-
-        // Date chip (top right)
-        box(W - M - 52, M, 52, 8, 2, [200,20,15]);
-        sf("normal", 7, [255,220,218]);
-        txtC(T(now), W - M - 52, M + 5.5, 52);
+        // Date chip (top-right)
+        rect(W-M-55,M,55,10,2,[200,18,14]);
+        sf("normal",7,[255,210,208]);
+        txC(T(now),W-M-55,M+6.8,55);
 
         // ── MAIN TITLE ──
-        const displayTitle = T(titulo);
-        sf("bold", 28, [255,255,255]);
-        const tLines = doc.splitTextToSize(displayTitle, W - M*2 - 10);
-        let ty = 55;
-        tLines.forEach(l => { txt(l, M, ty); ty += 12; });
+        // Overline
+        sf("normal",7,[255,180,178]); doc.setCharSpace(1.5);
+        tx("DIAGNOSTICO DE MADUREZ",M,46);
+        doc.setCharSpace(0);
+
+        // Display title — huge, tracked tight (fontWeight:900 letterSpacing:-.02em)
+        sf("bold",28,WHITE);
+        const titleLines=doc.splitTextToSize(T(titulo),W-M*2-10);
+        let ty=56;
+        titleLines.slice(0,3).forEach(l=>{ tx(l,M,ty); ty+=13; });
 
         // Subtitle
-        sf("normal", 12, [255,200,198]);
-        txt(T(subtitulo), M, ty + 4);
+        sf("normal",11,[255,200,198]);
+        doc.splitTextToSize(T(subtitulo),W-M*2).slice(0,2).forEach(l=>{ tx(l,M,ty+3); ty+=7; });
 
-        // ── HERO METRICS ROW ──
-        const metrics = [
-          { v: String(filtered.length),                            label: "Evaluaciones" },
-          { v: globalAvg != null ? globalAvg.toFixed(1) : "-",    label: "Score Promedio" },
-          { v: globalAvg ? lvName(globalAvg) : "-",               label: "Nivel Actual" },
-          { v: spread != null ? spread + "pts" : "-",             label: "Dispersion" },
+        // ── METRIC STRIP — 4 cards in a row ──
+        const ms=[
+          {v:String(filtered.length),          label:"Evaluaciones",     accent:RED_DK},
+          {v:gAvg!=null?gAvg.toFixed(1):"-",   label:"Score Promedio",   accent:gAvg?lvC(gAvg):SOFT},
+          {v:gAvg?lvL(gAvg):"-",               label:"Nivel Actual",     accent:gAvg?lvC(gAvg):SOFT},
+          {v:sprd!=null?sprd+"pts":"-",         label:"Dispersion",       accent:sprd>=2?RED:sprd>=1?LV[1].c:LV[4].c},
         ];
-        const mw = (W - M * 2 - 9) / 4;
-        let mx = M;
-        ty += 20;
-        metrics.forEach((m, i) => {
-          // Card with glass-like overlay
-          fill([255,255,255]); doc.setGlobalAlpha ? null : null;
-          doc.setFillColor(255,255,255);
-          doc.setGState && doc.GState ? null : null;
-          box(mx, ty, mw, 28, 4, [220, 30, 24]);
-          // Inner highlight
-          box(mx, ty, mw, 1.5, 0, [255,255,255]);
-          sf("bold", 20, [255,255,255]);
-          txtC(T(m.v), mx, ty + 16, mw);
-          sf("normal", 7, [255,210,208]);
-          txtC(T(m.label).toUpperCase(), mx, ty + 23, mw);
-          mx += mw + 3;
+        const mw=(CONTENT_W-9)/4;
+        ty+=12;
+        ms.forEach((m,i)=>{
+          const mx=M+i*(mw+3);
+          // Card: semi-transparent dark red
+          rect(mx,ty,mw,30,6,[195,16,12]);
+          // Top accent stripe
+          rect(mx,ty,mw,2.5,0,m.accent);
+          // Value — fontWeight:900 style, large
+          sf("bold",22,WHITE);
+          txC(T(m.v),mx,ty+16,mw);
+          // Label — uppercase small tracked
+          sf("normal",6,[255,190,188]); doc.setCharSpace(0.4);
+          txC(T(m.label).toUpperCase(),mx,ty+24,mw);
+          doc.setCharSpace(0);
         });
 
         // ── WHITE LOWER SECTION ──
-        box(0, 175, W, H - 175, 0, C.card);
+        ty+=38;
+        rect(0,ty,W,H-ty,0,WHITE);
 
-        // Diagonal transition element
-        fill(C.red);
-        doc.triangle(0, 175, 60, 175, 0, 195, "F");
+        // Diagonal red triangle bridging sections
+        F(RED);
+        doc.triangle(0,ty,0,ty+22,28,ty,"F");
 
-        // ── CONTENT GRID on white ──
-        let wy = 188;
+        let wy=ty+10;
 
-        // Filters applied (if any)
-        if (filterDir.length || filterRol.length) {
-          boxS(M, wy, COL, 18, 3, C.warm1, C.border);
-          sf("bold", 8, C.inkMid); txt("Filtros aplicados", M + 5, wy + 6);
-          sf("normal", 7.5, C.inkSoft);
-          const fText = [
-            filterDir.length ? "Direccion: " + T(filterDir.join(", ")) : "",
-            filterRol.length ? "Rol: " + T(filterRol.join(", ")) : "",
+        // ── DIMENSION PREVIEW GRID ──
+        sf("bold",7.5,INK); doc.setCharSpace(0.3);
+        tx("DIMENSIONES EVALUADAS",M,wy); doc.setCharSpace(0);
+        wy+=7;
+
+        const dw=(CONTENT_W-12)/7;
+        DIMS_META.forEach((d,i)=>{
+          const sc=dAvgs.find(x=>x.key===d.key)?.score;
+          const dc=sc?lvC(sc):FAINT;
+          const db=sc?lvBg(sc):WARM;
+          const dx=M+i*(dw+2);
+          // Card with level-colored top bar
+          card(dx,wy,dw,28,6);
+          if(sc) rect(dx,wy,dw,2.5,0,dc); // colored top
+          // Dim number — bold large (matches app sidebar dim number)
+          sf("bold",7,sc?dc:FAINT);
+          txC(d.num,dx,wy+10,dw);
+          // Score — fontWeight:900 style
+          sf("bold",13,sc?dc:FAINT);
+          txC(sc!=null?sc.toFixed(1):"-",dx,wy+20,dw);
+          // Mini pbar
+          pbar(dx+3,wy+23,sc||0,5,dc,dw-6,2);
+        });
+        wy+=36;
+
+        // ── META INFO ROW ──
+        // Filters
+        if(filterDir.length||filterRol.length){
+          rectS(M,wy,CONTENT_W,16,8,WARM,BORDER,0.25);
+          label("Filtros aplicados",M+8,wy+6.5);
+          sf("normal",7.5,INK2);
+          const ft=[
+            filterDir.length?"Direccion: "+T(filterDir.slice(0,3).join(", "))+(filterDir.length>3?"...":""):"",
+            filterRol.length?"Rol: "+T(filterRol.slice(0,2).join(", "))+(filterRol.length>2?"...":""):"",
           ].filter(Boolean).join("   |   ");
-          txt(fText, M + 5, wy + 13);
-          wy += 24;
+          tx(ft,M+8,wy+13);
+          wy+=22;
         }
 
-        // Sections included
-        sf("bold", 8, C.inkMid); txt("Este reporte incluye:", M, wy + 4);
-        const secLabels = Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
-        let sx = M, sy = wy + 9;
-        secLabels.forEach(lbl => {
-          const tw = doc.getTextWidth(T(lbl)) + 8;
-          if (sx + tw > W - M) { sx = M; sy += 7; }
-          boxS(sx, sy - 4, tw, 6, 2, C.surface, C.border);
-          sf("normal", 6.5, C.inkMid); txt(T(lbl), sx + 4, sy);
-          sx += tw + 3;
-        });
-        wy = sy + 10;
-
-        // Dimensiones preview row
-        sf("bold", 8, C.inkMid); txt("Dimensiones evaluadas", M, wy + 2);
-        wy += 7;
-        const dw2 = (COL - 6*2) / 7;
-        DIMS_META.forEach((d, i) => {
-          const sc = dimAvgs.find(x=>x.key===d.key)?.score;
-          const rgb = sc ? lvRgb(sc) : C.border;
-          const bgc = sc ? lvBg(sc) : [245,244,242];
-          box(M + i*(dw2+2), wy, dw2, 16, 3, bgc);
-          if (sc) { box(M + i*(dw2+2), wy, dw2, 2, 0, rgb); }
-          sf("bold", 6.5, sc ? rgb : C.inkFaint);
-          txtC(d.num, M + i*(dw2+2), wy + 8, dw2);
-          sf("bold", 8.5, sc ? rgb : C.inkFaint);
-          txtC(sc != null ? sc.toFixed(1) : "-", M + i*(dw2+2), wy + 14, dw2);
+        // Included sections chips
+        label("Secciones incluidas",M,wy+3); wy+=8;
+        const secList=Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
+        let sx=M;
+        secList.forEach(lbl=>{
+          const tw=doc.getTextWidth(T(lbl))+10;
+          if(sx+tw>W-M){sx=M;wy+=8;}
+          rectS(sx,wy-4,tw,7,3.5,SURF,BORDER,0.25);
+          sf("normal",6.5,MID); tx(T(lbl),sx+5,wy);
+          sx+=tw+4;
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // KPIs EJECUTIVOS
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.resumen_kpis) {
-        currentSection = "KPIs Ejecutivos";
-        let y = addPage({ section: currentSection });
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.resumen_kpis){
+        let y=newPage("KPIs Ejecutivos");
+        y=secHead("Resumen Ejecutivo","Indicadores clave del estado de madurez de inventarios",y);
 
-        y = sectionTitle("Resumen Ejecutivo", "Indicadores clave de madurez de inventarios", y);
-
-        // ── 4 big KPI cards ──
-        const kpis = [
-          { label:"Score Global",     value: globalAvg != null ? globalAvg.toFixed(2) : "-", sub: lvName(globalAvg||0),     rgb: C.red,  wide:true },
-          { label:"Dim. mas fuerte",  value: strongest ? strongest.num : "-",                sub: strongest ? T(strongest.label) : "-",  rgb: C.lv5, wide:false },
-          { label:"Dim. mas debil",   value: weakest   ? weakest.num   : "-",                sub: weakest   ? T(weakest.label)   : "-",  rgb: C.red, wide:false },
-          { label:"Dispersion",       value: spread != null ? spread+"pts" : "-",            sub: "max - min entre dims",                rgb: spread>=2?C.red:spread>=1?C.lv2:C.lv5, wide:false },
+        // ── TOP KPI ROW: 4 cards ──
+        // Match app KPI card: white bg, #E8E4DF border, radius 14, icon top-right
+        const kpis=[
+          {label:"Score Global Prom.",  value:gAvg!=null?gAvg.toFixed(2):"-",    sub:gAvg?lvL(gAvg):"-",            rgb:RED,          icon:"GBL"},
+          {label:"Dim. mas fuerte",     value:best?best.num:"-",                  sub:best?T(best.label).slice(0,16):"-",  rgb:LV[4].c,      icon:"TOP"},
+          {label:"Dim. mas debil",      value:worst?worst.num:"-",                sub:worst?T(worst.label).slice(0,16):"-",rgb:RED,          icon:"BOT"},
+          {label:"Dispersion",          value:sprd!=null?sprd+"pts":"-",          sub:"max - min",                   rgb:sprd>=2?RED:sprd>=1?LV[1].c:LV[4].c, icon:"DSP"},
         ];
+        const kw=(CONTENT_W-9)/4;
+        kpis.forEach((k,i)=>{
+          const kx=M+i*(kw+3);
+          card(kx,y,kw,36,14);
+          // Top accent bar
+          rect(kx,y,kw,3,0,k.rgb);
+          // Icon badge (top-right, app style: color+"18" bg, borderRadius:10)
+          const ibg=[k.rgb[0],k.rgb[1],k.rgb[2]];
+          rect(kx+kw-14,y+7,10,10,3,[Math.min(255,ibg[0]+180),Math.min(255,ibg[1]+180),Math.min(255,ibg[2]+180)]);
+          sf("bold",5.5,k.rgb); txC(T(k.icon),kx+kw-14,y+13.5,10);
+          // Label — uppercase small tracked (matches app)
+          label(k.label,kx+6,y+11);
+          // Value — huge, bold, tight tracking (fontWeight:900 letterSpacing:-.02em)
+          sf("bold",22,k.rgb);
+          tx(T(k.value),kx+6,y+26);
+          // Sub — level name
+          rectS(kx+6,y+29,kw-12,6,3,[k.rgb[0],k.rgb[1],k.rgb[2],18?0:0].slice(0,3).map(v=>Math.min(255,v+185)),k.rgb.map(v=>Math.min(255,v+150)),0.3);
 
-        // Card 1: big (left half)
-        const bigW = COL * 0.4;
-        const smW  = (COL * 0.6 - 6) / 3;
-
-        // Big score card
-        box(M, y, bigW, 38, 5, C.red);
-        box(M, y, bigW, 4, 0, C.redDk);           // top accent
-        box(M, y, 4, 38, 0, C.redDk);             // left accent
-        sf("bold", 32, [255,255,255]);
-        txtC(T(kpis[0].value), M, y + 22, bigW);
-        sf("bold", 8, [255,200,198]);
-        txtC(T(kpis[0].label).toUpperCase(), M, y + 30, bigW);
-        // Level badge inside
-        const lvBadgeX = M + bigW/2 - 18;
-        box(lvBadgeX, y + 32, 36, 7, 3, C.redDk);
-        sf("bold", 7, [255,230,228]);
-        txtC(T(kpis[0].sub), lvBadgeX, y + 37, 36);
-
-        // 3 smaller cards (right side)
-        [1,2,3].forEach((ki, i) => {
-          const k = kpis[ki];
-          const kx = M + bigW + 3 + i*(smW+3);
-          box(kx, y, smW, 38, 5, C.warm1);
-          stroke(k.rgb, 0.5); doc.roundedRect(kx, y, smW, 38, 5, 5);
-          box(kx, y, smW, 3, 0, k.rgb); // top bar
-          sf("bold", 20, k.rgb);
-          txtC(T(k.value), kx, y + 20, smW);
-          sf("normal", 6.5, C.inkSoft);
-          txtC(T(k.label).toUpperCase(), kx, y + 27, smW);
-          sf("bold", 7, k.rgb);
-          txtC(T(k.sub), kx, y + 33.5, smW);
+          // recompute bg for sub
+          const sBg=[Math.min(255,k.rgb[0]+185),Math.min(255,k.rgb[1]+185),Math.min(255,k.rgb[2]+185)];
+          rect(kx+6,y+29,kw-12,6,3,sBg);
+          sf("bold",6,k.rgb); txC(T(k.sub),kx+6,y+33.5,kw-12);
         });
-        y += 46;
+        y+=44;
 
-        // ── Score por dimension: horizontal gauge bars ──
-        y = sectionTitle("Score por dimension", "", y);
+        // ── DIMENSION SCORE ROWS ──
+        // Matches app: dim number badge left, label, progress bar, score badge right
+        label("Score por dimension",M,y); y+=7;
 
-        DIMS_META.forEach((d, i) => {
-          y = checkY(y, 11);
-          const sc = dimAvgs.find(x=>x.key===d.key)?.score;
-          const rgb = sc ? lvRgb(sc) : C.inkFaint;
-          const bg  = sc ? lvBg(sc)  : [245,244,242];
+        DIMS_META.forEach((d,i)=>{
+          y=checkY(y,13);
+          const sc=dAvgs.find(x=>x.key===d.key)?.score;
+          const dc=sc?lvC(sc):FAINT;
+          const db=sc?lvBg(sc):WARM;
 
-          // Row background (alternating)
-          if (i % 2 === 0) box(M, y-1, COL, 10, 2, C.warm1);
+          // Alternating row bg (subtle)
+          if(i%2===0) rect(M,y-1,CONTENT_W,13,4,WARM);
 
-          // Dim number + name
-          box(M, y, 14, 8, 2, sc ? bg : [245,244,242]);
-          stroke(sc ? rgb : C.border, 0.3); doc.roundedRect(M, y, 14, 8, 2, 2);
-          sf("bold", 6.5, sc ? rgb : C.inkFaint);
-          txtC(d.num, M, y+5.5, 14);
+          // Dim number pill — exact app style
+          rectS(M,y,14,10,5,db,dc,0.35);
+          sf("bold",7,dc); txC(d.num,M,y+6.8,14);
 
-          sf("normal", 8, C.ink);
-          txt(T(d.label), M + 17, y + 5.5);
+          // Dimension name
+          sf("normal",8.5,INK); tx(T(d.label),M+18,y+7);
 
-          // Score badge
-          if (sc) {
-            const bx = M + COL - 32;
-            box(bx, y+1, 32, 6, 3, bg);
-            sf("bold", 7, rgb);
-            txtC(sc.toFixed(2) + "  " + lvName(sc), bx, y+5.5, 32);
+          // n evaluaciones
+          sf("normal",6.5,SOFT);
+          const nEval=filtered.filter(e=>e[`score_${d.key}`]!=null).length;
+          tx("n="+nEval,M+85,y+7);
+
+          // Progress bar — app-style
+          const barX=M+100, barW2=CONTENT_W-104-28;
+          pbar(barX,y+4,sc||0,5,dc,barW2,3.5);
+          // Tick marks 1–5
+          for(let t=1;t<=5;t++){
+            S(BORDER,0.2); doc.line(barX+(t/5)*barW2,y+3,barX+(t/5)*barW2,y+3.5);
           }
 
-          // Progress bar
-          const barX = M + 80, barW2 = COL - 80 - 36;
-          bar(barX, y+3, sc||0, 5, sc?rgb:C.border, barW2, 3);
-
-          // Tick marks at 1-5
-          for(let t=1; t<=5; t++) {
-            const tx = barX + (t/5)*barW2;
-            stroke(C.border, 0.2);
-            doc.line(tx, y+1.5, tx, y+2);
+          // Score badge (right) — app level badge style
+          if(sc){
+            const bx=W-M-24;
+            rect(bx,y+1,24,8,4,db);
+            S(dc,0.3); doc.roundedRect(bx,y+1,24,8,4,4);
+            sf("bold",7.5,dc); txC(sc.toFixed(2)+" / 5",bx,y+6.5,24);
           }
 
-          y += 11;
+          y+=13;
         });
 
-        y = divider(y + 2);
+        y+=4;
 
-        // ── Evaluaciones breakdown by level ──
-        y = sectionTitle("Distribucion de evaluaciones por nivel", "", y);
-        const maxC2 = Math.max(...distData.map(d=>d.count), 1);
-        const bw2 = COL / 5 - 4;
-        let bx2 = M;
-        distData.forEach(l => {
-          const bh = l.count > 0 ? Math.max(6, (l.count/maxC2) * 40) : 0;
-          // BG column
-          box(bx2, y, bw2, 40, 3, C.warm1);
+        // ── DISTRIBUTION BAR CHART ──
+        y=checkY(y,70);
+        hline(y,M,W-M,BORDER,0.2); y+=6;
+        label("Distribucion por nivel de madurez",M,y); y+=7;
+
+        const maxC=Math.max(...dist.map(d=>d.count),1);
+        const colW=(CONTENT_W-20)/5;
+        dist.forEach((l,i)=>{
+          const bx=M+10+i*(colW+4);
+          const bh=l.count>0?Math.max(5,(l.count/maxC)*45):0;
+          const barY=y+45;
+
+          // Track (empty column)
+          rect(bx,y,colW,45,4,SURF);
           // Fill
-          if (bh > 0) {
-            box(bx2, y + 40 - bh, bw2, bh, 3, l.rgb);
-            // Count inside bar
-            sf("bold", 10, [255,255,255]);
-            if (bh > 8) txtC(String(l.count), bx2, y+40-bh+7, bw2);
+          if(bh>0){
+            rect(bx,barY-bh,colW,bh,4,l.c);
+            // Count label inside bar
+            if(bh>9){ sf("bold",10,WHITE); txC(String(l.count),bx,barY-bh+8,colW); }
           } else {
-            sf("normal", 9, C.inkFaint); txtC("0", bx2, y+22, bw2);
+            sf("normal",9,FAINT); txC("0",bx,y+25,colW);
           }
-          // Label below
-          sf("bold", 7, l.rgb);
-          txtC(T(l.label), bx2, y+46, bw2);
-          sf("normal", 6.5, C.inkSoft);
-          txtC(l.pct+"%", bx2, y+51, bw2);
-          bx2 += bw2 + 4;
+          // Level label
+          sf("bold",7,l.c); txC(T(l.label),bx,y+52,colW);
+          // Pct
+          sf("normal",6.5,SOFT); txC(l.pct+"%",bx,y+58,colW);
+
+          // Decorative level number
+          dot(bx+colW/2,y-3,2.5,bh>0?l.c:BORDER);
+          sf("bold",5.5,bh>0?WHITE:[255,255,255]); txC(String(i+1),bx+colW/2-1.5,y-1,3);
         });
-        y += 58;
+        y+=65;
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // HEATMAP
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.heatmap && heatRows.length > 0) {
-        currentSection = "Heatmap";
-        let y = addPage({ section: currentSection });
-        y = sectionTitle("Heatmap Direccion x Dimension", "Score promedio por unidad organizacional y dimension evaluada", y);
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.heatmap&&heatRows.length>0){
+        let y=newPage("Heatmap");
+        y=secHead("Heatmap Direccion x Dimension","Score promedio por unidad y dimension. Color = nivel de madurez.",y);
 
-        const nCols = DIMS_META.length;
-        const labelW = 40, numW = 10, globalW = 18;
-        const dimW = (COL - labelW - numW - globalW - 3) / nCols;
+        // Column widths
+        const LW=44,NW=9,GW=18;
+        const DW=(CONTENT_W-LW-NW-GW-3)/DIMS_META.length;
 
-        // Header row
-        box(M, y, COL, 9, 3, C.ink);
-        sf("bold", 6.5, [255,255,255]);
-        txt("DIRECCION", M+2, y+5.8);
-        txtC("N", M+labelW+numW/2, y+5.8, 0);
-        txtC("GLOBAL", M+labelW+numW+globalW/2, y+5.8, 0);
-        DIMS_META.forEach((d, i) => {
-          txtC(d.num, M+labelW+numW+globalW+3+i*dimW+dimW/2, y+5.8, 0);
+        // ── Header row ──
+        rect(M,y,CONTENT_W,9,3,INK);
+        sf("bold",6,WHITE); doc.setCharSpace(0.3);
+        tx("DIRECCION",M+3,y+6);
+        txC("N",M+LW+NW/2,y+6,0);
+        txC("GLOBAL",M+LW+NW+GW/2,y+6,0);
+        DIMS_META.forEach((d,i)=>{
+          txC(d.num,M+LW+NW+GW+3+i*DW+DW/2,y+6,0);
         });
-        y += 10;
+        doc.setCharSpace(0);
+        y+=10;
 
-        heatRows.forEach((row, ri) => {
-          y = checkY(y, 10);
-          const rowBg = ri%2===0 ? C.card : C.warm1;
-          box(M, y, COL, 9, 0, rowBg);
+        heatRows.forEach((row,ri)=>{
+          y=checkY(y,10);
+          // Alternating row
+          if(ri%2===0) rect(M,y,CONTENT_W,9.5,0,WARM);
 
-          // Dir name
-          sf("bold", 7.5, C.ink);
-          txt(T(row.dir).slice(0,18), M+2, y+5.8);
+          // Direccion
+          sf(ri===0?"bold":"normal",7.5,INK);
+          tx(T(row.dir).slice(0,18),M+3,y+6.3);
 
           // N
-          sf("normal", 7, C.inkSoft);
-          txtC(String(row.n), M+labelW+numW/2, y+5.8, 0);
+          sf("normal",7,SOFT); txC(String(row.n),M+LW+NW/2,y+6.3,0);
 
-          // Global score — colored badge
-          const gl = row.global;
-          if (gl) {
-            const gc = lvRgb(gl), gb = lvBg(gl);
-            box(M+labelW+numW+1, y+1, globalW-2, 7, 2, gb);
-            sf("bold", 7.5, gc);
-            txtC(gl.toFixed(1), M+labelW+numW+1+globalW/2-1, y+5.8, 0);
+          // Global badge
+          const gl=row.global;
+          if(gl){
+            const gc=lvC(gl),gb=lvBg(gl);
+            rect(M+LW+NW+1,y+1.5,GW-2,6.5,3,gb);
+            S(gc,0.3); doc.roundedRect(M+LW+NW+1,y+1.5,GW-2,6.5,3,3);
+            sf("bold",8,gc); txC(gl.toFixed(1),M+LW+NW+1+GW/2-1,y+6.3,0);
           } else {
-            sf("normal", 7, C.inkFaint); txtC("-", M+labelW+numW+globalW/2, y+5.8, 0);
+            sf("normal",7,FAINT); txC("-",M+LW+NW+GW/2,y+6.3,0);
           }
 
           // Dim cells
-          DIMS_META.forEach((d, i) => {
-            const v = row[d.key];
-            const cellX = M+labelW+numW+globalW+3+i*dimW;
-            if (v) {
-              const vc = lvRgb(v), vb = lvBg(v);
-              box(cellX+0.5, y+1, dimW-1, 7, 2, vb);
-              sf("bold", 7, vc);
-              txtC(v.toFixed(1), cellX+dimW/2, y+5.8, 0);
+          DIMS_META.forEach((d,i)=>{
+            const v=row[d.key];
+            const cx2=M+LW+NW+GW+3+i*DW;
+            if(v){
+              const vc=lvC(v),vb=lvBg(v);
+              rect(cx2+0.5,y+1.5,DW-1,6.5,2,vb);
+              sf("bold",7.5,vc); txC(v.toFixed(1),cx2+DW/2,y+6.3,0);
             } else {
-              sf("normal", 6.5, C.inkFaint); txtC("-", cellX+dimW/2, y+5.8, 0);
+              sf("normal",6.5,FAINT); txC("-",cx2+DW/2,y+6.3,0);
             }
           });
 
-          // Bottom row separator
-          line(M, y+9, M+COL, y+9, C.border, 0.2);
-          y += 9;
+          hline(y+10,M,W-M,BORDER,0.18);
+          y+=10;
         });
 
-        y += 4;
-        // Legend
-        sf("bold", 7, C.inkSoft); txt("Referencia de niveles:", M, y+4); y += 7;
-        LV_NAMES.slice(1).forEach((name, i) => {
-          const lx = M + i*36;
-          box(lx, y-3.5, 34, 6, 2, LV_BG[i]);
-          stroke(LV_RGB[i], 0.4); doc.roundedRect(lx, y-3.5, 34, 6, 2, 2);
-          sf("bold", 6.5, LV_RGB[i]);
-          txtC((i+1)+" - "+T(name), lx+17, y, 0);
+        y+=6;
+
+        // ── Legend row ──
+        label("Niveles de madurez",M,y+3); y+=8;
+        LV.forEach((l,i)=>{
+          const lx=M+i*36;
+          rectS(lx,y-3.5,34,7,3.5,l.bg,l.c.map(v=>Math.min(255,v+120)),0.3);
+          sf("bold",6.5,l.c); txC((i+1)+" "+l.label,lx+17,y,0);
         });
-        y += 10;
+        y+=12;
 
-        // By Role section (append if space, else new page)
-        if (byRoleData.length > 0) {
-          y = checkY(y, 20 + byRoleData.length * 11);
-          y = sectionTitle("Score Promedio por Rol", "", y);
+        // ── By Role (if fits on page) ──
+        if(byRole.length>0){
+          y=checkY(y,16+byRole.length*12);
+          hline(y,M,W-M,BORDER,0.2); y+=6;
+          label("Score promedio por rol",M,y); y+=8;
 
-          const half = Math.ceil(byRoleData.length / 2);
-          byRoleData.forEach((r, i) => {
-            const col2 = i < half ? 0 : 1;
-            const row2 = i < half ? i : i - half;
-            const rx = M + col2 * (COL/2 + 3);
-            const ry = y + row2 * 11;
-            const rgb = r.score ? lvRgb(r.score) : C.inkFaint;
+          byRole.forEach((r,i)=>{
+            y=checkY(y,11);
+            const rc=r.score?lvC(r.score):FAINT;
+            const rb=r.score?lvBg(r.score):WARM;
 
-            checkY(ry, 10);
-            if (i%2===0 && col2===0) box(rx, ry-0.5, COL/2-3, 10, 2, C.warm1);
+            if(i%2===0) rect(M,y-1,CONTENT_W,11,3,WARM);
 
-            box(rx, ry, 18, 8, 2, C.surface);
-            sf("bold", 8.5, rgb); txtC(r.score!=null?r.score.toFixed(1):"-", rx, ry+5.5, 18);
+            // Rank number
+            dot(M+4,y+4.5,4.5,i<3?rc:FAINT);
+            sf("bold",6.5,i<3?WHITE:SOFT); txC(String(i+1),M,y+5.8,9);
 
-            sf("normal", 8, C.ink); txt(T(r.rol), rx+21, ry+5.5);
-            sf("normal", 6.5, C.inkFaint); txt("n="+r.n, rx+21+doc.getTextWidth(T(r.rol))+3, ry+5.5);
+            // Score badge
+            rectS(M+11,y,22,9,4,rb,rc,0.3);
+            sf("bold",8,rc); txC(r.score!=null?r.score.toFixed(2):"-",M+11,y+6.3,22);
 
-            bar(rx+21, ry+6.5, r.score||0, 5, rgb, COL/2-3-22, 2);
+            // Name
+            sf(i<3?"bold":"normal",8.5,INK); tx(T(r.rol).slice(0,28),M+36,y+6.3);
+            sf("normal",6.5,SOFT); tx("n="+r.n,M+36+doc.getTextWidth(T(r.rol).slice(0,28))+4,y+6.3);
+
+            // Bar
+            pbar(M+36,y+7.5,r.score||0,5,rc,CONTENT_W-50,2.5);
+
+            y+=11;
           });
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // BRECHAS CRITICAS
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.brechas_crit) {
-        currentSection = "Brechas Criticas";
-        let y = addPage({ section: currentSection });
-        y = sectionTitle("Brechas Criticas", "Dimensiones con score promedio 1-2. Accion inmediata recomendada.", y);
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.brechas_crit){
+        let y=newPage("Brechas Criticas");
+        y=secHead("Brechas Criticas","Dimensiones con score promedio 1-2 | Accion inmediata recomendada",y);
 
-        if (critGaps.length === 0) {
-          boxS(M, y, COL, 18, 5, [236,253,245], [167,243,208], 0.5);
-          sf("bold", 10, C.lv5); txtC("Sin brechas criticas identificadas en la seleccion actual", M, y+11, COL);
-          y += 24;
+        if(critG.length===0){
+          // Empty state — app style
+          card(M,y,CONTENT_W,20,10);
+          rect(M,y,CONTENT_W,3,0,LV[4].c); // green top
+          sf("bold",10,LV[4].c); txC("Sin brechas criticas en la seleccion actual",M,y+13,CONTENT_W);
+          y+=26;
         } else {
-          critGaps.forEach((g, gi) => {
-            y = checkY(y, 36);
-            const rgb = lvRgb(g.score);
-            const bg  = lvBg(g.score);
+          critG.forEach((g,gi)=>{
+            y=checkY(y,40);
+            const gc=lvC(g.score), gb=lvBg(g.score);
+            const gapC=RED;
 
-            // Card
-            boxS(M, y, COL, 32, 5, [255,248,248], [254,202,202], 0.5);
-            // Left color stripe
-            box(M, y, 4, 32, 0, rgb);
-            // Dim number badge
-            box(M+8, y+4, 16, 9, 3, bg);
-            stroke(rgb, 0.4); doc.roundedRect(M+8, y+4, 16, 9, 3, 3);
-            sf("bold", 7.5, rgb); txtC(g.num, M+8, y+10, 16);
+            // Card with red-tinted border
+            rectS(M,y,CONTENT_W,36,10,[255,250,250],[254,202,202],0.5);
 
-            // Dim label
-            sf("bold", 11, C.ink); txt(T(g.label), M+28, y+10);
+            // Left colored stripe (thick)
+            rect(M,y,5,36,0,gc);
 
-            // Score + gap badges (right)
-            const bBx = M+COL-56;
-            box(bBx, y+4, 26, 9, 3, bg);
-            sf("bold", 8.5, rgb); txtC("Score: "+g.score.toFixed(1), bBx, y+10, 26);
-            box(bBx+29, y+4, 24, 9, 3, [255,235,235]);
-            sf("bold", 8.5, [220,38,38]); txtC("+"+g.gap.toFixed(1)+" niv.", bBx+29, y+10, 24);
+            // Header area
+            // Dim number badge (matches app dim pills)
+            rectS(M+9,y+6,16,10,5,gb,gc,0.4);
+            sf("bold",8,gc); txC(g.num,M+9,y+12.5,16);
 
-            // Progress bar (full width)
-            sf("normal", 6.5, C.inkFaint); txt("0", M+8, y+22);
-            bar(M+14, y+18.5, g.score, 5, rgb, COL-22, 4);
-            // Target marker at 5
-            sf("bold", 6.5, C.inkSoft); txtR("5", M+COL-2, y+22);
-            // Current score marker
-            const markerX = M+14 + (g.score/5)*(COL-22);
-            box(markerX-3, y+16, 6, 8, 1, rgb);
-            sf("bold", 5.5, [255,255,255]); txtC(g.score.toFixed(1), markerX-3, y+21.5, 6);
+            // Dim label — big, bold
+            sf("bold",12,INK); tx(T(g.label),M+30,y+13);
 
-            // n evaluaciones
-            sf("normal", 6.5, C.inkFaint); txt(g.n+" evaluaciones promediadas", M+28, y+27);
+            // n evaluaciones (small, right)
+            sf("normal",6.5,SOFT); txR(g.n+" evaluaciones",W-M-4,y+10);
 
-            y += 38;
+            // Score pill + Gap pill (right side)
+            const spx=W-M-54;
+            // Score pill
+            rect(spx,y+15,24,8,4,gb);
+            S(gc,0.3); doc.roundedRect(spx,y+15,24,8,4,4);
+            sf("bold",7.5,gc); txC("Score "+g.score.toFixed(1),spx,y+20.5,24);
+            // Gap pill
+            rect(spx+26,y+15,24,8,4,[255,235,235]);
+            S(RED,0.3); doc.roundedRect(spx+26,y+15,24,8,4,4);
+            sf("bold",7.5,RED); txC("+"+g.gap.toFixed(1)+" niv.",spx+26,y+20.5,24);
+
+            // Progress bar with floating marker
+            const barX=M+9, barW3=CONTENT_W-62;
+            pbar(barX,y+27,g.score,5,gc,barW3,4);
+
+            // Score marker on bar
+            const markerX=barX+(g.score/5)*barW3;
+            rect(markerX-4,y+25,8,8,2,gc);
+            sf("bold",6,WHITE); txC(g.score.toFixed(1),markerX-4,y+30.5,8);
+
+            // Scale labels
+            sf("normal",5.5,FAINT); tx("0",barX,y+34.5); txR("5",barX+barW3,y+34.5);
+
+            // Priority badge (top-left corner)
+            dot(M+5,y+5,5,gc);
+            sf("bold",6.5,WHITE); txC(String(gi+1),M+1,y+6.5,9);
+
+            y+=42;
           });
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // BRECHAS MODERADAS
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.brechas_mod) {
-        currentSection = "Brechas Moderadas";
-        let y = addPage({ section: currentSection });
-        y = sectionTitle("Brechas Moderadas", "Dimensiones con score promedio de nivel 3. Oportunidad de mejora.", y);
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.brechas_mod){
+        let y=newPage("Brechas Moderadas");
+        y=secHead("Brechas Moderadas","Dimensiones con score promedio de nivel 3 | Oportunidad de mejora",y);
 
-        if (modGaps.length === 0) {
-          sf("normal", 10, C.inkSoft); txtC("Sin brechas moderadas.", M, y+8, COL); y += 14;
+        if(modG.length===0){
+          card(M,y,CONTENT_W,20,10);
+          sf("normal",10,SOFT); txC("Sin brechas moderadas identificadas",M,y+13,CONTENT_W);
+          y+=26;
         } else {
           // 2-column grid
-          const half = Math.ceil(modGaps.length/2);
-          modGaps.forEach((g, i) => {
-            y = checkY(y, 26);
-            const col2 = i < half ? 0 : 1;
-            const row2 = i < half ? i : i-half;
-            const gx = M + col2*(COL/2+3);
-            const gy = y + row2*28;
-            const rgb = lvRgb(g.score);
-            const bg  = lvBg(g.score);
-            const gw  = COL/2-3;
+          const gw=(CONTENT_W-6)/2;
+          const rows2=Math.ceil(modG.length/2);
+          modG.forEach((g,i)=>{
+            const col2=i<rows2?0:1, row2=i<rows2?i:i-rows2;
+            const gx=M+col2*(gw+6), gy=y+row2*30;
+            y=checkY(gy,28);
+            const gc=lvC(g.score), gb=lvBg(g.score);
 
-            boxS(gx, gy, gw, 24, 4, [255,251,240], [253,230,138], 0.4);
-            box(gx, gy, gw, 3, 0, rgb); // top bar
+            card(gx,gy,gw,26,10);
+            rect(gx,gy,gw,3,0,gc); // top stripe
 
-            sf("bold", 7, rgb); txtC(g.num, gx+8, gy+10, 14);
-            box(gx+2, gy+5, 14, 9, 2, bg);
-            stroke(rgb,0.3); doc.roundedRect(gx+2, gy+5, 14, 9, 2, 2);
-            sf("bold", 7.5, rgb); txtC(g.num, gx+2, gy+10.5, 14);
+            // Num badge
+            rectS(gx+6,gy+7,13,9,4,gb,gc,0.35);
+            sf("bold",7,gc); txC(g.num,gx+6,gy+13,13);
 
-            sf("bold", 8, C.ink); txt(T(g.label).slice(0,22), gx+20, gy+9);
-            sf("normal", 6.5, C.inkSoft); txt("n="+g.n, gx+20, gy+14.5);
+            // Label
+            sf("bold",8.5,INK); tx(T(g.label).slice(0,22),gx+22,gy+12);
+            sf("normal",6,SOFT); tx("n="+g.n,gx+22,gy+18);
 
-            bar(gx+2, gy+18, g.score, 5, rgb, gw-4, 3);
-            sf("bold", 8, rgb); txtR(g.score.toFixed(1)+" / 5", gx+gw-2, gy+9);
+            // Bar
+            pbar(gx+6,gy+20,g.score,5,gc,gw-12,3);
+
+            // Score (right)
+            sf("bold",9,gc); txR(g.score.toFixed(1)+" / 5",gx+gw-4,gy+12);
           });
-          y += Math.ceil(modGaps.length/2)*28 + 4;
+          y+=rows2*30+4;
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // ROADMAP
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.roadmap && gapsData.length > 0) {
-        currentSection = "Hoja de Ruta";
-        let y = addPage({ section: currentSection });
-        y = sectionTitle("Hoja de Ruta Priorizada", "Plan de accion en 3 horizontes temporales segun impacto y urgencia", y);
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.roadmap&&gaps.length>0){
+        let y=newPage("Hoja de Ruta");
+        y=secHead("Hoja de Ruta Priorizada","Plan de accion en 3 horizontes segun impacto y urgencia",y);
 
-        const phases = [
-          { t:"Corto Plazo",   sub:"0-6 meses",   rgb:C.red,  bg:[255,242,242], br:[254,202,202], items:critGaps.slice(0,4) },
-          { t:"Mediano Plazo", sub:"6-12 meses",  rgb:C.lv2,  bg:[255,251,235], br:[253,230,138], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
-          { t:"Largo Plazo",   sub:"12-24 meses", rgb:C.lv5,  bg:[236,253,245], br:[167,243,208], items:modGaps.slice(3,7) },
+        const phases=[
+          {t:"Corto Plazo",  sub:"0-6 meses",   c:RED,      bg:RED_LT,       br:[254,202,202], items:critG.slice(0,4)},
+          {t:"Mediano Plazo",sub:"6-12 meses",  c:LV[1].c,  bg:LV[1].bg,     br:[253,230,138], items:[...critG.slice(4),...modG.slice(0,3)].slice(0,4)},
+          {t:"Largo Plazo",  sub:"12-24 meses", c:LV[4].c,  bg:LV[4].bg,     br:[167,243,208], items:modG.slice(3,7)},
         ];
+        const pw=(CONTENT_W-8)/3;
 
-        // Timeline header strip
-        const pw = (COL-6)/3;
-        phases.forEach((ph, pi) => {
-          const px = M + pi*(pw+3);
-          // Header card
-          box(px, y, pw, 18, 4, ph.bg);
-          stroke(ph.rgb, 0.5); doc.roundedRect(px, y, pw, 18, 4, 4);
-          box(px, y, pw, 3.5, 0, ph.rgb); // top stripe
-          // Phase number circle
-          circle(px+10, y+11, 5, ph.rgb);
-          sf("bold", 7.5, [255,255,255]); txtC(String(pi+1), px+10, y+12.5, 0);
-          sf("bold", 9, ph.rgb); txt(ph.t, px+18, y+9);
-          sf("normal", 7, ph.rgb); txt(ph.sub, px+18, y+15);
-        });
-        y += 22;
+        // ── Phase header cards ──
+        phases.forEach((ph,pi)=>{
+          const px=M+pi*(pw+4);
+          card(px,y,pw,22,10);
+          rect(px,y,pw,3,0,ph.c); // top bar
 
-        // Connector line
-        line(M+pw/2, y-4, M+COL-pw/2, y-4, C.border, 0.5);
-        [0,1,2].forEach(pi => {
-          const px = M + pi*(pw+3) + pw/2;
-          circle(px, y-4, 2, C.border);
-          circle(px, y-4, 1, C.inkFaint);
+          // Phase number circle — app style
+          dot(px+12,y+13,6,ph.c);
+          sf("bold",8,WHITE); txC(String(pi+1),px+7,y+14.5,11);
+
+          sf("bold",10,ph.c); tx(T(ph.t),px+22,y+11);
+          sf("normal",7.5,ph.c); tx(T(ph.sub),px+22,y+18);
         });
 
-        // Items grid
-        const maxItems = Math.max(...phases.map(p=>p.items.length), 1);
-        for (let row = 0; row < maxItems; row++) {
-          y = checkY(y, 20);
-          phases.forEach((ph, pi) => {
-            const px = M + pi*(pw+3);
-            const g = ph.items[row];
-            if (!g) {
-              if (row === 0) {
-                box(px, y, pw, 16, 3, C.warm1);
-                sf("normal", 7.5, C.inkFaint); txtC("Sin acciones en este horizonte", px, y+9, pw);
+        // Connector timeline
+        const lineY=y+11;
+        hline(lineY,M+pw,M+CONTENT_W-pw,FAINT,0.5);
+        phases.forEach((_,pi)=>{
+          dot(M+pi*(pw+4)+pw/2,lineY,2.5,FAINT);
+          dot(M+pi*(pw+4)+pw/2,lineY,1.5,WHITE);
+        });
+        y+=28;
+
+        // ── Items ──
+        const maxI=Math.max(...phases.map(p=>p.items.length),0);
+        for(let row=0;row<maxI;row++){
+          y=checkY(y,20);
+          phases.forEach((ph,pi)=>{
+            const px=M+pi*(pw+4);
+            const g=ph.items[row];
+            if(!g){
+              if(row===0){
+                rect(px,y,pw,16,6,WARM);
+                sf("normal",7.5,FAINT); txC("Sin acciones en este horizonte",px,y+9.5,pw);
               }
               return;
             }
-            const rgb = lvRgb(g.score);
-            boxS(px, y, pw, 16, 3, C.card, ph.br, 0.5);
+            const gc=lvC(g.score);
 
-            // Priority number
-            circle(px+8, y+8, 5, ph.rgb);
-            sf("bold", 7, [255,255,255]); txtC(String(row+1), px+8, y+9.5, 0);
+            card(px,y,pw,16,6);
+            S(ph.br.length?ph.br:BORDER,0.35); doc.roundedRect(px,y,pw,16,6,6);
 
-            // Dim info
-            sf("bold", 8, C.ink); txt(T(g.label).slice(0,20), px+16, y+7);
+            // Priority circle
+            dot(px+8,y+8,5,ph.c);
+            sf("bold",6.5,WHITE); txC(String(row+1),px+3.5,y+9.5,10);
+
+            // Dim label
+            sf("bold",8,INK); tx(T(g.label).slice(0,20),px+16,y+7);
 
             // Score pill
-            const sw = 22, sx2 = px+pw-sw-2;
-            box(sx2, y+2, sw, 7, 3, lvBg(g.score));
-            sf("bold", 6.5, rgb); txtC(g.score.toFixed(1)+" niv.", sx2, y+6.5, sw);
+            const spx2=px+pw-22;
+            rect(spx2,y+2,20,7,3.5,lvBg(g.score));
+            sf("bold",6.5,gc); txC(g.score.toFixed(1)+" nv",spx2,y+7,20);
 
             // Mini bar
-            bar(px+16, y+11, g.score, 5, rgb, pw-18-sw-4, 2);
+            pbar(px+16,y+11,g.score,5,gc,pw-16-24,2);
           });
-          y += 19;
+          y+=19;
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════════════════════
       // RANKING
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.ranking) {
-        currentSection = "Ranking";
-        let y = addPage({ section: currentSection });
-        y = sectionTitle("Ranking de Evaluaciones", "Top evaluaciones ordenadas por score global descendente", y);
+      // ═══════════════════════════════════════════════════════════════════════
+      if(sections.ranking){
+        let y=newPage("Ranking");
+        y=secHead("Ranking de Evaluaciones","Top evaluaciones por score global | Indicadores por dimension",y);
 
-        const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0, 20);
+        const sorted=[...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,20);
 
-        // Column layout
-        const cols = [
-          { label:"#",         w:8,  x:M },
-          { label:"Direccion", w:46, x:M+9 },
-          { label:"Rol",       w:32, x:M+56 },
-          { label:"Score",     w:20, x:M+89 },
-          { label:"Nivel",     w:30, x:M+110 },
-          { label:"Fecha",     w:24, x:M+141 },
-          { label:"Dims",      w:COL-166, x:M+166 },
+        // Column definitions
+        const cols2=[
+          {l:"#",        w:9,  x:M},
+          {l:"Direccion",w:46, x:M+10},
+          {l:"Rol",      w:34, x:M+57},
+          {l:"Score",    w:20, x:M+92},
+          {l:"Nivel",    w:30, x:M+113},
+          {l:"Fecha",    w:22, x:M+144},
+          {l:"Dims",     w:CONTENT_W-170, x:M+167},
         ];
 
-        // Header
-        box(M, y, COL, 8, 3, C.ink);
-        sf("bold", 6.5, [255,255,255]);
-        cols.forEach(c => txt(c.label, c.x+1, y+5.3));
-        y += 9;
+        // ── Table header ──
+        rect(M,y,CONTENT_W,9,3,INK);
+        sf("bold",6.5,WHITE); doc.setCharSpace(0.2);
+        cols2.forEach(c=>tx(c.l,c.x+1,y+6));
+        doc.setCharSpace(0);
+        y+=10;
 
-        sorted.forEach((e, i) => {
-          y = checkY(y, 10);
-          const rgb = e.score_global ? lvRgb(e.score_global) : C.inkFaint;
-          const bg  = e.score_global ? lvBg(e.score_global)  : [245,244,242];
+        sorted.forEach((e,i)=>{
+          y=checkY(y,10.5);
+          const rc=e.score_global?lvC(e.score_global):FAINT;
+          const rb=e.score_global?lvBg(e.score_global):WARM;
 
           // Row background
-          if (i === 0) {
-            // Gold row for #1
-            box(M, y, COL, 9, 2, [255,251,235]);
-            stroke([253,230,138], 0.5); doc.roundedRect(M, y, COL, 9, 2, 2);
-          } else if (i % 2 === 0) {
-            box(M, y, COL, 9, 0, C.warm1);
+          if(i===0){
+            // #1: golden tint card
+            rectS(M,y,CONTENT_W,10,3,[255,252,240],[253,230,138],0.4);
+          } else if(i<3){
+            rect(M,y,CONTENT_W,10,2,WARM);
+          } else if(i%2===0){
+            rect(M,y,CONTENT_W,10,0,SURF);
           }
 
-          // Rank
-          if (i < 3) {
-            circle(cols[0].x+3.5, y+4.5, 4, i===0?[217,119,6]:i===1?C.inkFaint:C.lv2);
-            sf("bold", 6.5, [255,255,255]); txtC(String(i+1), cols[0].x, y+5.7, 8);
+          // Rank indicator
+          if(i<3){
+            const medalC=i===0?[217,119,6]:i===1?[150,147,140]:LV[1].c;
+            dot(cols2[0].x+4,y+5,4.5,medalC);
+            sf("bold",6.5,WHITE); txC(String(i+1),cols2[0].x,y+6.2,9);
           } else {
-            sf("bold", 7, C.inkFaint); txt(String(i+1), cols[0].x+1, y+5.7);
+            sf("bold",7,FAINT); tx(String(i+1),cols2[0].x+1,y+6.2);
           }
 
-          // Dir
-          sf(i<3?"bold":"normal", 7.5, C.ink);
-          txt(T(e.direccion||"-").slice(0,16), cols[1].x+1, y+5.7);
+          // Direccion
+          sf(i<3?"bold":"normal",7.5,INK);
+          tx(T(e.direccion||"-").slice(0,16),cols2[1].x+1,y+6.2);
 
           // Rol
-          sf("normal", 7, C.inkMid);
-          txt(T(e.rol||"-").slice(0,12), cols[2].x+1, y+5.7);
+          sf("normal",7,MID); tx(T(e.rol||"-").slice(0,13),cols2[2].x+1,y+6.2);
 
-          // Score
-          sf("bold", 8.5, rgb);
-          txt(e.score_global!=null?e.score_global.toFixed(2):"-", cols[3].x+1, y+5.7);
+          // Score — bold colored (app style)
+          sf("bold",9.5,rc); tx(e.score_global!=null?e.score_global.toFixed(2):"-",cols2[3].x+1,y+6.5);
 
-          // Level badge
-          box(cols[4].x, y+1.5, 28, 6, 3, bg);
-          sf("bold", 6, rgb); txtC(e.score_global?lvName(e.score_global):"-", cols[4].x, y+5.7, 28);
+          // Level badge — app pill style
+          rect(cols2[4].x,y+2,28,6,3,rb);
+          S(rc.map?rc:[rc],0.3); doc.setDrawColor(rc[0],rc[1],rc[2]); doc.roundedRect(cols2[4].x,y+2,28,6,3,3);
+          sf("bold",6,rc); txC(e.score_global?lvL(e.score_global):"-",cols2[4].x,y+6.2,28);
 
           // Date
-          sf("normal", 6.5, C.inkFaint);
-          txt((e.created_at||"").slice(0,10)||"-", cols[5].x+1, y+5.7);
+          sf("normal",6.5,FAINT); tx((e.created_at||"").slice(0,10)||"-",cols2[5].x+1,y+6.2);
 
-          // Mini dim bars (sparkline)
-          const sparkX = cols[6].x, sparkW = cols[6].w - 4;
-          const dCount = DIMS_META.length;
-          const dW = sparkW / dCount - 1;
-          DIMS_META.forEach((d, di) => {
-            const dv = e[`score_${d.key}`];
-            const dc = dv ? lvRgb(dv) : C.border;
-            box(sparkX + di*(dW+1), y+6, dW, dv?(dv/5)*5:1, 0.5, dc);
+          // Dimension spark bars (mini heatmap per row)
+          const sparkX=cols2[6].x;
+          const sparkTotalW=cols2[6].w-3;
+          const dW2=sparkTotalW/DIMS_META.length-0.8;
+          DIMS_META.forEach((d,di)=>{
+            const dv=e[`score_${d.key}`];
+            const dc2=dv?lvC(dv):BORDER;
+            const barH2=dv?(dv/5)*7:1;
+            rect(sparkX+di*(dW2+0.8),y+10-barH2,dW2,barH2,0.5,dc2);
           });
 
-          line(M, y+9, M+COL, y+9, C.border, 0.2);
-          y += 9;
+          hline(y+10.5,M,W-M,BORDER,0.18);
+          y+=11;
         });
       }
 
-      // ── Page footers ──────────────────────────────────────────────────────
-      const totalPages = doc.internal.getNumberOfPages();
-      for (let p = 1; p <= totalPages; p++) {
+      // ─── PAGE FOOTERS ────────────────────────────────────────────────────────
+      const totalPg=doc.internal.getNumberOfPages();
+      for(let p=1;p<=totalPg;p++){
         doc.setPage(p);
-        pageFooter(p, totalPages);
+        footer(p,totalPg);
       }
 
-      doc.save("Reporte_Madurez_" + new Date().toISOString().slice(0,10) + ".pdf");
-    } catch (err) {
-      console.error("PDF error:", err);
-      alert("Error generando PDF: " + err.message);
+      doc.save("Reporte_Madurez_"+new Date().toISOString().slice(0,10)+".pdf");
+    } catch(err){
+      console.error("PDF error:",err);
+      alert("Error generando PDF: "+err.message);
     }
     setGenerating(false);
   }
