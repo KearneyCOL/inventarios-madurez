@@ -85,6 +85,8 @@ body{margin:0;background:#F7F6F3;}
 @keyframes shimmerMove{0%{background-position:-400px 0}100%{background-position:400px 0}}
 @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(243,36,36,0)}50%{box-shadow:0 0 0 8px rgba(243,36,36,0.08)}}
 @keyframes barGrow{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+@keyframes bounceDown{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.scroll-arrow{animation:bounceDown 1.4s ease-in-out infinite;}
 
 .fade-up{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both;}
 .fade-up-1{animation:fadeUp .5s .08s cubic-bezier(.22,1,.36,1) both;}
@@ -1096,6 +1098,66 @@ function SummaryTab({answers, perfil}) {
   );
 }
 
+// ─── SCROLL INDICATOR ─────────────────────────────────────────────────────────
+function ScrollIndicator({ scrollRef }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef?.current;
+    if (!el) return;
+    function check() {
+      setShow(el.scrollHeight > el.clientHeight + 16 && el.scrollTop < el.scrollHeight - el.clientHeight - 16);
+    }
+    check();
+    el.addEventListener("scroll", check);
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [scrollRef]);
+
+  if (!show) return null;
+
+  const sideStyle = {
+    position:"absolute", bottom:18, zIndex:50,
+    display:"flex", flexDirection:"column", alignItems:"center", gap:2,
+    pointerEvents:"none",
+  };
+  const arrowBox = {
+    background:"rgba(255,255,255,0.92)",
+    border:`1.5px solid ${T.borderSm}`,
+    borderRadius:10,
+    padding:"7px 9px",
+    boxShadow:"0 4px 16px rgba(0,0,0,0.10)",
+    display:"flex", flexDirection:"column", alignItems:"center", gap:1,
+  };
+  const arrow = (opacity) => (
+    <svg className="scroll-arrow" width="14" height="9" viewBox="0 0 14 9" fill="none" style={{opacity}}>
+      <path d="M1 1L7 7L13 1" stroke={T.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+  const label = {
+    fontSize:8, fontWeight:700, color:T.inkSoft,
+    textTransform:"uppercase", letterSpacing:".1em", marginTop:2,
+  };
+
+  return (
+    <>
+      <div style={{...sideStyle, left:14}}>
+        <div style={arrowBox}>
+          {arrow(0.4)}{arrow(0.7)}{arrow(1)}
+          <span style={label}>Bajar</span>
+        </div>
+      </div>
+      <div style={{...sideStyle, right:14}}>
+        <div style={arrowBox}>
+          {arrow(0.4)}{arrow(0.7)}{arrow(1)}
+          <span style={label}>Bajar</span>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [answers,setAnswers] = useState(emptyAnswers);
@@ -1107,6 +1169,10 @@ export default function App() {
   const [view,setView] = useState("intro");
   const [isFullscreen,setIsFullscreen] = useState(false);
   const appRef = useRef(null);
+  const introScrollRef = useRef(null);
+  const modeloScrollRef = useRef(null);
+  const summaryScrollRef = useRef(null);
+  const assessScrollRef = useRef(null);
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -1224,10 +1290,10 @@ export default function App() {
       </header>
 
       {/* ═══ CONTENT ═══ */}
-      {view==="intro"    &&<div style={{flex:1,overflow:"auto"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/></div>}
+      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator scrollRef={introScrollRef}/></div>}
       {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);}}/>}
-      {view==="modelo"   &&<div style={{flex:1,overflow:"auto"}}><ModeloTab/></div>}
-      {view==="summary"  &&<div style={{flex:1,overflow:"auto"}}><SummaryTab answers={answers} perfil={perfil}/></div>}
+      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab/><ScrollIndicator scrollRef={modeloScrollRef}/></div>}
+      {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab answers={answers} perfil={perfil}/><ScrollIndicator scrollRef={summaryScrollRef}/></div>}
 
       {view==="assessment"&&(
         <div style={{flex:1,display:"flex",overflow:"hidden"}}>
@@ -1291,7 +1357,7 @@ export default function App() {
           </aside>
 
           {/* MAIN */}
-          <main style={{flex:1,overflow:"auto",padding:"32px 36px"}}>
+          <main ref={assessScrollRef} style={{flex:1,overflow:"auto",padding:"32px 36px",position:"relative"}}>
 
             {/* dim header */}
             <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}>
@@ -1404,6 +1470,7 @@ export default function App() {
               }}>{activeDim===DIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
             </div>
 
+            <ScrollIndicator scrollRef={assessScrollRef}/>
           </main>
         </div>
       )}
