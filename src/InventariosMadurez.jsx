@@ -1194,6 +1194,17 @@ export default function App() {
   const modeloScrollRef = useRef(null);
   const summaryScrollRef = useRef(null);
   const assessScrollRef = useRef(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  function doReset() {
+    setAnswers(emptyAnswers);
+    setPerfil(null);
+    setActiveDim(0);
+    setActiveSub(0);
+    setView("intro");
+    setShowRegistro(true);
+    setConfirmReset(false);
+  }
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -1307,6 +1318,13 @@ export default function App() {
             cursor:"pointer",fontSize:14,flexShrink:0,
             transition:"all .15s",
           }}>{isFullscreen?"⊠":"⛶"}</button>
+          <button onClick={()=>setConfirmReset(true)} title="Reiniciar evaluación" style={{
+            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
+            background:T.card,color:T.inkMid,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            cursor:"pointer",fontSize:14,flexShrink:0,
+            transition:"all .15s",
+          }}>↺</button>
         </div>
       </header>
 
@@ -1497,6 +1515,39 @@ export default function App() {
 
 
       {showPerfil && <PerfilModal onStart={(p)=>{ setPerfil(p); setShowPerfil(false); setView("assessment"); }} />}
+
+      {confirmReset && (
+        <div style={{
+          position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          zIndex:500,backdropFilter:"blur(4px)",
+        }}>
+          <div className="scale-in" style={{
+            width:360,background:T.card,borderRadius:20,
+            border:`1px solid ${T.borderSm}`,padding:"36px 32px",
+            boxShadow:"0 40px 80px rgba(0,0,0,0.15)",textAlign:"center",
+          }}>
+            <div style={{fontSize:36,marginBottom:14}}>↺</div>
+            <div style={{fontSize:16,fontWeight:800,color:T.ink,marginBottom:8}}>¿Reiniciar evaluación?</div>
+            <div style={{fontSize:12,color:T.inkMid,lineHeight:1.7,marginBottom:28}}>
+              Se borrarán todas las respuestas actuales y volverás al inicio. Esta acción no se puede deshacer.
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setConfirmReset(false)} style={{
+                flex:1,padding:"11px",borderRadius:10,
+                border:`1px solid ${T.borderSm}`,background:T.surface,
+                color:T.inkMid,fontWeight:600,fontSize:13,cursor:"pointer",
+              }}>Cancelar</button>
+              <button onClick={doReset} style={{
+                flex:1,padding:"11px",borderRadius:10,border:"none",
+                background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+                color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
+                boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
+              }}>Reiniciar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ FOOTER NAV ═══ */}
       {(()=>{
