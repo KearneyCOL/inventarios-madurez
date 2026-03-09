@@ -1378,43 +1378,6 @@ function ReportTab({ evaluaciones, respuestas }) {
       }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-
-      // Sanitize ALL text passed to jsPDF (removes emoji, em-dash, en-dash, non-latin1)
-      const _origText = doc.text.bind(doc);
-      doc.text = function(text, ...args) {
-        const clean = (v) => {
-          if (v == null) return '-';
-          if (Array.isArray(v)) return v.map(clean);
-          return String(v)
-            .replace(/[\u0080-\u009F\u00AD\u2000-\uFFFF]/g, (c) => {
-              // Allow accented latin chars (\u00C0-\u024F) but strip everything else
-              const code = c.charCodeAt(0);
-              if (code >= 0x00C0 && code <= 0x024F) return c; // Latin Extended
-              if (code === 0x00B7) return '.'; // middle dot
-              if (code === 0x2013 || code === 0x2014) return '-'; // en/em dash
-              if (code === 0x2019 || code === 0x2018) return "'"; // curly quotes
-              if (code === 0x201C || code === 0x201D) return '"'; // curly double quotes
-              if (code === 0x00D7) return 'x'; // multiplication sign
-              return ''; // strip everything else (emoji, etc.)
-            })
-            .replace(/\s{2,}/g, ' ').trim() || '-';
-        };
-        return _origText(clean(text), ...args);
-      };
-      const _origSplit = doc.splitTextToSize.bind(doc);
-      doc.splitTextToSize = function(text, ...args) {
-        if (typeof text === 'string') {
-          text = doc.text.__proto__ ? text : text; // just use it
-          text = String(text).replace(/[\u2000-\uFFFF]/g, (c) => {
-            const code = c.charCodeAt(0);
-            if (code >= 0x00C0 && code <= 0x024F) return c;
-            if (code === 0x2013 || code === 0x2014) return '-';
-            return '';
-          }).replace(/\s{2,}/g, ' ').trim();
-        }
-        return _origSplit(text, ...args);
-      };
-
       const W = 210, H = 297;
       const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
@@ -1516,10 +1479,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
         // Decorative circles
         doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.08 }));
         doc.circle(W-20, 20, 60, "F");
         doc.circle(30, 95, 35, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
 
         // Logo area
         rect(16, 16, 42, 9, 3, [200,20,15]);
@@ -1537,11 +1498,9 @@ function ReportTab({ evaluaciones, respuestas }) {
 
         // Date pill
         doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.15 }));
         doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
         setFont("bold", 8, [255,255,255]);
-        doc.text(` ${now}`, 18, ty+17);
+        doc.text(`Generado: ${now}`, 18, ty+17);
 
         // Summary box
         rect(16, 118, W-32, 44, 6, [255,248,248]);
@@ -1556,8 +1515,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         // KPI boxes on cover
         const kpis = [
           { label:"Evaluaciones", value: String(filtered.length) },
-          { label:"Score Global", value: globalAvg?.toFixed(1)||"-" },
-          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"-":"—" },
+          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
           { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
         ];
         kpis.forEach((k,i) => {
@@ -1627,9 +1586,9 @@ function ReportTab({ evaluaciones, respuestas }) {
           }
         };
         const bw = (W-32)/4;
-        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"-", `${filtered.length} evaluaciones`, RED);
-        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"-", strongest?.label, [5,150,105]);
-        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"-", weakest?.label, [220,38,38]);
+        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
+        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
         kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
         y += 36;
 
@@ -1645,7 +1604,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           setFont("bold", 7, rgb);
           doc.text(d.num, dx+dw/2, y+6, { align:"center" });
           setFont("bold", 13, rgb);
-          doc.text(sc?.toFixed(1)||"-", dx+dw/2, y+15, { align:"center" });
+          doc.text(sc != null ? sc.toFixed(1) : "-", dx+dw/2, y+15, { align:"center" });
           miniBar(dx+2, y+18, sc||0, 5, rgb, dw-4);
         });
         y += 30;
@@ -1732,7 +1691,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           const gl = row.global ? LV_COLORS_RGB[Math.round(row.global)-1] : [200,198,192];
           rect(cx, y+0.5, colW[2]-1, 6.5, 2, [...gl].map(c=>Math.min(255,c+200)));
           setFont("bold", 8, gl);
-          doc.text(row.global?.toFixed(1)||"-", cx+colW[2]/2, y+4.8, { align:"center" });
+          doc.text(row.global != null ? row.global.toFixed(1) : "-", cx+colW[2]/2, y+4.8, { align:"center" });
           cx += colW[2];
           // Dims
           DIMS_META.forEach(d => {
@@ -1742,7 +1701,7 @@ function ReportTab({ evaluaciones, respuestas }) {
               rect(cx+0.5, y+0.5, colW[3]-1, 6.5, 2, [...rgb].map(c=>Math.min(255,c+200)));
             }
             setFont(v?"bold":"normal", v?8:7, v?rgb:LIGHT);
-            doc.text(v?.toFixed(1)||"-", cx+colW[3]/2, y+4.8, { align:"center" });
+            doc.text(v != null ? v.toFixed(1) : "-", cx+colW[3]/2, y+4.8, { align:"center" });
             cx += colW[3];
           });
           hline(y+8, [240,238,233]);
@@ -1785,7 +1744,7 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.text(`n=${r.n}`, 110, y+3);
           miniBar(120, y, sc||0, 5, rgb, 55);
           setFont("bold", 11, rgb);
-          doc.text(sc?.toFixed(2)||"-", W-16, y+3, { align:"right" });
+          doc.text(sc != null ? sc.toFixed(2) : "-", W-16, y+3, { align:"right" });
           hline(y+7, [240,238,233]);
           y += 10;
         });
@@ -1801,7 +1760,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         doc.text(titulo, 16, 9.5);
         setFont("bold", 16, RED);
         y = 20;
-        doc.text(" Brechas Críticas - Nivel 1-2", 16, y); y += 4;
+        doc.text("Brechas Criticas - Nivel 1-2", 16, y); y += 4;
         hline(y); y += 6;
         setFont("normal", 9, MID);
         doc.text(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`, 16, y); y += 8;
@@ -1809,7 +1768,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         if (critGaps.length === 0) {
           rect(16, y, W-32, 14, 4, [236,253,245]);
           setFont("bold", 9, [5,150,105]);
-          doc.text(" No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
+          doc.text("Sin brechas criticas en la seleccion actual", W/2, y+9, { align:"center" });
           y += 20;
         } else {
           critGaps.forEach(g => {
@@ -1843,7 +1802,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       if (sections.brechas_mod) {
         let y = newPage();
         setFont("bold", 16, [217,119,6]);
-        doc.text(" Brechas Moderadas - Nivel 3", 16, y); y += 4;
+        doc.text("Brechas Moderadas - Nivel 3", 16, y); y += 4;
         hline(y,[254,230,138]); y += 8;
 
         if (modGaps.length === 0) {
@@ -1874,7 +1833,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       if (sections.roadmap && gapsData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text(" Hoja de Ruta Priorizada", 16, y); y += 4;
+        doc.text("Hoja de Ruta Priorizada", 16, y); y += 4;
         hline(y); y += 8;
 
         const phases = [
@@ -1920,7 +1879,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       if (sections.ranking) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text(" Ranking de Evaluaciones", 16, y); y += 4;
+        doc.text("Ranking de Evaluaciones", 16, y); y += 4;
         hline(y); y += 8;
 
         const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
@@ -1938,16 +1897,16 @@ function ReportTab({ evaluaciones, respuestas }) {
           setFont("bold", 8, i===0?RED:MID);
           doc.text(`#${i+1}`, 16, y+4.5);
           setFont(i<3?"bold":"normal", 8, DARK);
-          doc.text((e.direccion||"-").slice(0,22), 26, y+4.5);
+          doc.text((e.direccion || "Sin dir.").slice(0,22), 26, y+4.5);
           setFont("normal", 8, MID);
-          doc.text((e.rol||"-").slice(0,18), 78, y+4.5);
+          doc.text((e.rol || "Sin rol").slice(0,18), 78, y+4.5);
           setFont("bold", 9, rgb);
-          doc.text(e.score_global?.toFixed(2)||"-", 116, y+4.5);
+          doc.text(e.score_global != null ? e.score_global.toFixed(2) : "-", 116, y+4.5);
           rect(136, y+0.5, 28, 6, 2, [...rgb].map(c=>Math.min(255,c+200)));
           setFont("bold", 7, rgb);
           doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
           setFont("normal", 7, LIGHT);
-          doc.text(e.created_at?.slice(0,10)||"-", 166, y+4.5);
+          doc.text((e.created_at || "").slice(0,10) || "-", 166, y+4.5);
           hline(y+8.5,[240,238,233]);
           y += 10;
         });
