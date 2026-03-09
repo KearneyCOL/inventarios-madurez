@@ -172,7 +172,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
   const filtered = evaluaciones
     .filter(e => {
       const q = search.toLowerCase();
-      return !q || (e.empresa || "").toLowerCase().includes(q) || (e.evaluador || "").toLowerCase().includes(q);
+      return !q || (e.direccion || "").toLowerCase().includes(q) || (e.rol || "").toLowerCase().includes(q);
     })
     .sort((a, b) => {
       let va = a[sortBy], vb = b[sortBy];
@@ -193,7 +193,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     </span>
   );
 
-  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px";
+  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px 40px";
 
   return (
     <div>
@@ -206,7 +206,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
 
       <div style={{ display: "flex", gap: 12, marginBottom: 16, alignItems: "center" }}>
         <input
-          placeholder="Buscar por empresa o evaluador..."
+          placeholder="Buscar por dirección o rol..."
           value={search} onChange={e => setSearch(e.target.value)}
           style={{
             flex: 1, padding: "10px 14px", borderRadius: 10,
@@ -232,7 +232,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             onChange={() => selected.length === filtered.length ? setSelected([]) : setSelected(filtered.map(e => e.id))}
             style={{ cursor: "pointer" }}
           />
-          {[{l:"Empresa",c:"empresa"},{l:"Evaluador",c:"evaluador"},{l:"Global",c:"score_global"}].map(h => (
+          {[{l:"Dirección",c:"direccion"},{l:"Rol",c:"rol"},{l:"Global",c:"score_global"}].map(h => (
             <div key={h.c} onClick={() => toggleSort(h.c)}
               style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase",
                 letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
@@ -248,6 +248,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
             Fecha<SortIcon col="created_at" />
           </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#999" }}></div>
         </div>
 
         {/* Rows */}
@@ -273,15 +274,25 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               onClick={ev => ev.stopPropagation()} style={{ cursor: "pointer" }} />
             <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {e.empresa || <span style={{ color: "#CCC" }}>Sin empresa</span>}
+              {e.direccion || <span style={{ color: "#CCC" }}>Sin dirección</span>}
             </div>
             <div style={{ fontSize: 12, color: "#888", overflow: "hidden",
               textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {e.evaluador || <span style={{ color: "#CCC" }}>Anónimo</span>}
+              {e.rol || <span style={{ color: "#CCC" }}>Sin rol</span>}
             </div>
             <ScoreBadge v={e.score_global} />
             {DIMS.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`]} sm />)}
             <div style={{ fontSize: 11, color: "#AAA" }}>{formatDate(e.created_at)}</div>
+            <button
+              onClick={ev => { ev.stopPropagation(); onDelete([e.id]); }}
+              className="btn-action"
+              style={{
+                padding: "5px 7px", borderRadius: 7, border: "1px solid #E8251F30",
+                background: "#E8251F10", color: "#E8251F", fontSize: 13,
+                cursor: "pointer", lineHeight: 1,
+              }}
+              title="Eliminar"
+            >🗑</button>
           </div>
         ))}
       </div>
@@ -396,8 +407,8 @@ function DownloadsTab({ evaluaciones, respuestas }) {
     setDownloading("all");
     setTimeout(() => {
       const rows = evaluaciones.map(e => ({
-        "ID": e.id, "Empresa": e.empresa || "", "Evaluador": e.evaluador || "",
-        "Cargo": e.cargo || "", "Fecha": formatDate(e.created_at),
+        "ID": e.id, "Dirección": e.direccion || "", "Rol": e.rol || "",
+        "Fecha": formatDate(e.created_at),
         "Score Global": e.score_global || "", "Nivel Global": getLevelLabel(e.score_global),
         ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
       }));
@@ -423,9 +434,8 @@ function DownloadsTab({ evaluaciones, respuestas }) {
       const resps = respuestas.filter(r => r.evaluacion_id === e.id);
       const ws1 = XLSX.utils.json_to_sheet([
         { Campo: "ID", Valor: e.id },
-        { Campo: "Empresa", Valor: e.empresa || "" },
-        { Campo: "Evaluador", Valor: e.evaluador || "" },
-        { Campo: "Cargo", Valor: e.cargo || "" },
+        { Campo: "Dirección", Valor: e.direccion || "" },
+        { Campo: "Rol", Valor: e.rol || "" },
         { Campo: "Fecha", Valor: formatDate(e.created_at) },
         { Campo: "Score Global", Valor: e.score_global || "" },
         { Campo: "Nivel Global", Valor: getLevelLabel(e.score_global) },
@@ -440,7 +450,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws1, "Resumen");
       XLSX.utils.book_append_sheet(wb, ws2, "Respuestas");
-      const nombre = (e.empresa || e.evaluador || e.id.slice(0, 8)).replace(/\s+/g, "_");
+      const nombre = (e.direccion || e.rol || e.id.slice(0, 8)).replace(/\s+/g, "_");
       XLSX.writeFile(wb, `Eval_${nombre}_${new Date().toISOString().slice(0,10)}.xlsx`);
       setDownloading(null);
     }, 400);
@@ -499,7 +509,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {e.empresa || "Sin empresa"}{e.evaluador ? ` · ${e.evaluador}` : ""}
+                  {e.direccion || "Sin dirección"}{e.rol ? ` · ${e.rol}` : ""}
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 4, alignItems: "center" }}>
                   <ScoreBadge v={e.score_global} sm />
@@ -598,13 +608,15 @@ export default function ControlApp() {
     const ids = confirmDelete;
     setConfirmDelete(null);
     try {
-      await supabase.from("respuestas").delete().in("evaluacion_id", ids);
-      await supabase.from("evaluaciones").delete().in("id", ids);
+      const { error: err1 } = await supabase.from("respuestas").delete().in("evaluacion_id", ids);
+      if (err1) { showToast("Error al eliminar respuestas: " + err1.message, "error"); return; }
+      const { error: err2 } = await supabase.from("evaluaciones").delete().in("id", ids);
+      if (err2) { showToast("Error al eliminar evaluaciones: " + err2.message, "error"); return; }
       setSelected([]);
       await fetchData();
       showToast(`${ids.length} evaluación${ids.length > 1 ? "es" : ""} eliminada${ids.length > 1 ? "s" : ""}`);
-    } catch {
-      showToast("Error al eliminar", "error");
+    } catch (e) {
+      showToast("Error al eliminar: " + e.message, "error");
     }
   }
 
