@@ -155,11 +155,133 @@ function StatCard({ icon, label, value, color, delay }) {
   );
 }
 
+// ─── DETAIL MODAL ─────────────────────────────────────────────────────────────
+function DetailModal({ evaluacion, respuestas, onClose }) {
+  const resps = respuestas.filter(r => r.evaluacion_id === evaluacion.id);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 1000, backdropFilter: "blur(4px)", padding: 24,
+    }} onClick={onClose}>
+      <div className="fade-up" onClick={e => e.stopPropagation()} style={{
+        width: "100%", maxWidth: 680, maxHeight: "85vh",
+        background: "#FFFFFF", borderRadius: 20,
+        border: "1px solid #E8E4DF",
+        boxShadow: "0 40px 80px rgba(0,0,0,0.2)",
+        display: "flex", flexDirection: "column", overflow: "hidden",
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: "22px 28px", borderBottom: "1px solid #F0EDE9",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          flexShrink: 0,
+        }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#1A1A18" }}>
+              {evaluacion.direccion || "Sin dirección"}
+              {evaluacion.rol ? <span style={{ color: "#AAA", fontWeight: 500 }}> · {evaluacion.rol}</span> : ""}
+            </div>
+            <div style={{ fontSize: 11, color: "#BBB", marginTop: 3 }}>
+              {formatDate(evaluacion.created_at)} · {resps.length} respuestas
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <ScoreBadge v={evaluacion.score_global} />
+            <button onClick={onClose} style={{
+              width: 32, height: 32, borderRadius: 8, border: "1px solid #E8E4DF",
+              background: "#F7F5F2", cursor: "pointer", fontSize: 16,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>×</button>
+          </div>
+        </div>
+
+        {/* Scores por dimensión */}
+        <div style={{
+          padding: "16px 28px", borderBottom: "1px solid #F0EDE9",
+          display: "flex", gap: 10, flexWrap: "wrap", flexShrink: 0,
+        }}>
+          {DIMS.map(d => (
+            <div key={d.key} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "5px 10px", borderRadius: 8,
+              background: "#F7F5F2", border: "1px solid #E8E4DF",
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#BBB" }}>{d.num}</span>
+              <span style={{ fontSize: 11, color: "#888" }}>{d.label}</span>
+              <ScoreBadge v={evaluacion[`score_${d.key}`]} sm />
+            </div>
+          ))}
+        </div>
+
+        {/* Respuestas por dimensión */}
+        <div style={{ overflow: "auto", padding: "20px 28px", display: "flex", flexDirection: "column", gap: 18 }}>
+          {DIMS.map(d => {
+            const dimResps = resps.filter(r => r.dimension_key === d.key);
+            if (dimResps.length === 0) return null;
+            return (
+              <div key={d.key}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: "#E8251F",
+                  textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8,
+                  display: "flex", alignItems: "center", gap: 8,
+                }}>
+                  {d.num} · {d.label}
+                  <ScoreBadge v={evaluacion[`score_${d.key}`]} sm />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {dimResps.map(r => {
+                    const c = getLevelColor(r.valor);
+                    return (
+                      <div key={r.subdimension_id} style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "9px 14px", borderRadius: 10,
+                        background: "#F7F5F2", border: "1px solid #EEEBE6",
+                      }}>
+                        <span style={{ fontSize: 12, color: "#555", fontFamily: "monospace" }}>
+                          {r.subdimension_id}
+                        </span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{
+                            width: 80, height: 5, borderRadius: 99,
+                            background: "#E8E4DF", overflow: "hidden",
+                          }}>
+                            <div style={{
+                              height: "100%", width: `${(r.valor / 5) * 100}%`,
+                              background: c, borderRadius: 99,
+                            }} />
+                          </div>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, color: c,
+                            background: c + "18", padding: "2px 8px", borderRadius: 99,
+                            border: `1px solid ${c}30`,
+                          }}>{r.valor} · {getLevelLabel(r.valor)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          {resps.length === 0 && (
+            <div style={{ textAlign: "center", color: "#AAA", fontSize: 13, padding: "32px 0" }}>
+              Esta evaluación no tiene respuestas registradas
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MONITOR TAB ──────────────────────────────────────────────────────────────
 function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete, loading }) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
   const [sortDir, setSortDir] = useState("desc");
+  const [detail, setDetail] = useState(null);
 
   const avgScore = evaluaciones.length
     ? (evaluaciones.reduce((a, e) => a + (e.score_global || 0), 0) / evaluaciones.length).toFixed(2)
@@ -193,7 +315,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     </span>
   );
 
-  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px 40px";
+  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px 32px 32px";
 
   return (
     <div>
@@ -293,6 +415,16 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               }}
               title="Eliminar"
             >🗑</button>
+            <button
+              onClick={ev => { ev.stopPropagation(); setDetail(e); }}
+              className="btn-action"
+              style={{
+                padding: "5px 7px", borderRadius: 7, border: "1px solid #2563EB30",
+                background: "#2563EB10", color: "#2563EB", fontSize: 13,
+                cursor: "pointer", lineHeight: 1,
+              }}
+              title="Ver respuestas"
+            >👁</button>
           </div>
         ))}
       </div>
@@ -301,6 +433,14 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
         <div style={{ marginTop: 10, fontSize: 11, color: "#444" }}>
           {filtered.length} evaluaciones · {selected.length} seleccionadas
         </div>
+      )}
+
+      {detail && (
+        <DetailModal
+          evaluacion={detail}
+          respuestas={respuestas}
+          onClose={() => setDetail(null)}
+        />
       )}
     </div>
   );
@@ -608,15 +748,30 @@ export default function ControlApp() {
     const ids = confirmDelete;
     setConfirmDelete(null);
     try {
-      const { error: err1 } = await supabase.from("respuestas").delete().in("evaluacion_id", ids);
-      if (err1) { showToast("Error al eliminar respuestas: " + err1.message, "error"); return; }
-      const { error: err2 } = await supabase.from("evaluaciones").delete().in("id", ids);
-      if (err2) { showToast("Error al eliminar evaluaciones: " + err2.message, "error"); return; }
+      console.log("🗑 Intentando borrar ids:", ids);
+
+      const res1 = await supabase.from("respuestas").delete().in("evaluacion_id", ids);
+      console.log("Borrar respuestas →", res1);
+      if (res1.error) { showToast("Error respuestas: " + res1.error.message, "error"); return; }
+
+      const res2 = await supabase.from("evaluaciones").delete().in("id", ids);
+      console.log("Borrar evaluaciones →", res2);
+      if (res2.error) { showToast("Error evaluaciones: " + res2.error.message, "error"); return; }
+
+      // Verificar que realmente se borraron
+      const { data: check } = await supabase.from("evaluaciones").select("id").in("id", ids);
+      console.log("Registros que siguen existiendo:", check);
+      if (check && check.length > 0) {
+        showToast("No se pudieron borrar (verifica permisos RLS en Supabase)", "error");
+        await fetchData();
+        return;
+      }
+
       setSelected([]);
       await fetchData();
       showToast(`${ids.length} evaluación${ids.length > 1 ? "es" : ""} eliminada${ids.length > 1 ? "s" : ""}`);
     } catch (e) {
-      showToast("Error al eliminar: " + e.message, "error");
+      showToast("Error: " + e.message, "error");
     }
   }
 
@@ -658,13 +813,15 @@ export default function ControlApp() {
         </div>
 
         <button onClick={fetchData} className="btn-action" style={{
-          padding: "10px 12px", borderRadius: 10, border: "1px solid #E8E4DF",
-          background: "#F7F5F2", color: "#999", fontSize: 12,
-          fontWeight: 600, cursor: "pointer",
-          display: "flex", alignItems: "center", gap: 6,
+          padding: "12px 12px", borderRadius: 10, border: "none",
+          background: loading ? "#D1D0CB" : "linear-gradient(135deg,#E8251F,#B91A15)",
+          color: "#fff", fontSize: 13,
+          fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+          boxShadow: loading ? "none" : "0 4px 14px rgba(232,37,31,0.35)",
         }}>
-          <span className={loading ? "spin" : ""} style={{ display: "inline-block" }}>🔄</span>
-          {loading ? "Cargando..." : "Actualizar"}
+          <span className={loading ? "spin" : ""} style={{ display: "inline-block", fontSize: 15 }}>🔄</span>
+          {loading ? "Cargando..." : "Actualizar datos"}
         </button>
 
         <button onClick={() => setAuthed(false)} className="btn-action" style={{
