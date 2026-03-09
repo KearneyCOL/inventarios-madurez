@@ -474,12 +474,6 @@ function IntroTab({onNavigate}) {
                 background:"rgba(255,255,255,0.06)",
                 color:"rgba(255,255,255,0.8)",fontWeight:600,fontSize:13,cursor:"pointer",
               }}>🗂 Ver el Modelo</button>
-              <button className="btn-red" onClick={()=>onNavigate("registro")} style={{
-                padding:"12px 26px",borderRadius:12,border:"none",
-                background:"linear-gradient(135deg,#E8251F,#B91A15)",
-                color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
-                boxShadow:"0 6px 20px rgba(232,37,31,0.45)",
-              }}>Comenzar Evaluación →</button>
             </div>
           </div>
 
@@ -576,11 +570,34 @@ function IntroTab({onNavigate}) {
         </div>
       </div>
 
+      {/* ═══ CTA FINAL ═══ */}
+      <div className="fade-up-4" style={{
+        marginTop:14,borderRadius:20,overflow:"hidden",
+        background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+        padding:"36px 48px",
+        display:"flex",alignItems:"center",justifyContent:"space-between",gap:24,
+        boxShadow:`0 16px 48px rgba(232,37,31,0.28)`,
+      }}>
+        <div>
+          <div className="display" style={{fontSize:22,fontWeight:900,color:"#fff",letterSpacing:"-.02em",marginBottom:6}}>
+            ¿Listo para comenzar?
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>
+            El diagnóstico toma ~45 minutos. Necesitarás a tu equipo de Supply, Comercial y Finanzas.
+          </div>
+        </div>
+        <button className="btn-red" onClick={()=>onNavigate("assessment")} style={{
+          padding:"16px 40px",borderRadius:14,border:"2px solid rgba(255,255,255,0.3)",
+          background:"rgba(255,255,255,0.12)",backdropFilter:"blur(8px)",
+          color:"#fff",fontWeight:800,fontSize:15,cursor:"pointer",
+          whiteSpace:"nowrap",flexShrink:0,
+          boxShadow:"0 4px 20px rgba(0,0,0,0.2)",
+        }}>Iniciar diagnóstico →</button>
+      </div>
+
     </div>
   );
 }
-
-// ─── MODELO TAB ───────────────────────────────────────────────────────────────
 function ModeloTab() {
   const [open,setOpen] = useState(null);
 
@@ -1084,7 +1101,7 @@ export default function App() {
   const [answers,setAnswers] = useState(emptyAnswers);
   const [perfil,setPerfil] = useState(null);
   const [showPerfil,setShowPerfil] = useState(false);
-  const [showRegistro,setShowRegistro] = useState(false);
+  const [showRegistro,setShowRegistro] = useState(true);
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
@@ -1208,7 +1225,7 @@ export default function App() {
 
       {/* ═══ CONTENT ═══ */}
       {view==="intro"    &&<div style={{flex:1,overflow:"auto"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/></div>}
-      {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);setView("assessment");}}/>}
+      {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);}}/>}
       {view==="modelo"   &&<div style={{flex:1,overflow:"auto"}}><ModeloTab/></div>}
       {view==="summary"  &&<div style={{flex:1,overflow:"auto"}}><SummaryTab answers={answers} perfil={perfil}/></div>}
 
@@ -1391,21 +1408,76 @@ export default function App() {
         </div>
       )}
 
+
       {showPerfil && <PerfilModal onStart={(p)=>{ setPerfil(p); setShowPerfil(false); setView("assessment"); }} />}
 
-      {/* ═══ FOOTER ═══ */}
-      <footer style={{
-        background:T.card,borderTop:`1px solid ${T.borderSm}`,
-        height:36,display:"flex",alignItems:"center",
-        justifyContent:"space-between",padding:"0 28px",flexShrink:0,
-      }}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <Logo h={14}/>
-          <span style={{fontSize:9,fontWeight:700,color:T.inkSoft,letterSpacing:".16em"}}>KEARNEY</span>
-        </div>
-        <div style={{fontSize:8.5,color:T.inkSoft}}>Clasificación: Uso Interno · Documento Claro Colombia</div>
-        <div style={{fontSize:8.5,color:T.inkSoft}}>Kearney – Claro | Gestión de Inventarios 2025</div>
-      </footer>
+      {/* ═══ FOOTER NAV ═══ */}
+      {(()=>{
+        const NAV_TABS = [
+          {id:"intro",      label:"Introducción",     icon:"📘"},
+          {id:"modelo",     label:"El Modelo",        icon:"🗂"},
+          {id:"assessment", label:"Evaluación",       icon:"📝"},
+          {id:"summary",    label:"Resumen & Brechas",icon:"📊"},
+        ];
+        const currentIdx = NAV_TABS.findIndex(t=>t.id===view);
+        const prev = currentIdx > 0 ? NAV_TABS[currentIdx-1] : null;
+        const next = currentIdx < NAV_TABS.length-1 ? NAV_TABS[currentIdx+1] : null;
+        return (
+          <footer style={{
+            background:T.card, borderTop:`1px solid ${T.borderSm}`,
+            height:52, display:"flex", alignItems:"center",
+            justifyContent:"space-between", padding:"0 24px", flexShrink:0,
+          }}>
+            {/* PREV */}
+            {prev ? (
+              <button onClick={()=>setView(prev.id)} style={{
+                display:"flex",alignItems:"center",gap:8,
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
+                background:T.surface,cursor:"pointer",transition:"all .15s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
+              >
+                <span style={{fontSize:14}}>←</span>
+                <div style={{textAlign:"left"}}>
+                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Anterior</div>
+                  <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{prev.icon} {prev.label}</div>
+                </div>
+              </button>
+            ) : <div/>}
+
+            {/* CENTER */}
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              {NAV_TABS.map((t,i)=>(
+                <div key={t.id} onClick={()=>setView(t.id)} style={{
+                  width: t.id===view ? 20 : 6,
+                  height:6, borderRadius:99,
+                  background: t.id===view ? T.red : T.borderSm,
+                  cursor:"pointer", transition:"all .25s cubic-bezier(.22,1,.36,1)",
+                }}/>
+              ))}
+            </div>
+
+            {/* NEXT */}
+            {next ? (
+              <button onClick={()=>setView(next.id)} style={{
+                display:"flex",alignItems:"center",gap:8,
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
+                background:T.surface,cursor:"pointer",transition:"all .15s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
+              >
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Siguiente</div>
+                  <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{next.icon} {next.label}</div>
+                </div>
+                <span style={{fontSize:14}}>→</span>
+              </button>
+            ) : <div/>}
+          </footer>
+        );
+      })()}
 
     </div>
   );
