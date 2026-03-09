@@ -1382,7 +1382,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
 
-      // ── helpers ──────────────────────────────────────────────────────────
+      //  helpers 
       function setFont(weight="normal", size=10, color=DARK) {
         doc.setFont("helvetica", weight);
         doc.setFontSize(size);
@@ -1428,7 +1428,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         return y;
       }
 
-      // ── data ─────────────────────────────────────────────────────────────
+      //  data 
       const globalAvg = avgArr(filtered.map(e=>e.score_global));
       const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
       const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
@@ -1464,9 +1464,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         color: LV_COLORS_RGB[v-1],
       }));
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PORTADA
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.portada) {
         // Red hero
         rect(0, 0, W, 110, 0, RED);
@@ -1515,9 +1515,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         // KPI boxes on cover
         const kpis = [
           { label:"Evaluaciones", value: String(filtered.length) },
-          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
-          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
-          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
+          { label:"Score Global", value: globalAvg?.toFixed(1)||"" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"":"" },
+          { label:"Dispersión", value: spread!=null?`${spread}pts`:"" },
         ];
         kpis.forEach((k,i) => {
           const kx = 24 + i*(W-48)/4;
@@ -1558,9 +1558,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: KPIs EJECUTIVOS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.resumen_kpis) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1586,15 +1586,15 @@ function ReportTab({ evaluaciones, respuestas }) {
           }
         };
         const bw = (W-32)/4;
-        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
-        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
-        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
-        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
+        kpiBox(16, bw, "", "Score Global Prom.", globalAvg != null ? globalAvg.toFixed(2) : "-", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "", "Dimension mas fuerte", strongest?.num||"-", strongest?.label||"-", [5,150,105]);
+        kpiBox(16+bw*2, bw, "", "Dimension mas debil", weakest?.num||"-", weakest?.label||"-", [220,38,38]);
+        kpiBox(16+bw*3, bw, "", "Dispersion", spread != null ? `${spread}` : "-", "max - min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
         y += 36;
 
         // Dim scores row
         setFont("bold", 9, DARK);
-        doc.text("Score promedio por dimensión", 16, y); y += 6;
+        doc.text("Score promedio por dimension", 16, y); y += 6;
         DIMS_META.forEach((d,i) => {
           const sc = dimAvgs.find(x=>x.key===d.key)?.score;
           const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
@@ -1610,9 +1610,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         y += 30;
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: DISTRIBUCIÓN
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.distribucion) {
         let y = checkY(999); // force new page for this section
         y = newPage(); 
@@ -1654,9 +1654,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: HEATMAP
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.heatmap && heatRows.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1723,9 +1723,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // POR ROL
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.por_rol && byRoleData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1750,9 +1750,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // BRECHAS CRÍTICAS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.brechas_crit) {
         let y = newPage();
         rect(0, 0, W, 14, 0, RED); // override header to red
@@ -1796,9 +1796,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // BRECHAS MODERADAS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.brechas_mod) {
         let y = newPage();
         setFont("bold", 16, [217,119,6]);
@@ -1827,9 +1827,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // ROADMAP
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.roadmap && gapsData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1837,9 +1837,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         hline(y); y += 8;
 
         const phases = [
-          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
-          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
-          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
+          { t:" Corto Plazo",   sub:"06 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
+          { t:" Mediano Plazo", sub:"612 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+          { t:" Largo Plazo",   sub:"1224 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
         ];
         const colW2 = (W-38)/3;
         phases.forEach((ph,pi) => {
@@ -1873,9 +1873,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // RANKING
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.ranking) {
         let y = newPage();
         setFont("bold", 16, RED);
@@ -1912,7 +1912,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // ── Page numbers ──────────────────────────────────────────────────────
+      //  Page numbers 
       const totalPages = doc.internal.getNumberOfPages();
       for (let p=1; p<=totalPages; p++) {
         doc.setPage(p);
