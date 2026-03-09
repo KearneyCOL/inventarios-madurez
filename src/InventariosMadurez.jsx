@@ -328,6 +328,95 @@ function CountUp({to,decimals=0,duration=800}) {
   return <>{val.toFixed(decimals)}</>;
 }
 
+// ─── REGISTRO FORM (modal de inicio) ─────────────────────────────────────────
+const DIRECCIONES = [
+  "Dirección de Tecnología","Dirección Comercial","Dirección de Operaciones",
+  "Dirección de Supply Chain","Dirección Financiera","Dirección de Logística",
+  "Otra",
+];
+const ROLES = [
+  "Gerente / Director","Coordinador / Jefe","Analista","Consultor","Otro",
+];
+
+function RegistroForm({onStart}) {
+  const [dir,setDir]   = useState("");
+  const [rol,setRol]   = useState("");
+  const [err,setErr]   = useState(false);
+
+  function start() {
+    if (!dir || !rol) { setErr(true); return; }
+    onStart({ direccion: dir, rol });
+  }
+
+  const sel = (val,set,opts) => (
+    <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+      {opts.map(o=>(
+        <button key={o} onClick={()=>{set(o);setErr(false);}} style={{
+          padding:"7px 16px",borderRadius:99,fontSize:12,fontWeight:600,cursor:"pointer",
+          border:`1.5px solid ${val===o?T.red:T.border}`,
+          background:val===o?T.redBg:T.card,
+          color:val===o?T.red:T.inkMid,
+          transition:"all .15s",
+        }}>{o}</button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={{
+      position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",
+      display:"flex",alignItems:"center",justifyContent:"center",
+      zIndex:500,backdropFilter:"blur(6px)",
+    }}>
+      <div className="fade-up" style={{
+        width:480,background:T.card,borderRadius:22,
+        border:`1px solid ${T.borderSm}`,
+        boxShadow:"0 32px 80px rgba(0,0,0,0.18)",
+        padding:"40px 40px 36px",
+      }}>
+        <div style={{marginBottom:28}}>
+          <div style={{fontSize:20,fontWeight:900,color:T.ink,letterSpacing:"-.02em",marginBottom:6}}>
+            Antes de comenzar
+          </div>
+          <div style={{fontSize:13,color:T.inkMid}}>
+            Cuéntanos un poco sobre ti para contextualizar el diagnóstico.
+          </div>
+        </div>
+
+        <div style={{marginBottom:22}}>
+          <div style={{fontSize:11,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",
+            letterSpacing:".1em",marginBottom:10}}>Dirección</div>
+          {sel(dir,setDir,DIRECCIONES)}
+        </div>
+
+        <div style={{marginBottom:28}}>
+          <div style={{fontSize:11,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",
+            letterSpacing:".1em",marginBottom:10}}>Rol</div>
+          {sel(rol,setRol,ROLES)}
+        </div>
+
+        {err && (
+          <div style={{fontSize:12,color:T.red,marginBottom:16}}>
+            Por favor selecciona tu dirección y rol para continuar.
+          </div>
+        )}
+
+        <button onClick={start} className="btn-red" style={{
+          width:"100%",padding:"13px",borderRadius:12,border:"none",
+          background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+          color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer",
+          boxShadow:`0 4px 16px rgba(232,37,31,0.3)`,
+        }}>Iniciar diagnóstico →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── PERFIL MODAL (alias legacy) ─────────────────────────────────────────────
+function PerfilModal({onStart}) {
+  return <RegistroForm onStart={onStart}/>;
+}
+
 // ─── INTRO TAB ────────────────────────────────────────────────────────────────
 function IntroTab({onNavigate}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
