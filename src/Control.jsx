@@ -51,10 +51,10 @@ body{margin:0;background:#F7F5F2;color:#1A1A18;}
 `;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-function getLevelLabel(v) { return LEVEL_LABELS[Math.round(v)] || "-"; }
+function getLevelLabel(v) { return LEVEL_LABELS[Math.round(v)] || "—"; }
 function getLevelColor(v) { return LEVEL_COLORS[Math.round(v)] || "#78716C"; }
 function formatDate(d) {
-  if (!d) return "-";
+  if (!d) return "—";
   return new Date(d).toLocaleDateString("es-CO", {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -322,7 +322,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="📋" label="Total evaluaciones" value={evaluaciones.length} delay={1} />
-        <StatCard icon="⭐" label="Score promedio" value={avgScore || "-"} color="#D97706" delay={2} />
+        <StatCard icon="⭐" label="Score promedio" value={avgScore || "—"} color="#D97706" delay={2} />
         <StatCard icon="📊" label="Respuestas totales" value={respuestas.length} color="#2563EB" delay={3} />
         <StatCard icon="✅" label="Completas (35 resp)" value={completas} color="#059669" delay={4} />
       </div>
@@ -337,6 +337,39 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             color: "#1A1A18", fontSize: 13, outline: "none",
           }}
         />
+        <button onClick={() => {
+          const rows = filtered.map(e => ({
+            "ID": e.id,
+            "Dirección": e.direccion || "",
+            "Rol": e.rol || "",
+            "Fecha": formatDate(e.created_at),
+            "Score Global": e.score_global || "",
+            "Nivel Global": getLevelLabel(e.score_global),
+            ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
+          }));
+          const ws = XLSX.utils.json_to_sheet(rows);
+          ws["!cols"] = [{wch:36},{wch:20},{wch:18},{wch:18},{wch:16},{wch:14},...Array(7).fill({wch:16})];
+          const ws2 = XLSX.utils.json_to_sheet(respuestas
+            .filter(r => filtered.some(e => e.id === r.evaluacion_id))
+            .map(r => ({
+              "Evaluacion ID": r.evaluacion_id,
+              "Sub-dimensión": r.subdimension_id,
+              "Dimensión": r.dimension_key,
+              "Valor": r.valor,
+              "Nivel": getLevelLabel(r.valor),
+            }))
+          );
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Evaluaciones");
+          XLSX.utils.book_append_sheet(wb, ws2, "Respuestas Detalle");
+          XLSX.writeFile(wb, `Consolidado_Madurez_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }} className="btn-action" style={{
+          padding: "10px 18px", borderRadius: 10, border: "none",
+          background: "linear-gradient(135deg,#059669,#047857)",
+          color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+          whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(5,150,105,0.3)",
+          display: "flex", alignItems: "center", gap: 6,
+        }}>⬇ Descargar todo</button>
         {selected.length > 0 && (
           <button onClick={() => onDelete(selected)} className="btn-action" style={{
             padding: "10px 18px", borderRadius: 10, border: "1px solid #E8251F40",
@@ -694,10 +727,10 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
       {/* ═══ KPIs ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
         {[
-          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"-", color: globalAvg?lvMeta(globalAvg).c:"#AAA" },
-          { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"-", sub: strongest?.score?.toFixed(1), color:"#059669" },
-          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"-",   sub: weakest?.score?.toFixed(1),   color:RED },
-          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"-", color: spread>=2?RED:spread>=1?"#D97706":"#059669" },
+          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"—", color: globalAvg?lvMeta(globalAvg).c:"#AAA" },
+          { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"—", sub: strongest?.score?.toFixed(1), color:"#059669" },
+          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"—",   sub: weakest?.score?.toFixed(1),   color:RED },
+          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"—", color: spread>=2?RED:spread>=1?"#D97706":"#059669" },
         ].map((k,i) => (
           <AnalyticsCard key={i} style={{ padding:"18px 20px" }}>
             <div style={{ fontSize:20, marginBottom:8 }}>{k.icon}</div>
@@ -778,7 +811,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                     <div style={{ width:24, fontSize:9, fontWeight:700, color:"#CCC", flexShrink:0 }}>{d.num}</div>
                     <div style={{ width:110, fontSize:11, fontWeight:600, color:"#555", flexShrink:0 }}>{d.label}</div>
                     <MiniBar value={d.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{d.score?.toFixed(1)||"-"}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{d.score?.toFixed(1)||"—"}</div>
                     <div style={{ fontSize:9, color:"#CCC", width:10 }}>›</div>
                   </div>
                 );
@@ -797,7 +830,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                   <div key={r.rol} style={{ display:"flex", alignItems:"center", gap:10 }}>
                     <div style={{ width:82, fontSize:11, fontWeight:600, color:"#555", flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.rol}</div>
                     <MiniBar value={r.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)||"-"}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)||"—"}</div>
                     <div style={{ fontSize:9, color:"#CCC", width:22, flexShrink:0, textAlign:"right" }}>n={r.n}</div>
                   </div>
                 );
@@ -831,14 +864,14 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                     <td style={{ padding:"6px 8px", fontWeight:700, color:"#1A1A18", fontSize:12, whiteSpace:"nowrap" }}>{row.dir}</td>
                     <td style={{ padding:"6px 8px", color:"#AAA", fontSize:11, textAlign:"center" }}>{row.n}</td>
                     <td style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background: row.global?lvMeta(row.global).c+"22":"#F3F2F0", color:row.global?lvMeta(row.global).c:"#CCC", fontWeight:800, fontSize:13, minWidth:44 }}>
-                      {row.global?.toFixed(1)||"-"}
+                      {row.global?.toFixed(1)||"—"}
                     </td>
                     {DIMS_META.map(d=>{
                       const v=row[d.key]; const l=v?lvMeta(v):null;
                       return (
-                        <td key={d.key} onClick={()=>setViewDim(d.key)} title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"-"}`}
+                        <td key={d.key} onClick={()=>setViewDim(d.key)} title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"—"}`}
                           style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background:l?l.c+"22":"#F3F2F0", color:l?l.c:"#CCC", fontWeight:700, fontSize:12, minWidth:42, cursor:"pointer", outline:viewDim===d.key?`2px solid ${RED}`:"none" }}>
-                          {v?.toFixed(1)||"-"}
+                          {v?.toFixed(1)||"—"}
                         </td>
                       );
                     })}
@@ -1015,13 +1048,13 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                 <div style={{ fontSize:11, fontWeight:800, color:i===0?RED:"#CCC" }}>#{i+1}</div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>
-                    {e.direccion||"-"}<span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"-"}</span>
+                    {e.direccion||"—"}<span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"—"}</span>
                   </div>
                   <div style={{ fontSize:9.5, color:"#CCC", marginTop:1 }}>{e.created_at?.slice(0,10)||""}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <MiniBar value={e[sortDim]||0} color={l?.c||"#E8E4DF"} />
-                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:26, textAlign:"right" }}>{e[sortDim]?.toFixed(1)||"-"}</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:26, textAlign:"right" }}>{e[sortDim]?.toFixed(1)||"—"}</span>
                 </div>
                 {l && <span style={{ padding:"3px 8px", borderRadius:99, fontSize:9.5, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30`, textAlign:"center", whiteSpace:"nowrap" }}>{l.label}</span>}
               </div>
@@ -1361,7 +1394,7 @@ function ReportTab({ evaluaciones, respuestas }) {
     return ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][r-1]||"#AAA";
   }
   function lvLabel(v) {
-    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"-";
+    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"—";
   }
 
   async function generatePDF() {
@@ -1404,11 +1437,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
         doc.text(safeStr(text), x, y);
       }
-      function safeStr(v) {
-        if (v == null || v === undefined) return "-";
-        return String(v).replace(/[^\x00-\u00FF]/g, '').replace(/\s+/g, ' ').trim() || '-';
-      }
-            function miniBar(x, y, value, max, color, barW=40) {
+      function safeStr(v) { if(!v&&v!==0) return "-"; return String(v).replace(/[^\x00-\xFF]/g,"").replace(/\s+/g," ").trim()||"-"; }
+      function miniBar(x, y, value, max, color, barW=40) {
         doc.setFillColor(235,233,228);
         doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
         if (value && max) {
@@ -1483,10 +1513,10 @@ function ReportTab({ evaluaciones, respuestas }) {
         }
         // Decorative circles
         doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        
         doc.circle(W-20, 20, 60, "F");
         doc.circle(30, 95, 35, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
+        
 
         // Logo area
         rect(16, 16, 42, 9, 3, [200,20,15]);
@@ -1504,9 +1534,9 @@ function ReportTab({ evaluaciones, respuestas }) {
 
         // Date pill
         doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.15 }));
+        
         doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
+        
         setFont("bold", 8, [255,255,255]);
         doc.text(safeStr(` ${now}`), 18, ty+17);
 
@@ -1524,8 +1554,8 @@ function ReportTab({ evaluaciones, respuestas }) {
         const kpis = [
           { label:"Evaluaciones", value: String(filtered.length) },
           { label:"Score Global", value: globalAvg?.toFixed(1)||"-" },
-          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"-":"-" },
-          { label:"Dispersión", value: spread!=null?`${spread}pts`:"-" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"-":"—" },
+          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
         ];
         kpis.forEach((k,i) => {
           const kx = 24 + i*(W-48)/4;
@@ -1554,7 +1584,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         // Sections included
         setFont("bold", 8, MID);
         doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
-        const included = Object.entries(sections).filter(([,v])=>v&&k!=="portada").map(([k])=>SECTION_LABELS[k]?.label||k);
+        const included = Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
         setFont("normal", 7.5, MID);
         const incText = included.join("  ·  ");
         const incLines = doc.splitTextToSize(safeStr(incText), W-32);
@@ -1720,7 +1750,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         y += 6;
         setFont("bold", 7, MID);
         doc.text("Referencia de colores:", 16, y); y += 5;
-        ["#1","Basico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
+        ["#1","Básico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
           if (i%2===0) return;
           const lx = 16 + Math.floor(i/2)*42;
           const rgb = LV_COLORS_RGB[Math.floor(i/2)];
@@ -1787,7 +1817,7 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.roundedRect(16, y, W-32, 24, 4, 4);
             // Icon + title
             setFont("bold", 11, DARK);
-            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), 22, y+8);
+            doc.text(safeStr(`${g.dimIcon}  ${g.dimLabel}`), 22, y+8);
             // Score badge
             rect(W-50, y+3, 32, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
             setFont("bold", 8, rgb);
@@ -1824,7 +1854,7 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.setDrawColor(253,230,138);
             doc.roundedRect(16, y, W-32, 18, 4, 4);
             setFont("bold", 10, DARK);
-            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), 22, y+7);
+            doc.text(safeStr(`${g.dimIcon}  ${g.dimLabel}`), 22, y+7);
             miniBar(22, y+11, g.score, 5, rgb, W-52);
             setFont("bold", 8, rgb);
             doc.text(safeStr(`${g.score.toFixed(1)} / 5`), W-16, y+8, { align:"right" });
@@ -1841,7 +1871,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       if (sections.roadmap && gapsData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text(" Hoja de Ruta Priorizada", 16, y); y += 4;
+        doc.text("Hoja de Ruta Priorizada", 16, y); y += 4;
         hline(y); y += 8;
 
         const phases = [
@@ -1887,7 +1917,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       if (sections.ranking) {
         let y = newPage();
         setFont("bold", 16, RED);
-        doc.text(" Ranking de Evaluaciones", 16, y); y += 4;
+        doc.text("Ranking de Evaluaciones", 16, y); y += 4;
         hline(y); y += 8;
 
         const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
@@ -1921,7 +1951,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       }
 
       //  Page numbers 
-      const totalPages = doc.getNumberOfPages();
+      const totalPages = doc.internal.getNumberOfPages();
       for (let p=1; p<=totalPages; p++) {
         doc.setPage(p);
         if (p > 1 || !sections.portada) {
@@ -2065,7 +2095,7 @@ function ReportTab({ evaluaciones, respuestas }) {
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                 {[
                   { l:"Evaluaciones", v:filtered.length },
-                  { l:"Score Global", v:avgArr(filtered.map(e=>e.score_global))?.toFixed(2)||"-" },
+                  { l:"Score Global", v:avgArr(filtered.map(e=>e.score_global))?.toFixed(2)||"—" },
                   { l:"Secciones PDF", v:secCount },
                 ].map(k=>(
                   <div key={k.l} style={{ background:"rgba(255,255,255,.15)", borderRadius:10,
@@ -2309,7 +2339,7 @@ export default function ControlApp() {
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
         {tab === "reporte" && <ReportTab evaluaciones={evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
         {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
