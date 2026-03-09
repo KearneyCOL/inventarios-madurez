@@ -51,10 +51,10 @@ body{margin:0;background:#F7F5F2;color:#1A1A18;}
 `;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-function getLevelLabel(v) { return LEVEL_LABELS[Math.round(v)] || "—"; }
+function getLevelLabel(v) { return LEVEL_LABELS[Math.round(v)] || "-"; }
 function getLevelColor(v) { return LEVEL_COLORS[Math.round(v)] || "#78716C"; }
 function formatDate(d) {
-  if (!d) return "—";
+  if (!d) return "-";
   return new Date(d).toLocaleDateString("es-CO", {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -322,7 +322,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 28 }}>
         <StatCard icon="📋" label="Total evaluaciones" value={evaluaciones.length} delay={1} />
-        <StatCard icon="⭐" label="Score promedio" value={avgScore || "—"} color="#D97706" delay={2} />
+        <StatCard icon="⭐" label="Score promedio" value={avgScore || "-"} color="#D97706" delay={2} />
         <StatCard icon="📊" label="Respuestas totales" value={respuestas.length} color="#2563EB" delay={3} />
         <StatCard icon="✅" label="Completas (35 resp)" value={completas} color="#059669" delay={4} />
       </div>
@@ -694,10 +694,10 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
       {/* ═══ KPIs ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
         {[
-          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"—", color: globalAvg?lvMeta(globalAvg).c:"#AAA" },
-          { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"—", sub: strongest?.score?.toFixed(1), color:"#059669" },
-          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"—",   sub: weakest?.score?.toFixed(1),   color:RED },
-          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"—", color: spread>=2?RED:spread>=1?"#D97706":"#059669" },
+          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"-", color: globalAvg?lvMeta(globalAvg).c:"#AAA" },
+          { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"-", sub: strongest?.score?.toFixed(1), color:"#059669" },
+          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"-",   sub: weakest?.score?.toFixed(1),   color:RED },
+          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"-", color: spread>=2?RED:spread>=1?"#D97706":"#059669" },
         ].map((k,i) => (
           <AnalyticsCard key={i} style={{ padding:"18px 20px" }}>
             <div style={{ fontSize:20, marginBottom:8 }}>{k.icon}</div>
@@ -778,7 +778,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                     <div style={{ width:24, fontSize:9, fontWeight:700, color:"#CCC", flexShrink:0 }}>{d.num}</div>
                     <div style={{ width:110, fontSize:11, fontWeight:600, color:"#555", flexShrink:0 }}>{d.label}</div>
                     <MiniBar value={d.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{d.score?.toFixed(1)||"—"}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{d.score?.toFixed(1)||"-"}</div>
                     <div style={{ fontSize:9, color:"#CCC", width:10 }}>›</div>
                   </div>
                 );
@@ -797,7 +797,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                   <div key={r.rol} style={{ display:"flex", alignItems:"center", gap:10 }}>
                     <div style={{ width:82, fontSize:11, fontWeight:600, color:"#555", flexShrink:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{r.rol}</div>
                     <MiniBar value={r.score||0} color={l?.c||"#E8E4DF"} />
-                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)||"—"}</div>
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)||"-"}</div>
                     <div style={{ fontSize:9, color:"#CCC", width:22, flexShrink:0, textAlign:"right" }}>n={r.n}</div>
                   </div>
                 );
@@ -831,14 +831,14 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                     <td style={{ padding:"6px 8px", fontWeight:700, color:"#1A1A18", fontSize:12, whiteSpace:"nowrap" }}>{row.dir}</td>
                     <td style={{ padding:"6px 8px", color:"#AAA", fontSize:11, textAlign:"center" }}>{row.n}</td>
                     <td style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background: row.global?lvMeta(row.global).c+"22":"#F3F2F0", color:row.global?lvMeta(row.global).c:"#CCC", fontWeight:800, fontSize:13, minWidth:44 }}>
-                      {row.global?.toFixed(1)||"—"}
+                      {row.global?.toFixed(1)||"-"}
                     </td>
                     {DIMS_META.map(d=>{
                       const v=row[d.key]; const l=v?lvMeta(v):null;
                       return (
-                        <td key={d.key} onClick={()=>setViewDim(d.key)} title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"—"}`}
+                        <td key={d.key} onClick={()=>setViewDim(d.key)} title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"-"}`}
                           style={{ padding:"6px 8px", textAlign:"center", borderRadius:8, background:l?l.c+"22":"#F3F2F0", color:l?l.c:"#CCC", fontWeight:700, fontSize:12, minWidth:42, cursor:"pointer", outline:viewDim===d.key?`2px solid ${RED}`:"none" }}>
-                          {v?.toFixed(1)||"—"}
+                          {v?.toFixed(1)||"-"}
                         </td>
                       );
                     })}
@@ -1015,13 +1015,13 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                 <div style={{ fontSize:11, fontWeight:800, color:i===0?RED:"#CCC" }}>#{i+1}</div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>
-                    {e.direccion||"—"}<span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"—"}</span>
+                    {e.direccion||"-"}<span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"-"}</span>
                   </div>
                   <div style={{ fontSize:9.5, color:"#CCC", marginTop:1 }}>{e.created_at?.slice(0,10)||""}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                   <MiniBar value={e[sortDim]||0} color={l?.c||"#E8E4DF"} />
-                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:26, textAlign:"right" }}>{e[sortDim]?.toFixed(1)||"—"}</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC", flexShrink:0, width:26, textAlign:"right" }}>{e[sortDim]?.toFixed(1)||"-"}</span>
                 </div>
                 {l && <span style={{ padding:"3px 8px", borderRadius:99, fontSize:9.5, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30`, textAlign:"center", whiteSpace:"nowrap" }}>{l.label}</span>}
               </div>
@@ -1361,7 +1361,7 @@ function ReportTab({ evaluaciones, respuestas }) {
     return ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][r-1]||"#AAA";
   }
   function lvLabel(v) {
-    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"—";
+    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"-";
   }
 
   async function generatePDF() {
@@ -1382,7 +1382,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
 
-      // ── helpers ──────────────────────────────────────────────────────────
+      //  helpers 
       function setFont(weight="normal", size=10, color=DARK) {
         doc.setFont("helvetica", weight);
         doc.setFontSize(size);
@@ -1402,9 +1402,13 @@ function ReportTab({ evaluaciones, respuestas }) {
         const tw = doc.getTextWidth(text);
         doc.setFillColor(...bgRGB);
         doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
- doc.text(text, x, y);
+        doc.text(safeStr(text), x, y);
       }
-      function miniBar(x, y, value, max, color, barW=40) {
+      function safeStr(v) {
+        if (v == null || v === undefined) return "-";
+        return String(v).replace(/[^\x00-\u00FF]/g, '').replace(/\s+/g, ' ').trim() || '-';
+      }
+            function miniBar(x, y, value, max, color, barW=40) {
         doc.setFillColor(235,233,228);
         doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
         if (value && max) {
@@ -1417,9 +1421,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         if (header) {
           rect(0, 0, W, 14, 0, RED);
           setFont("bold", 9, [255,255,255]);
- doc.text(titulo, 16, 9.5);
+          doc.text(safeStr(titulo), 16, 9.5);
           setFont("normal", 7.5, [255,200,200]);
- doc.text(now, W-16, 9.5, { align:"right" });
+          doc.text(now, W-16, 9.5, { align:"right" });
         }
         return 20;
       }
@@ -1428,7 +1432,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         return y;
       }
 
-      // ── data ─────────────────────────────────────────────────────────────
+      //  data 
       const globalAvg = avgArr(filtered.map(e=>e.score_global));
       const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
       const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
@@ -1464,9 +1468,9 @@ function ReportTab({ evaluaciones, respuestas }) {
         color: LV_COLORS_RGB[v-1],
       }));
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PORTADA
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.portada) {
         // Red hero
         rect(0, 0, W, 110, 0, RED);
@@ -1477,30 +1481,34 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.circle(gx, gy, 0.4, "F");
           }
         }
-        // Decorative circles (subtle, no opacity needed)
-        doc.setFillColor(200,10,5);
+        // Decorative circles
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
         doc.circle(W-20, 20, 60, "F");
         doc.circle(30, 95, 35, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
 
         // Logo area
         rect(16, 16, 42, 9, 3, [200,20,15]);
         setFont("bold", 9, [255,255,255]);
- doc.text("KEARNEY", 37, 21.5, { align:"center" });
+        doc.text("KEARNEY", 37, 21.5, { align:"center" });
 
         // Title
         setFont("bold", 28, [255,255,255]);
-        const titleLines = doc.splitTextToSize(titulo, W-40);
+        const titleLines = doc.splitTextToSize(safeStr(titulo), W-40);
         let ty = 48;
- titleLines.forEach(line => { doc.text(line, 16, ty); ty += 11; });
+        titleLines.forEach(line => { doc.text(safeStr(line), 16, ty); ty += 11; });
 
         setFont("normal", 12, [255,200,200]);
- doc.text(subtitulo, 16, ty+4);
+        doc.text(safeStr(subtitulo), 16, ty+4);
 
         // Date pill
-        doc.setFillColor(180,10,5);
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
         doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
         setFont("bold", 8, [255,255,255]);
- doc.text(`Generado: ${now}`, 18, ty+17);
+        doc.text(safeStr(` ${now}`), 18, ty+17);
 
         // Summary box
         rect(16, 118, W-32, 44, 6, [255,248,248]);
@@ -1509,62 +1517,62 @@ function ReportTab({ evaluaciones, respuestas }) {
         doc.roundedRect(16, 118, W-32, 44, 6, 6);
 
         setFont("bold", 8, MID);
- doc.text("RESUMEN EJECUTIVO", 24, 128);
+        doc.text("RESUMEN EJECUTIVO", 24, 128);
         hline(131, [255,220,218]);
 
         // KPI boxes on cover
         const kpis = [
           { label:"Evaluaciones", value: String(filtered.length) },
-          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
-          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
-          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
+          { label:"Score Global", value: globalAvg?.toFixed(1)||"-" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"-":"-" },
+          { label:"Dispersión", value: spread!=null?`${spread}pts`:"-" },
         ];
         kpis.forEach((k,i) => {
           const kx = 24 + i*(W-48)/4;
           rect(kx, 134, (W-48)/4-4, 20, 4, [255,241,241]);
           setFont("bold", 16, RED);
- doc.text(k.value, kx+((W-48)/4-4)/2, 146, { align:"center" });
+          doc.text(k.value, kx+((W-48)/4-4)/2, 146, { align:"center" });
           setFont("normal", 7, MID);
- doc.text(k.label, kx+((W-48)/4-4)/2, 152, { align:"center" });
+          doc.text(k.label, kx+((W-48)/4-4)/2, 152, { align:"center" });
         });
 
         // Filtros usados
         let fy = 170;
         if (filterDir.length || filterRol.length) {
           setFont("bold", 8, MID);
- doc.text("Filtros aplicados:", 16, fy); fy += 6;
+          doc.text("Filtros aplicados:", 16, fy); fy += 6;
           if (filterDir.length) {
             setFont("normal", 7.5, MID);
- doc.text(`Dirección: ${filterDir.join(", ")}`, 20, fy); fy += 5;
+            doc.text(safeStr(`Dirección: ${filterDir.join(", ")}`), 20, fy); fy += 5;
           }
           if (filterRol.length) {
             setFont("normal", 7.5, MID);
- doc.text(`Rol: ${filterRol.join(", ")}`, 20, fy); fy += 5;
+            doc.text(safeStr(`Rol: ${filterRol.join(", ")}`), 20, fy); fy += 5;
           }
         }
 
         // Sections included
         setFont("bold", 8, MID);
- doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
-        const included = Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
+        doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
+        const included = Object.entries(sections).filter(([,v])=>v&&k!=="portada").map(([k])=>SECTION_LABELS[k]?.label||k);
         setFont("normal", 7.5, MID);
         const incText = included.join("  ·  ");
-        const incLines = doc.splitTextToSize(incText, W-32);
- incLines.forEach((line,i) => doc.text(line, 16, Math.max(fy+4,178)+6+i*4.5));
+        const incLines = doc.splitTextToSize(safeStr(incText), W-32);
+        incLines.forEach((line,i) => doc.text(safeStr(line), 16, Math.max(fy+4,178)+6+i*4.5));
 
         // Footer on cover
         rect(0, H-14, W, 14, 0, [30,30,28]);
         setFont("normal", 7.5, [150,148,144]);
- doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
+        doc.text(safeStr(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`), W/2, H-6, { align:"center" });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: KPIs EJECUTIVOS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.resumen_kpis) {
         let y = newPage();
         setFont("bold", 16, RED);
- doc.text("KPIs Ejecutivos", 16, y); y += 4;
+        doc.text("KPIs Ejecutivos", 16, y); y += 4;
         hline(y); y += 8;
 
         // 4 big KPI boxes
@@ -1575,26 +1583,26 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.roundedRect(x, y, bw-3, 28, 5, 5);
           setFont("normal", 11, []);
           doc.setTextColor(...rgb);
- doc.text(icon, x+5, y+9);
+          doc.text(safeStr(""), x+5, y+9);
           setFont("bold", 18, rgb);
- doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
+          doc.text(safeStr(value), x+(bw-3)/2, y+19, { align:"center" });
           setFont("normal", 7, MID);
- doc.text(label, x+(bw-3)/2, y+25, { align:"center" });
+          doc.text(safeStr(label), x+(bw-3)/2, y+25, { align:"center" });
           if (sub) {
             setFont("normal", 6.5, LIGHT);
- doc.text(sub, x+(bw-3)/2, y+28.5, { align:"center" });
+            doc.text(safeStr(sub), x+(bw-3)/2, y+28.5, { align:"center" });
           }
         };
         const bw = (W-32)/4;
-        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
-        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
-        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
-        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
+        kpiBox(16, bw, "", "Score Global Prom.", globalAvg?.toFixed(2)||"-", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "", "Dimensión más fuerte", strongest?.num||"-", strongest?.label, [5,150,105]);
+        kpiBox(16+bw*2, bw, "", "Dimensión más débil", weakest?.num||"-", weakest?.label, [220,38,38]);
+        kpiBox(16+bw*3, bw, "", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
         y += 36;
 
         // Dim scores row
         setFont("bold", 9, DARK);
- doc.text("Score promedio por dimensión", 16, y); y += 6;
+        doc.text("Score promedio por dimensión", 16, y); y += 6;
         DIMS_META.forEach((d,i) => {
           const sc = dimAvgs.find(x=>x.key===d.key)?.score;
           const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
@@ -1602,22 +1610,22 @@ function ReportTab({ evaluaciones, respuestas }) {
           const dw = (W-32)/7 - 3;
           rect(dx, y, dw, 22, 4, [248,246,243]);
           setFont("bold", 7, rgb);
- doc.text(d.num, dx+dw/2, y+6, { align:"center" });
+          doc.text(d.num, dx+dw/2, y+6, { align:"center" });
           setFont("bold", 13, rgb);
- doc.text(sc?.toFixed(1)||"—", dx+dw/2, y+15, { align:"center" });
+          doc.text(sc?.toFixed(1)||"-", dx+dw/2, y+15, { align:"center" });
           miniBar(dx+2, y+18, sc||0, 5, rgb, dw-4);
         });
         y += 30;
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: DISTRIBUCIÓN
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.distribucion) {
         let y = checkY(999); // force new page for this section
         y = newPage(); 
         setFont("bold", 16, RED);
- doc.text("Distribución por Nivel de Madurez", 16, y); y += 4;
+        doc.text("Distribución por Nivel de Madurez", 16, y); y += 4;
         hline(y); y += 10;
 
         const maxCount = Math.max(...distData.map(d=>d.count), 1);
@@ -1637,13 +1645,13 @@ function ReportTab({ evaluaciones, respuestas }) {
           }
           // Count on top
           setFont("bold", 12, l.color);
- doc.text(String(l.count), bx+(barW-4)/2, y+barAreaH-bh-2, { align:"center" });
+          doc.text(String(l.count), bx+(barW-4)/2, y+barAreaH-bh-2, { align:"center" });
           // Label
           setFont("bold", 7.5, l.color);
- doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
+          doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
           // Pct
           setFont("normal", 7, MID);
- doc.text(`${l.pct}%`, bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
+          doc.text(safeStr(`${l.pct}%`), bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
         });
         y += barAreaH + 20;
 
@@ -1654,13 +1662,13 @@ function ReportTab({ evaluaciones, respuestas }) {
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // PAGE: HEATMAP
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.heatmap && heatRows.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
- doc.text("Heatmap Dirección × Dimensión", 16, y); y += 4;
+        doc.text("Heatmap Dirección × Dimensión", 16, y); y += 4;
         hline(y); y += 8;
 
         const cols = ["Dirección","n","Global",...DIMS_META.map(d=>d.num)];
@@ -1671,7 +1679,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         rect(16, y, W-32, 7, 2, [248,246,243]);
         cols.forEach((col,i) => {
           setFont("bold", 7, MID);
- doc.text(col, cx+colW[i]/2, y+4.8, { align:"center" });
+          doc.text(safeStr(col), cx+colW[i]/2, y+4.8, { align:"center" });
           cx += colW[i];
         });
         y += 8;
@@ -1681,17 +1689,17 @@ function ReportTab({ evaluaciones, respuestas }) {
           cx = 16;
           // Dir
           setFont("bold", 8, DARK);
- doc.text(row.dir, cx+2, y+4.8);
+          doc.text(safeStr(row.dir), cx+2, y+4.8);
           cx += colW[0];
           // n
           setFont("normal", 7.5, MID);
- doc.text(String(row.n), cx+colW[1]/2, y+4.8, { align:"center" });
+          doc.text(String(row.n), cx+colW[1]/2, y+4.8, { align:"center" });
           cx += colW[1];
           // Global
           const gl = row.global ? LV_COLORS_RGB[Math.round(row.global)-1] : [200,198,192];
           rect(cx, y+0.5, colW[2]-1, 6.5, 2, [...gl].map(c=>Math.min(255,c+200)));
           setFont("bold", 8, gl);
- doc.text(row.global?.toFixed(1)||"—", cx+colW[2]/2, y+4.8, { align:"center" });
+          doc.text(row.global?.toFixed(1)||"-", cx+colW[2]/2, y+4.8, { align:"center" });
           cx += colW[2];
           // Dims
           DIMS_META.forEach(d => {
@@ -1701,7 +1709,7 @@ function ReportTab({ evaluaciones, respuestas }) {
               rect(cx+0.5, y+0.5, colW[3]-1, 6.5, 2, [...rgb].map(c=>Math.min(255,c+200)));
             }
             setFont(v?"bold":"normal", v?8:7, v?rgb:LIGHT);
- doc.text(v?.toFixed(1)||"—", cx+colW[3]/2, y+4.8, { align:"center" });
+            doc.text(v?.toFixed(1)||"-", cx+colW[3]/2, y+4.8, { align:"center" });
             cx += colW[3];
           });
           hline(y+8, [240,238,233]);
@@ -1711,25 +1719,25 @@ function ReportTab({ evaluaciones, respuestas }) {
         // Legend
         y += 6;
         setFont("bold", 7, MID);
- doc.text("Referencia de colores:", 16, y); y += 5;
-        ["#1","Básico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
+        doc.text("Referencia de colores:", 16, y); y += 5;
+        ["#1","Basico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
           if (i%2===0) return;
           const lx = 16 + Math.floor(i/2)*42;
           const rgb = LV_COLORS_RGB[Math.floor(i/2)];
           doc.setFillColor(...rgb.map(c=>Math.min(255,c+200)));
           doc.roundedRect(lx-1, y-3.5, 40, 5, 1.5, 1.5, "F");
           setFont("bold", 7, rgb);
- doc.text(lbl, lx+20, y, { align:"center" });
+          doc.text(safeStr(lbl), lx+20, y, { align:"center" });
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // POR ROL
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.por_rol && byRoleData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
- doc.text("Score Promedio por Rol", 16, y); y += 4;
+        doc.text("Score Promedio por Rol", 16, y); y += 4;
         hline(y); y += 10;
 
         byRoleData.forEach((r,i) => {
@@ -1737,38 +1745,38 @@ function ReportTab({ evaluaciones, respuestas }) {
           const sc = r.score;
           const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
           setFont("bold", 8, rgb);
- doc.text(`#${i+1}`, 16, y+3);
+          doc.text(safeStr(`#${i+1}`), 16, y+3);
           setFont("bold", 10, DARK);
- doc.text(r.rol, 26, y+3);
+          doc.text(safeStr(r.rol), 26, y+3);
           setFont("normal", 8, MID);
- doc.text(`n=${r.n}`, 110, y+3);
+          doc.text(safeStr(`n=${r.n}`), 110, y+3);
           miniBar(120, y, sc||0, 5, rgb, 55);
           setFont("bold", 11, rgb);
- doc.text(sc?.toFixed(2)||"—", W-16, y+3, { align:"right" });
+          doc.text(sc?.toFixed(2)||"-", W-16, y+3, { align:"right" });
           hline(y+7, [240,238,233]);
           y += 10;
         });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // BRECHAS CRÍTICAS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.brechas_crit) {
         let y = newPage();
         rect(0, 0, W, 14, 0, RED); // override header to red
         setFont("bold", 9, [255,255,255]);
- doc.text(titulo, 16, 9.5);
+        doc.text(safeStr(titulo), 16, 9.5);
         setFont("bold", 16, RED);
         y = 20;
- doc.text("Brechas Criticas - Nivel 1-2", 16, y); y += 4;
+        doc.text("Brechas Criticas - Nivel 1-2", 16, y); y += 4;
         hline(y); y += 6;
         setFont("normal", 9, MID);
- doc.text(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`, 16, y); y += 8;
+        doc.text(safeStr(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`), 16, y); y += 8;
 
         if (critGaps.length === 0) {
           rect(16, y, W-32, 14, 4, [236,253,245]);
           setFont("bold", 9, [5,150,105]);
- doc.text(" No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
+          doc.text("  No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
           y += 20;
         } else {
           critGaps.forEach(g => {
@@ -1779,35 +1787,35 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.roundedRect(16, y, W-32, 24, 4, 4);
             // Icon + title
             setFont("bold", 11, DARK);
- doc.text(`${g.dimIcon} ${g.dimLabel}`, 22, y+8);
+            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), 22, y+8);
             // Score badge
             rect(W-50, y+3, 32, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
             setFont("bold", 8, rgb);
- doc.text(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`, W-34, y+7.5, { align:"center" });
+            doc.text(safeStr(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`), W-34, y+7.5, { align:"center" });
             // Gap
             setFont("bold", 8, [220,38,38]);
- doc.text(`+${g.gap.toFixed(1)} niveles de brecha`, 22, y+15);
+            doc.text(safeStr(`+${g.gap.toFixed(1)} niveles de brecha`), 22, y+15);
             // Minibar
             miniBar(22, y+18.5, g.score, 5, rgb, W-52);
             setFont("normal", 7, MID);
- doc.text(`${g.n} evaluaciones promediadas`, W-16, y+22, { align:"right" });
+            doc.text(safeStr(`${g.n} evaluaciones promediadas`), W-16, y+22, { align:"right" });
             y += 28;
           });
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // BRECHAS MODERADAS
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.brechas_mod) {
         let y = newPage();
         setFont("bold", 16, [217,119,6]);
- doc.text("Brechas Moderadas - Nivel 3", 16, y); y += 4;
+        doc.text("Brechas Moderadas - Nivel 3", 16, y); y += 4;
         hline(y,[254,230,138]); y += 8;
 
         if (modGaps.length === 0) {
           setFont("normal", 10, MID);
- doc.text("Sin brechas moderadas identificadas.", 16, y);
+          doc.text("Sin brechas moderadas identificadas.", 16, y);
         } else {
           modGaps.forEach(g => {
             y = checkY(y, 22);
@@ -1816,30 +1824,30 @@ function ReportTab({ evaluaciones, respuestas }) {
             doc.setDrawColor(253,230,138);
             doc.roundedRect(16, y, W-32, 18, 4, 4);
             setFont("bold", 10, DARK);
- doc.text(`${g.dimIcon} ${g.dimLabel}`, 22, y+7);
+            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), 22, y+7);
             miniBar(22, y+11, g.score, 5, rgb, W-52);
             setFont("bold", 8, rgb);
- doc.text(`${g.score.toFixed(1)} / 5`, W-16, y+8, { align:"right" });
+            doc.text(safeStr(`${g.score.toFixed(1)} / 5`), W-16, y+8, { align:"right" });
             setFont("normal", 7, MID);
- doc.text(`n=${g.n}`, W-16, y+15, { align:"right" });
+            doc.text(safeStr(`n=${g.n}`), W-16, y+15, { align:"right" });
             y += 22;
           });
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // ROADMAP
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.roadmap && gapsData.length > 0) {
         let y = newPage();
         setFont("bold", 16, RED);
- doc.text("Hoja de Ruta Priorizada", 16, y); y += 4;
+        doc.text(" Hoja de Ruta Priorizada", 16, y); y += 4;
         hline(y); y += 8;
 
         const phases = [
-          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
-          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
-          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
+          { t:"Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
+          { t:"Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+          { t:"Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
         ];
         const colW2 = (W-38)/3;
         phases.forEach((ph,pi) => {
@@ -1848,9 +1856,9 @@ function ReportTab({ evaluaciones, respuestas }) {
           doc.setDrawColor(...ph.rgb,80);
           doc.roundedRect(px, y, colW2, 12, 4, 4);
           setFont("bold", 9, ph.rgb);
- doc.text(ph.t, px+5, y+6);
+          doc.text(safeStr(ph.t), px+5, y+6);
           setFont("normal", 7, [...ph.rgb].map(c=>Math.min(200,c+40)));
- doc.text(ph.sub, px+5, y+10.5);
+          doc.text(safeStr(ph.sub), px+5, y+10.5);
         });
         y += 16;
 
@@ -1864,22 +1872,22 @@ function ReportTab({ evaluaciones, respuestas }) {
             const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
             rect(px, y, colW2, 11, 3, [250,249,247]);
             setFont("bold", 8.5, DARK);
- doc.text(`${g.dimIcon} ${g.dimLabel}`, px+4, y+5);
+            doc.text(safeStr(`${g.dimIcon} ${g.dimLabel}`), px+4, y+5);
             miniBar(px+4, y+7, g.score, 5, rgb, colW2-18);
             setFont("bold", 8, rgb);
- doc.text(g.score.toFixed(1), px+colW2-4, y+5, { align:"right" });
+            doc.text(g.score.toFixed(1), px+colW2-4, y+5, { align:"right" });
           });
           y += 14;
         }
       }
 
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       // RANKING
-      // ══════════════════════════════════════════════════════════════════════
+      // 
       if (sections.ranking) {
         let y = newPage();
         setFont("bold", 16, RED);
- doc.text("Ranking de Evaluaciones", 16, y); y += 4;
+        doc.text(" Ranking de Evaluaciones", 16, y); y += 4;
         hline(y); y += 8;
 
         const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
@@ -1887,7 +1895,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         rect(16, y, W-32, 7, 2, [248,246,243]);
         setFont("bold", 7.5, MID);
         const RCols = [[16,"#",8],[26,"Dirección",50],[78,"Rol",36],[116,"Score",18],[136,"Nivel",28],[166,"Fecha",30]];
- RCols.forEach(([cx,lbl])=>{ doc.text(lbl, cx, y+4.8); });
+        RCols.forEach(([cx,lbl])=>{ doc.text(safeStr(lbl), cx, y+4.8); });
         y += 8;
 
         sorted.forEach((e,i) => {
@@ -1895,32 +1903,32 @@ function ReportTab({ evaluaciones, respuestas }) {
           const rgb = e.score_global ? LV_COLORS_RGB[Math.round(e.score_global)-1] : [180,178,174];
           if (i===0) rect(16, y-0.5, W-32, 9, 2, [255,248,248]);
           setFont("bold", 8, i===0?RED:MID);
- doc.text(`#${i+1}`, 16, y+4.5);
+          doc.text(safeStr(`#${i+1}`), 16, y+4.5);
           setFont(i<3?"bold":"normal", 8, DARK);
- doc.text((e.direccion||"—").slice(0,22), 26, y+4.5);
+          doc.text((e.direccion||"-").slice(0,22), 26, y+4.5);
           setFont("normal", 8, MID);
- doc.text((e.rol||"—").slice(0,18), 78, y+4.5);
+          doc.text((e.rol||"-").slice(0,18), 78, y+4.5);
           setFont("bold", 9, rgb);
- doc.text(e.score_global?.toFixed(2)||"—", 116, y+4.5);
+          doc.text(e.score_global?.toFixed(2)||"-", 116, y+4.5);
           rect(136, y+0.5, 28, 6, 2, [...rgb].map(c=>Math.min(255,c+200)));
           setFont("bold", 7, rgb);
- doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
+          doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
           setFont("normal", 7, LIGHT);
- doc.text(e.created_at?.slice(0,10)||"—", 166, y+4.5);
+          doc.text(e.created_at?.slice(0,10)||"-", 166, y+4.5);
           hline(y+8.5,[240,238,233]);
           y += 10;
         });
       }
 
-      // ── Page numbers ──────────────────────────────────────────────────────
-      const totalPages = doc.internal.getNumberOfPages();
+      //  Page numbers 
+      const totalPages = doc.getNumberOfPages();
       for (let p=1; p<=totalPages; p++) {
         doc.setPage(p);
         if (p > 1 || !sections.portada) {
           setFont("normal", 7, LIGHT);
- doc.text(`Página ${p} de ${totalPages}`, W-16, H-5, { align:"right" });
+          doc.text(safeStr(`Página ${p} de ${totalPages}`), W-16, H-5, { align:"right" });
           setFont("normal", 7, LIGHT);
- doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
+          doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
         }
       }
 
@@ -2057,7 +2065,7 @@ function ReportTab({ evaluaciones, respuestas }) {
               <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
                 {[
                   { l:"Evaluaciones", v:filtered.length },
-                  { l:"Score Global", v:avgArr(filtered.map(e=>e.score_global))?.toFixed(2)||"—" },
+                  { l:"Score Global", v:avgArr(filtered.map(e=>e.score_global))?.toFixed(2)||"-" },
                   { l:"Secciones PDF", v:secCount },
                 ].map(k=>(
                   <div key={k.l} style={{ background:"rgba(255,255,255,.15)", borderRadius:10,
@@ -2301,7 +2309,7 @@ export default function ControlApp() {
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
         {tab === "reporte" && <ReportTab evaluaciones={evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
         {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
