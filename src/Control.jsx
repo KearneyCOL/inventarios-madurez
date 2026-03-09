@@ -315,7 +315,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     </span>
   );
 
-  const COL = "36px 1fr 1fr 80px 60px 60px 60px 60px 60px 60px 105px 32px 32px";
+  const COL = "36px 1fr 1fr 80px 55px 55px 55px 55px 55px 55px 110px 36px 36px";
 
   return (
     <div>
@@ -409,9 +409,10 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               onClick={ev => { ev.stopPropagation(); onDelete([e.id]); }}
               className="btn-action"
               style={{
-                padding: "5px 7px", borderRadius: 7, border: "1px solid #E8251F30",
-                background: "#E8251F10", color: "#E8251F", fontSize: 13,
-                cursor: "pointer", lineHeight: 1,
+                width: 32, height: 32, borderRadius: 8, border: "1px solid #E8251F30",
+                background: "#E8251F10", color: "#E8251F", fontSize: 14,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
               }}
               title="Eliminar"
             >🗑</button>
@@ -419,9 +420,10 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               onClick={ev => { ev.stopPropagation(); setDetail(e); }}
               className="btn-action"
               style={{
-                padding: "5px 7px", borderRadius: 7, border: "1px solid #2563EB30",
-                background: "#2563EB10", color: "#2563EB", fontSize: 13,
-                cursor: "pointer", lineHeight: 1,
+                width: 32, height: 32, borderRadius: 8, border: "1px solid #2563EB30",
+                background: "#2563EB10", color: "#2563EB", fontSize: 14,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
               }}
               title="Ver respuestas"
             >👁</button>
