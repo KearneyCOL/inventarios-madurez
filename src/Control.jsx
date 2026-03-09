@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, Legend } from "recharts";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -451,143 +451,508 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
 }
 
 // ─── ANALYTICS TAB ────────────────────────────────────────────────────────────
+const LV = [
+  { v:1, label:"Básico",     c:"#78716C", bg:"#FAFAF8" },
+  { v:2, label:"Emergente",  c:"#D97706", bg:"#FFFBEB" },
+  { v:3, label:"Robusto",    c:"#2563EB", bg:"#EFF6FF" },
+  { v:4, label:"End-to-End", c:"#7C3AED", bg:"#F5F3FF" },
+  { v:5, label:"Pivote",     c:"#059669", bg:"#ECFDF5" },
+];
+
+function lv(v) {
+  return LV[Math.round(v)-1] || LV[0];
+}
+
+function avg(arr) {
+  const a = arr.filter(Boolean);
+  return a.length ? parseFloat((a.reduce((x,y)=>x+y,0)/a.length).toFixed(2)) : null;
+}
+
+function Card({ children, style={} }) {
+  return (
+    <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF",
+      padding:"22px 24px", ...style }}>
+      {children}
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase",
+      letterSpacing:".14em", marginBottom:14 }}>{children}</div>
+  );
+}
+
+function MiniBar({ value, max=5, color="#E8251F" }) {
+  return (
+    <div style={{ height:5, background:"#F0EDE9", borderRadius:99, overflow:"hidden", flex:1 }}>
+      <div style={{ height:"100%", width:`${(value/max)*100}%`, background:color,
+        borderRadius:99, transition:"width .5s" }} />
+    </div>
+  );
+}
+
 function AnalyticsTab({ evaluaciones }) {
-  const [filterDir, setFilterDir] = useState("Todas");
-  const DIRS = ["Todas", ...Array.from(new Set(evaluaciones.map(e => e.direccion).filter(Boolean)))];
+  const [filterDir, setFilterDir]     = useState([]);
+  const [filterRol, setFilterRol]     = useState([]);
+  const [filterLvl, setFilterLvl]     = useState([]);
+  const [viewDim,   setViewDim]       = useState(null); // drill-down dimension
+  const [sortDim,   setSortDim]       = useState("score_global");
+  const [sortAsc,   setSortAsc]       = useState(false);
 
-  const filtered = filterDir === "Todas" ? evaluaciones : evaluaciones.filter(e => e.direccion === filterDir);
+  const allDirs = useMemo(() => [...new Set(evaluaciones.map(e=>e.direccion).filter(Boolean))].sort(), [evaluaciones]);
+  const allRols = useMemo(() => [...new Set(evaluaciones.map(e=>e.rol).filter(Boolean))].sort(), [evaluaciones]);
 
-  // Score distribution
-  const distData = [1,2,3,4,5].map(v => ({
-    name: ["Básico","Emergente","Robusto","E2E","Pivote"][v-1],
-    count: filtered.filter(e => Math.round(e.score_global) === v).length,
-    color: ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][v-1],
+  // Multi-filter toggle helpers
+  function toggle(arr, setArr, val) {
+    setArr(a => a.includes(val) ? a.filter(x=>x!==val) : [...a, val]);
+  }
+
+  const filtered = useMemo(() => evaluaciones.filter(e => {
+    if (filterDir.length && !filterDir.includes(e.direccion)) return false;
+    if (filterRol.length && !filterRol.includes(e.rol)) return false;
+    if (filterLvl.length && !filterLvl.includes(Math.round(e.score_global))) return false;
+    return true;
+  }), [evaluaciones, filterDir, filterRol, filterLvl]);
+
+  const hasFilters = filterDir.length || filterRol.length || filterLvl.length;
+
+  // ── KPIs ─────────────────────────────────────────────────────────────────
+  const globalAvg = avg(filtered.map(e=>e.score_global));
+  const dimAvgs   = DIMS.map(d => ({ ...d, score: avg(filtered.map(e=>e[`score_${d.key}`])) }));
+  const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
+  const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
+  const spread    = strongest && weakest ? parseFloat((strongest.score - weakest.score).toFixed(1)) : null;
+
+  // ── Distribution ─────────────────────────────────────────────────────────
+  const distData = LV.map(l => ({
+    ...l,
+    count: filtered.filter(e=>Math.round(e.score_global)===l.v).length,
+    pct: filtered.length ? Math.round(filtered.filter(e=>Math.round(e.score_global)===l.v).length/filtered.length*100) : 0,
   }));
 
-  // Avg score by dimension
-  const dimData = DIMS.map(d => {
-    const vals = filtered.map(e => e[`score_${d.key}`]).filter(Boolean);
-    const avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : 0;
-    return { name: d.num+" "+d.label.slice(0,10), avg, color: avg>=4?"#059669":avg>=3?"#2563EB":avg>=2?"#D97706":"#E8251F" };
-  });
+  // ── Radar data ────────────────────────────────────────────────────────────
+  const radarData = dimAvgs.map(d => ({ dim: d.label, value: d.score || 0, fullMark: 5 }));
 
-  // Heatmap by direccion x dim
-  const allDirs = Array.from(new Set(evaluaciones.map(e => e.direccion).filter(Boolean)));
-  const heatmap = allDirs.map(dir => {
-    const evals = evaluaciones.filter(e => e.direccion === dir);
-    const row = { dir, count: evals.length };
-    DIMS.forEach(d => {
-      const vals = evals.map(e => e[`score_${d.key}`]).filter(Boolean);
-      row[d.key] = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)) : null;
+  // ── Heatmap dirs × dims ───────────────────────────────────────────────────
+  const heatDirs = allDirs.length ? allDirs : ["Sin datos"];
+  const heatmap  = heatDirs.map(dir => {
+    const rows = filtered.filter(e=>e.direccion===dir);
+    const r    = { dir, n: rows.length };
+    DIMS.forEach(d => { r[d.key] = avg(rows.map(e=>e[`score_${d.key}`])); });
+    r.global = avg(rows.map(e=>e.score_global));
+    return r;
+  }).filter(r=>r.n>0);
+
+  // ── Score by role ─────────────────────────────────────────────────────────
+  const byRole = allRols.map(rol => {
+    const rows = filtered.filter(e=>e.rol===rol);
+    return { rol, n: rows.length, score: avg(rows.map(e=>e.score_global)) };
+  }).filter(r=>r.n>0).sort((a,b)=>(b.score||0)-(a.score||0));
+
+  // ── Timeline (by month) ───────────────────────────────────────────────────
+  const timeline = useMemo(() => {
+    const map = {};
+    filtered.forEach(e => {
+      if (!e.created_at) return;
+      const mo = e.created_at.slice(0,7); // "2025-03"
+      if (!map[mo]) map[mo] = [];
+      map[mo].push(e.score_global || 0);
     });
-    return row;
-  });
+    return Object.entries(map).sort().map(([mo, vals]) => ({
+      mo: mo.replace("-","·"),
+      avg: parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)),
+      n: vals.length,
+    }));
+  }, [filtered]);
 
-  const heatColor = (v) => {
-    if (!v) return "#F3F2F0";
-    if (v >= 4) return "#05966920";
-    if (v >= 3) return "#2563EB20";
-    if (v >= 2) return "#D9770620";
-    return "#E8251F20";
-  };
-  const heatText = (v) => {
-    if (!v) return "#BBB";
-    if (v >= 4) return "#059669";
-    if (v >= 3) return "#2563EB";
-    if (v >= 2) return "#D97706";
-    return "#E8251F";
-  };
+  // ── Dimension drill-down ──────────────────────────────────────────────────
+  const drillDim = viewDim ? DIMS.find(d=>d.key===viewDim) : null;
+  const drillData = drillDim ? allDirs.map(dir => {
+    const rows = filtered.filter(e=>e.direccion===dir);
+    return { dir, score: avg(rows.map(e=>e[`score_${drillDim.key}`])) };
+  }).filter(r=>r.score) : [];
+
+  // ── Ranking table (sorted) ────────────────────────────────────────────────
+  const ranking = [...filtered].sort((a,b) => {
+    const va = a[sortDim]||0, vb = b[sortDim]||0;
+    return sortAsc ? va-vb : vb-va;
+  }).slice(0, 10);
+
+  const RED = "#E8251F";
+  const PILL = (active, onClick, label, color) => (
+    <button key={label} onClick={onClick} style={{
+      padding:"5px 13px", borderRadius:99, fontSize:11, fontWeight:600, cursor:"pointer",
+      border:`1.5px solid ${active?(color||RED):"#E8E4DF"}`,
+      background: active?(color||RED)+"18":"#FFFFFF",
+      color: active?(color||RED):"#999", transition:"all .15s",
+    }}>{label}</button>
+  );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
 
-      {/* Filter */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {DIRS.map(d => (
-          <button key={d} onClick={() => setFilterDir(d)} style={{
-            padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer",
-            border: `1.5px solid ${filterDir===d?"#E8251F":"#E8E4DF"}`,
-            background: filterDir===d?"#E8251F18":"#FFFFFF",
-            color: filterDir===d?"#E8251F":"#999",
-          }}>{d}</button>
+      {/* ═══ FILTER BAR ═══ */}
+      <Card style={{ padding:"18px 22px" }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:16, alignItems:"flex-start" }}>
+
+          {/* Dirección */}
+          <div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
+              letterSpacing:".12em", marginBottom:7 }}>Dirección</div>
+            <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+              {allDirs.map(d => PILL(filterDir.includes(d), ()=>toggle(filterDir,setFilterDir,d), d))}
+            </div>
+          </div>
+
+          {/* Rol */}
+          <div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
+              letterSpacing:".12em", marginBottom:7 }}>Rol</div>
+            <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+              {allRols.map(r => PILL(filterRol.includes(r), ()=>toggle(filterRol,setFilterRol,r), r))}
+            </div>
+          </div>
+
+          {/* Nivel */}
+          <div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
+              letterSpacing:".12em", marginBottom:7 }}>Nivel</div>
+            <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+              {LV.map(l => PILL(filterLvl.includes(l.v), ()=>toggle(filterLvl,setFilterLvl,l.v), l.label, l.c))}
+            </div>
+          </div>
+
+          {/* Clear + count */}
+          <div style={{ marginLeft:"auto", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5 }}>
+            <div style={{ fontSize:18, fontWeight:900, color: hasFilters?RED:"#1A1A18",
+              lineHeight:1, letterSpacing:"-.02em" }}>
+              {filtered.length}<span style={{ fontSize:11, fontWeight:500, color:"#AAA" }}> / {evaluaciones.length}</span>
+            </div>
+            {hasFilters && (
+              <button onClick={()=>{ setFilterDir([]); setFilterRol([]); setFilterLvl([]); }} style={{
+                padding:"4px 12px", borderRadius:99, fontSize:10, fontWeight:700, cursor:"pointer",
+                border:`1px solid ${RED}40`, background:RED+"10", color:RED,
+              }}>✕ Limpiar</button>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {filtered.length === 0 ? (
+        <Card>
+          <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>
+            Sin evaluaciones con los filtros seleccionados
+          </div>
+        </Card>
+      ) : (<>
+
+      {/* ═══ KPI ROW ═══ */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
+        {[
+          { icon:"⭐", label:"Score Global Prom.", value: globalAvg?.toFixed(2)||"—", color: globalAvg?lv(globalAvg).c:"#AAA" },
+          { icon:"💪", label:"Dimensión más fuerte", value: strongest?.label||"—", sub: strongest?.score?.toFixed(1), color:"#059669" },
+          { icon:"⚠️", label:"Dimensión más débil",  value: weakest?.label||"—",   sub: weakest?.score?.toFixed(1),   color:"#E8251F" },
+          { icon:"📐", label:"Dispersión (max−min)", value: spread!=null?`${spread} pts`:"—", color: spread>=2?"#E8251F":spread>=1?"#D97706":"#059669" },
+        ].map((k,i) => (
+          <Card key={i} style={{ padding:"18px 20px" }}>
+            <div style={{ fontSize:20, marginBottom:8 }}>{k.icon}</div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", textTransform:"uppercase",
+              letterSpacing:".12em", marginBottom:4 }}>{k.label}</div>
+            <div style={{ fontSize:k.sub?17:22, fontWeight:900, color:k.color, lineHeight:1.2,
+              letterSpacing:"-.02em" }}>{k.value}</div>
+            {k.sub && <div style={{ fontSize:12, color:"#AAA", marginTop:2 }}>{k.sub} / 5</div>}
+          </Card>
         ))}
       </div>
 
-      {/* Charts row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      {/* ═══ ROW 1: Distribución + Radar ═══ */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
 
-        {/* Distribution */}
-        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
-            Distribución por Nivel Global
+        {/* Distribución niveles */}
+        <Card>
+          <SectionLabel>Distribución por Nivel</SectionLabel>
+          <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
+            {distData.map(l => (
+              <div key={l.v} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ width:72, fontSize:11, fontWeight:600, color:l.c, flexShrink:0 }}>{l.label}</div>
+                <MiniBar value={l.count} max={Math.max(...distData.map(x=>x.count),1)} color={l.c} />
+                <div style={{ fontSize:13, fontWeight:800, color:l.c, width:22, textAlign:"right",
+                  flexShrink:0 }}>{l.count}</div>
+                <div style={{ fontSize:10, color:"#CCC", width:30, flexShrink:0 }}>{l.pct}%</div>
+              </div>
+            ))}
           </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={distData} margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EDE9" />
-              <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#AAA" }} />
-              <YAxis tick={{ fontSize: 9, fill: "#AAA" }} allowDecimals={false} />
-              <Tooltip formatter={(v) => [v, "Evaluaciones"]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
-              <Bar dataKey="count" radius={[6,6,0,0]}>
-                {distData.map((e,i) => <Cell key={i} fill={e.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+          {/* Mini donut alternative: level pills */}
+          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginTop:16, paddingTop:14,
+            borderTop:"1px solid #F0EDE9" }}>
+            {distData.filter(l=>l.count>0).map(l => (
+              <div key={l.v} style={{ padding:"3px 10px", borderRadius:99, fontSize:10, fontWeight:700,
+                background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>
+                {l.label} · {l.pct}%
+              </div>
+            ))}
+          </div>
+        </Card>
 
-        {/* Avg by dimension */}
-        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
-            Score Promedio por Dimensión
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={dimData} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F0EDE9" />
-              <XAxis type="number" domain={[0,5]} tick={{ fontSize: 9, fill: "#AAA" }} tickCount={6} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 8.5, fill: "#888" }} width={80} />
-              <Tooltip formatter={(v) => [v+" / 5", "Score"]} contentStyle={{ borderRadius: 8, fontSize: 11 }} />
-              <Bar dataKey="avg" radius={[0,6,6,0]} barSize={12}>
-                {dimData.map((e,i) => <Cell key={i} fill={e.color} />)}
-              </Bar>
-            </BarChart>
+        {/* Radar */}
+        <Card>
+          <SectionLabel>Radar de Madurez Promedio</SectionLabel>
+          <ResponsiveContainer width="100%" height={220}>
+            <RadarChart data={radarData} margin={{ top:10, right:30, bottom:10, left:30 }}>
+              <PolarGrid stroke="#F0EDE9" />
+              <PolarAngleAxis dataKey="dim" tick={{ fill:"#AAA", fontSize:9, fontWeight:600 }} />
+              <PolarRadiusAxis angle={90} domain={[0,5]} tick={{ fontSize:7, fill:"#CCC" }} tickCount={6} />
+              <Radar dataKey="value" stroke={RED} fill={RED} fillOpacity={0.1} strokeWidth={2.5} />
+              <Tooltip formatter={v=>[`${v} / 5`,"Score"]} contentStyle={{ borderRadius:8, fontSize:11 }} />
+            </RadarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
-      {/* Heatmap */}
+      {/* ═══ ROW 2: Dimensiones + Por Rol ═══ */}
+      <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:14 }}>
+
+        {/* Score por dimensión — clickeable para drill-down */}
+        <Card>
+          <SectionLabel>Score por Dimensión {drillDim ? `— ${drillDim.label}` : "(click para desglosar)"}</SectionLabel>
+          {drillDim ? (
+            <>
+              <button onClick={()=>setViewDim(null)} style={{
+                fontSize:11, color:RED, background:"none", border:"none",
+                cursor:"pointer", marginBottom:12, fontWeight:600, padding:0,
+              }}>← Volver a todas las dimensiones</button>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {drillData.sort((a,b)=>(b.score||0)-(a.score||0)).map(r => {
+                  const l = lv(r.score);
+                  return (
+                    <div key={r.dir} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:100, fontSize:11, fontWeight:600, color:"#555",
+                        flexShrink:0, overflow:"hidden", textOverflow:"ellipsis",
+                        whiteSpace:"nowrap" }}>{r.dir}</div>
+                      <MiniBar value={r.score} color={l.c} />
+                      <div style={{ fontSize:12, fontWeight:800, color:l.c,
+                        flexShrink:0, width:28, textAlign:"right" }}>{r.score?.toFixed(1)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+              {[...dimAvgs].sort((a,b)=>(b.score||0)-(a.score||0)).map(d => {
+                const l = d.score ? lv(d.score) : null;
+                return (
+                  <div key={d.key} onClick={()=>setViewDim(d.key)} style={{
+                    display:"flex", alignItems:"center", gap:10, cursor:"pointer",
+                    padding:"7px 10px", borderRadius:10, transition:"background .12s",
+                  }}
+                  onMouseEnter={e=>e.currentTarget.style.background="#F7F5F2"}
+                  onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                  >
+                    <div style={{ width:24, fontSize:9, fontWeight:700, color:"#CCC",
+                      flexShrink:0 }}>{d.num}</div>
+                    <div style={{ width:110, fontSize:11, fontWeight:600, color:"#555",
+                      flexShrink:0 }}>{d.label}</div>
+                    <MiniBar value={d.score||0} color={l?.c||"#E8E4DF"} />
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
+                      flexShrink:0, width:28, textAlign:"right" }}>
+                      {d.score?.toFixed(1)||"—"}
+                    </div>
+                    <div style={{ fontSize:9, color:"#CCC", width:10 }}>›</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Score por Rol */}
+        <Card>
+          <SectionLabel>Score por Rol</SectionLabel>
+          {byRole.length === 0 ? (
+            <div style={{ color:"#CCC", fontSize:12, textAlign:"center", paddingTop:24 }}>Sin datos</div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {byRole.map(r => {
+                const l = r.score ? lv(r.score) : null;
+                return (
+                  <div key={r.rol} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ width:80, fontSize:11, fontWeight:600, color:"#555",
+                      flexShrink:0, overflow:"hidden", textOverflow:"ellipsis",
+                      whiteSpace:"nowrap" }}>{r.rol}</div>
+                    <MiniBar value={r.score||0} color={l?.c||"#E8E4DF"} />
+                    <div style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
+                      flexShrink:0, width:28, textAlign:"right" }}>
+                      {r.score?.toFixed(1)||"—"}
+                    </div>
+                    <div style={{ fontSize:9, color:"#CCC", width:18, flexShrink:0,
+                      textAlign:"right" }}>n={r.n}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* ═══ HEATMAP ═══ */}
       {heatmap.length > 0 && (
-        <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 16 }}>
-            Heatmap por Dirección × Dimensión
-          </div>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 4, fontSize: 11 }}>
+        <Card>
+          <SectionLabel>Heatmap Dirección × Dimensión</SectionLabel>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"separate", borderSpacing:"3px 3px",
+              fontSize:11 }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", padding: "4px 8px", color: "#BBB", fontWeight: 600, fontSize: 10 }}>Dirección</th>
-                  <th style={{ padding: "4px 8px", color: "#BBB", fontWeight: 600, fontSize: 10 }}>N</th>
-                  {DIMS.map(d => <th key={d.key} style={{ padding: "4px 6px", color: "#BBB", fontWeight: 600, fontSize: 9, textAlign: "center" }}>{d.num}</th>)}
+                  <th style={{ textAlign:"left", padding:"4px 8px", color:"#CCC",
+                    fontSize:9.5, fontWeight:700 }}>Dirección</th>
+                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5,
+                    fontWeight:700, textAlign:"center" }}>n</th>
+                  <th style={{ padding:"4px 8px", color:"#CCC", fontSize:9.5,
+                    fontWeight:700, textAlign:"center", background:"#F7F5F2",
+                    borderRadius:6 }}>⭐ Global</th>
+                  {DIMS.map(d=>(
+                    <th key={d.key} onClick={()=>setViewDim(viewDim===d.key?null:d.key)}
+                      style={{ padding:"4px 8px", color: viewDim===d.key?RED:"#CCC",
+                        fontSize:9, fontWeight:700, textAlign:"center", cursor:"pointer",
+                        whiteSpace:"nowrap" }} title={d.label}>
+                      {d.num} {viewDim===d.key?"↗":""}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {heatmap.map(row => (
+                {heatmap.sort((a,b)=>(b.global||0)-(a.global||0)).map(row=>(
                   <tr key={row.dir}>
-                    <td style={{ padding: "5px 8px", fontWeight: 600, color: "#1A1A18", fontSize: 12, whiteSpace: "nowrap" }}>{row.dir}</td>
-                    <td style={{ padding: "5px 8px", color: "#AAA", fontSize: 11, textAlign: "center" }}>{row.count}</td>
-                    {DIMS.map(d => (
-                      <td key={d.key} style={{
-                        padding: "5px 8px", textAlign: "center", borderRadius: 8,
-                        background: heatColor(row[d.key]),
-                        color: heatText(row[d.key]),
-                        fontWeight: 700, fontSize: 12, minWidth: 38,
-                      }}>{row[d.key] ?? "—"}</td>
-                    ))}
+                    <td style={{ padding:"6px 8px", fontWeight:700, color:"#1A1A18",
+                      fontSize:12, whiteSpace:"nowrap" }}>{row.dir}</td>
+                    <td style={{ padding:"6px 8px", color:"#AAA", fontSize:11,
+                      textAlign:"center" }}>{row.n}</td>
+                    <td style={{ padding:"6px 8px", textAlign:"center", borderRadius:8,
+                      background: row.global?lv(row.global).c+"22":"#F3F2F0",
+                      color: row.global?lv(row.global).c:"#CCC",
+                      fontWeight:800, fontSize:13, minWidth:44 }}>
+                      {row.global?.toFixed(1)||"—"}
+                    </td>
+                    {DIMS.map(d=>{
+                      const v=row[d.key];
+                      const l=v?lv(v):null;
+                      return (
+                        <td key={d.key} onClick={()=>setViewDim(d.key)}
+                          title={`${row.dir} · ${d.label}: ${v?.toFixed(1)||"—"}`}
+                          style={{ padding:"6px 8px", textAlign:"center", borderRadius:8,
+                            background: l?l.c+"20":"#F3F2F0",
+                            color: l?l.c:"#CCC",
+                            fontWeight:700, fontSize:12, minWidth:42,
+                            cursor:"pointer", transition:"opacity .12s",
+                            outline: viewDim===d.key?`2px solid ${RED}`:"none",
+                          }}>
+                          {v?.toFixed(1)||"—"}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+          <div style={{ marginTop:12, display:"flex", gap:8, flexWrap:"wrap" }}>
+            {LV.map(l=>(
+              <div key={l.v} style={{ display:"flex", alignItems:"center", gap:5, fontSize:10, color:"#AAA" }}>
+                <div style={{ width:10, height:10, borderRadius:3, background:l.c+"30",
+                  border:`1px solid ${l.c}50` }}/>
+                {l.label}
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
+
+      {/* ═══ TIMELINE ═══ */}
+      {timeline.length >= 2 && (
+        <Card>
+          <SectionLabel>Evolución Score Promedio (por mes)</SectionLabel>
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart data={timeline} margin={{ left:-10, right:20, top:8, bottom:0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0EDE9" />
+              <XAxis dataKey="mo" tick={{ fontSize:10, fill:"#AAA" }} />
+              <YAxis domain={[0,5]} tick={{ fontSize:9, fill:"#AAA" }} tickCount={6} />
+              <Tooltip
+                formatter={(v,n,p)=>[`${v} / 5  (n=${p.payload.n})`,"Score promedio"]}
+                contentStyle={{ borderRadius:8, fontSize:11 }}
+              />
+              <Line type="monotone" dataKey="avg" stroke={RED} strokeWidth={2.5}
+                dot={{ r:4, fill:RED }} activeDot={{ r:6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
+
+      {/* ═══ TOP 10 RANKING ═══ */}
+      <Card>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <SectionLabel>Ranking Top 10</SectionLabel>
+          <div style={{ display:"flex", gap:5 }}>
+            {["score_global",...DIMS.map(d=>`score_${d.key}`)].map(k=>(
+              <button key={k} onClick={()=>{ if(sortDim===k) setSortAsc(a=>!a); else{ setSortDim(k); setSortAsc(false); }}}
+                style={{
+                  padding:"4px 10px", borderRadius:8, fontSize:9.5, fontWeight:600,
+                  cursor:"pointer", border:`1px solid ${sortDim===k?RED:"#E8E4DF"}`,
+                  background: sortDim===k?RED+"12":"#FAFAFA",
+                  color: sortDim===k?RED:"#AAA",
+                }}>
+                {k==="score_global"?"Global":DIMS.find(d=>`score_${d.key}`===k)?.num||k}
+                {sortDim===k?(sortAsc?"↑":"↓"):""}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+          {ranking.map((e,i)=>{
+            const l = e.score_global?lv(e.score_global):null;
+            return (
+              <div key={e.id} style={{ display:"grid",
+                gridTemplateColumns:"22px 1fr 80px 70px",
+                alignItems:"center", gap:12,
+                padding:"8px 12px", borderRadius:10,
+                background: i===0?"#FFF8F7":"#FAFAF8",
+                border:`1px solid ${i===0?"#FDDCDA":"#F0EDE9"}`,
+              }}>
+                <div style={{ fontSize:11, fontWeight:800,
+                  color:i===0?RED:"#CCC" }}>#{i+1}</div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>
+                    {e.direccion||"—"}
+                    <span style={{ fontWeight:400, color:"#AAA" }}> · {e.rol||"—"}</span>
+                  </div>
+                  <div style={{ fontSize:9.5, color:"#CCC", marginTop:1 }}>
+                    {e.created_at?.slice(0,10)||""}
+                  </div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <MiniBar value={e[sortDim]||0} color={l?.c||"#E8E4DF"} />
+                  <span style={{ fontSize:12, fontWeight:800, color:l?.c||"#CCC",
+                    flexShrink:0, width:26, textAlign:"right" }}>
+                    {e[sortDim]?.toFixed(1)||"—"}
+                  </span>
+                </div>
+                {l && (
+                  <span style={{ padding:"3px 8px", borderRadius:99, fontSize:9.5,
+                    fontWeight:700, background:l.c+"18", color:l.c,
+                    border:`1px solid ${l.c}30`, textAlign:"center",
+                    whiteSpace:"nowrap" }}>
+                    {l.label}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      </>)}
     </div>
   );
 }
