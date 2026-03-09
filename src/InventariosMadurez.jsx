@@ -1105,17 +1105,12 @@ function ScrollIndicator({ scrollRef }) {
   useEffect(() => {
     const el = scrollRef?.current;
     if (!el) return;
-    // Small delay so the DOM has rendered before measuring
-    const tid = setTimeout(() => {
-      const hasScroll = el.scrollHeight > el.clientHeight + 20;
-      setShow(hasScroll);
-    }, 300);
     function onScroll() {
       const nearBottom = el.scrollTop >= el.scrollHeight - el.clientHeight - 40;
       setShow(!nearBottom);
     }
     el.addEventListener("scroll", onScroll);
-    return () => { clearTimeout(tid); el.removeEventListener("scroll", onScroll); };
+    return () => el.removeEventListener("scroll", onScroll);
   }, [scrollRef]);
 
   if (!show) return null;
