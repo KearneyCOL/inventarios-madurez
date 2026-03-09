@@ -27,10 +27,10 @@ const LEVEL_COLORS = ["", "#78716C", "#D97706", "#2563EB", "#7C3AED", "#059669"]
 const GS = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;font-family:'Outfit',system-ui,sans-serif;}
-body{margin:0;background:#0F0F0E;color:#F5F3EF;}
+body{margin:0;background:#F7F5F2;color:#1A1A18;}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:#2A2A28;border-radius:99px;}
+::-webkit-scrollbar-thumb{background:#D9D5CF;border-radius:99px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -41,12 +41,12 @@ body{margin:0;background:#0F0F0E;color:#F5F3EF;}
 .fade-up-4{animation:fadeUp .4s .24s cubic-bezier(.22,1,.36,1) both;}
 .spin{animation:spin .8s linear infinite;}
 .row-hover{transition:background .12s;cursor:pointer;}
-.row-hover:hover{background:rgba(255,255,255,0.04)!important;}
+.row-hover:hover{background:rgba(232,37,31,0.04)!important;}
 .btn-action{transition:all .15s cubic-bezier(.22,1,.36,1);}
 .btn-action:hover{transform:translateY(-1px);opacity:.88;}
 .nav-item{transition:all .15s;cursor:pointer;border-radius:10px;}
-.nav-item:hover{background:rgba(255,255,255,0.06)!important;}
-.nav-item.active{background:rgba(232,37,31,0.15)!important;}
+.nav-item:hover{background:rgba(232,37,31,0.07)!important;}
+.nav-item.active{background:rgba(232,37,31,0.12)!important;}
 `;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -90,23 +90,23 @@ function Login({ onLogin }) {
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center",
       justifyContent: "center",
-      background: "radial-gradient(ellipse at 60% 40%,#1a0a0a 0%,#0F0F0E 60%)",
+      background: "#F7F5F2",
     }}>
       <div className="fade-up" style={{
         width: 360, padding: "48px 40px",
-        background: "#161614", borderRadius: 20,
-        border: "1px solid #2A2A28",
-        boxShadow: "0 40px 100px rgba(0,0,0,0.5)",
+        background: "#FFFFFF", borderRadius: 20,
+        border: "1px solid #E8E4DF",
+        boxShadow: "0 40px 100px rgba(0,0,0,0.08)",
       }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
           <div style={{
             width: 52, height: 52, borderRadius: 14, margin: "0 auto 16px",
             background: "linear-gradient(135deg,#E8251F,#B91A15)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, boxShadow: "0 8px 24px rgba(232,37,31,0.35)",
+            fontSize: 22, boxShadow: "0 8px 24px rgba(232,37,31,0.25)",
           }}>🛡️</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#F5F3EF" }}>Admin Panel</div>
-          <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>Kearney · Inventarios Madurez</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#1A1A18" }}>Admin Panel</div>
+          <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>Kearney · Inventarios Madurez</div>
         </div>
 
         <input
@@ -116,8 +116,8 @@ function Login({ onLogin }) {
           onKeyDown={e => e.key === "Enter" && attempt()}
           style={{
             width: "100%", padding: "12px 16px", borderRadius: 10, marginBottom: 8,
-            background: "#1E1E1C", border: `1.5px solid ${err ? "#E8251F" : "#2A2A28"}`,
-            color: "#F5F3EF", fontSize: 14, outline: "none",
+            background: "#F7F5F2", border: `1.5px solid ${err ? "#E8251F" : "#E8E4DF"}`,
+            color: "#1A1A18", fontSize: 14, outline: "none",
           }}
         />
         {err && <div style={{ fontSize: 11, color: "#E8251F", marginBottom: 12 }}>Contraseña incorrecta</div>}
@@ -126,7 +126,7 @@ function Login({ onLogin }) {
           width: "100%", padding: "12px", borderRadius: 10, border: "none",
           background: "linear-gradient(135deg,#E8251F,#B91A15)",
           color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
-          boxShadow: "0 4px 14px rgba(232,37,31,0.35)",
+          boxShadow: "0 4px 14px rgba(232,37,31,0.25)",
         }}>Entrar →</button>
       </div>
     </div>
@@ -137,13 +137,13 @@ function Login({ onLogin }) {
 function StatCard({ icon, label, value, color, delay }) {
   return (
     <div className={`fade-up-${delay}`} style={{
-      background: "#161614", borderRadius: 16, padding: "22px 24px",
-      border: "1px solid #2A2A28",
+      background: "#FFFFFF", borderRadius: 16, padding: "22px 24px",
+      border: "1px solid #E8E4DF",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontSize: 11, color: "#555", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 10 }}>{label}</div>
-          <div style={{ fontSize: 32, fontWeight: 900, color: color || "#F5F3EF", letterSpacing: "-.02em", lineHeight: 1 }}>{value}</div>
+          <div style={{ fontSize: 11, color: "#999", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 10 }}>{label}</div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: color || "#1A1A18", letterSpacing: "-.02em", lineHeight: 1 }}>{value}</div>
         </div>
         <div style={{
           width: 40, height: 40, borderRadius: 10, fontSize: 18,
@@ -210,8 +210,8 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
           value={search} onChange={e => setSearch(e.target.value)}
           style={{
             flex: 1, padding: "10px 14px", borderRadius: 10,
-            background: "#1E1E1C", border: "1px solid #2A2A28",
-            color: "#F5F3EF", fontSize: 13, outline: "none",
+            background: "#FFFFFF", border: "1px solid #E8E4DF",
+            color: "#1A1A18", fontSize: 13, outline: "none",
           }}
         />
         {selected.length > 0 && (
@@ -223,10 +223,10 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
         )}
       </div>
 
-      <div style={{ background: "#161614", borderRadius: 16, border: "1px solid #2A2A28", overflow: "hidden" }}>
+      <div style={{ background: "#FFFFFF", borderRadius: 16, border: "1px solid #E8E4DF", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "grid", gridTemplateColumns: COL, padding: "12px 20px",
-          background: "#1A1A18", borderBottom: "1px solid #2A2A28", gap: 8, alignItems: "center" }}>
+          background: "#FBF9F7", borderBottom: "1px solid #E8E4DF", gap: 8, alignItems: "center" }}>
           <input type="checkbox"
             checked={selected.length === filtered.length && filtered.length > 0}
             onChange={() => selected.length === filtered.length ? setSelected([]) : setSelected(filtered.map(e => e.id))}
@@ -234,17 +234,17 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
           />
           {[{l:"Empresa",c:"empresa"},{l:"Evaluador",c:"evaluador"},{l:"Global",c:"score_global"}].map(h => (
             <div key={h.c} onClick={() => toggleSort(h.c)}
-              style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+              style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase",
                 letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
               {h.l}<SortIcon col={h.c} />
             </div>
           ))}
           {DIMS.map(d => (
-            <div key={d.key} style={{ fontSize: 9, fontWeight: 700, color: "#444",
+            <div key={d.key} style={{ fontSize: 9, fontWeight: 700, color: "#BBB",
               textTransform: "uppercase", letterSpacing: ".06em" }}>{d.num}</div>
           ))}
           <div onClick={() => toggleSort("created_at")}
-            style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+            style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase",
               letterSpacing: ".1em", cursor: "pointer", userSelect: "none" }}>
             Fecha<SortIcon col="created_at" />
           </div>
@@ -266,22 +266,22 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             style={{
               display: "grid", gridTemplateColumns: COL,
               padding: "13px 20px", gap: 8, alignItems: "center",
-              borderBottom: i < filtered.length - 1 ? "1px solid #1A1A18" : "none",
-              background: selected.includes(e.id) ? "rgba(232,37,31,0.06)" : "transparent",
+              borderBottom: i < filtered.length - 1 ? "1px solid #F0EDE9" : "none",
+              background: selected.includes(e.id) ? "rgba(232,37,31,0.04)" : "transparent",
             }}>
             <input type="checkbox" checked={selected.includes(e.id)} onChange={() => {}}
               onClick={ev => ev.stopPropagation()} style={{ cursor: "pointer" }} />
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#F5F3EF",
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {e.empresa || <span style={{ color: "#444" }}>Sin empresa</span>}
+              {e.empresa || <span style={{ color: "#CCC" }}>Sin empresa</span>}
             </div>
             <div style={{ fontSize: 12, color: "#888", overflow: "hidden",
               textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {e.evaluador || <span style={{ color: "#444" }}>Anónimo</span>}
+              {e.evaluador || <span style={{ color: "#CCC" }}>Anónimo</span>}
             </div>
             <ScoreBadge v={e.score_global} />
             {DIMS.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`]} sm />)}
-            <div style={{ fontSize: 11, color: "#555" }}>{formatDate(e.created_at)}</div>
+            <div style={{ fontSize: 11, color: "#AAA" }}>{formatDate(e.created_at)}</div>
           </div>
         ))}
       </div>
@@ -318,8 +318,8 @@ function LinksTab() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#F5F3EF" }}>Links de acceso</div>
-          <div style={{ fontSize: 12, color: "#555", marginTop: 3 }}>Genera links únicos para compartir la evaluación</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#E8251F" }}>Links de acceso</div>
+          <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>Genera links únicos para compartir la evaluación</div>
         </div>
         <button onClick={generate} className="btn-action" style={{
           padding: "11px 22px", borderRadius: 11, border: "none",
@@ -329,28 +329,28 @@ function LinksTab() {
         }}>+ Generar link</button>
       </div>
 
-      <div style={{ padding: "16px 20px", borderRadius: 12, background: "#161614",
-        border: "1px solid #2A2A28", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ padding: "16px 20px", borderRadius: 12, background: "#FFFFFF",
+        border: "1px solid #E8E4DF", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 18 }}>🌐</span>
         <div>
-          <div style={{ fontSize: 10, color: "#555", fontWeight: 700, marginBottom: 2 }}>URL BASE</div>
-          <div style={{ fontSize: 13, color: "#888", fontFamily: "monospace" }}>{BASE}</div>
+          <div style={{ fontSize: 10, color: "#BBB", fontWeight: 700, marginBottom: 2 }}>URL BASE</div>
+          <div style={{ fontSize: 13, color: "#999", fontFamily: "monospace" }}>{BASE}</div>
         </div>
       </div>
 
       {links.length === 0 ? (
-        <div style={{ padding: "60px", textAlign: "center", background: "#161614",
-          borderRadius: 16, border: "1px dashed #2A2A28" }}>
+        <div style={{ padding: "60px", textAlign: "center", background: "#FFFFFF",
+          borderRadius: 16, border: "1px dashed #E8E4DF" }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>🔗</div>
-          <div style={{ fontSize: 14, color: "#555" }}>No hay links generados aún</div>
-          <div style={{ fontSize: 12, color: "#444", marginTop: 4 }}>Haz click en "Generar link" para crear uno</div>
+          <div style={{ fontSize: 14, color: "#AAA" }}>No hay links generados aún</div>
+          <div style={{ fontSize: 12, color: "#CCC", marginTop: 4 }}>Haz click en "Generar link" para crear uno</div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {links.map(link => (
             <div key={link.id} className="fade-up" style={{
               padding: "18px 20px", borderRadius: 14,
-              background: "#161614", border: "1px solid #2A2A28",
+              background: "#FFFFFF", border: "1px solid #E8E4DF",
               display: "flex", alignItems: "center", gap: 16,
             }}>
               <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0,
@@ -362,15 +362,15 @@ function LinksTab() {
                     background: "#E8251F18", padding: "2px 8px", borderRadius: 99 }}>
                     REF: {link.id}
                   </span>
-                  <span style={{ fontSize: 10, color: "#444" }}>{formatDate(link.created)}</span>
+                  <span style={{ fontSize: 10, color: "#BBB" }}>{formatDate(link.created)}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace",
+                <div style={{ fontSize: 12, color: "#AAA", fontFamily: "monospace",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{link.url}</div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <button onClick={() => copy(link.url, link.id)} className="btn-action" style={{
-                  padding: "8px 16px", borderRadius: 9, border: "1px solid #2A2A28",
-                  background: copied === link.id ? "#059669" : "#1E1E1C",
+                  padding: "8px 16px", borderRadius: 9, border: "1px solid #E8E4DF",
+                  background: copied === link.id ? "#059669" : "#F7F5F2",
                   color: copied === link.id ? "#fff" : "#888",
                   fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all .2s",
                 }}>{copied === link.id ? "✓ Copiado" : "📋 Copiar"}</button>
@@ -450,13 +450,13 @@ function DownloadsTab({ evaluaciones, respuestas }) {
     <div>
       {/* Agregado */}
       <div style={{
-        background: "#161614", border: "1px solid #2A2A28", borderRadius: 18,
+        background: "#FFFFFF", border: "1px solid #E8E4DF", borderRadius: 18,
         padding: "28px 32px", marginBottom: 24,
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
       }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F3EF", marginBottom: 6 }}>📦 Descarga agregada</div>
-          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#E8251F", marginBottom: 6 }}>📦 Descarga agregada</div>
+          <div style={{ fontSize: 12, color: "#AAA", lineHeight: 1.7 }}>
             Todas las evaluaciones en un Excel con dos hojas:<br/>
             <span style={{ color: "#888" }}>Evaluaciones (resumen) + Respuestas Detalle</span>
           </div>
@@ -477,12 +477,12 @@ function DownloadsTab({ evaluaciones, respuestas }) {
       </div>
 
       {/* Individuales */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase",
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#BBB", textTransform: "uppercase",
         letterSpacing: ".1em", marginBottom: 14 }}>Descargas individuales</div>
 
       {evaluaciones.length === 0 ? (
-        <div style={{ padding: "40px", textAlign: "center", color: "#555", fontSize: 13,
-          background: "#161614", borderRadius: 16, border: "1px dashed #2A2A28" }}>
+        <div style={{ padding: "40px", textAlign: "center", color: "#AAA", fontSize: 13,
+          background: "#FFFFFF", borderRadius: 16, border: "1px dashed #E8E4DF" }}>
           No hay evaluaciones para descargar
         </div>
       ) : (
@@ -491,22 +491,22 @@ function DownloadsTab({ evaluaciones, respuestas }) {
             <div key={e.id} style={{
               display: "flex", alignItems: "center", gap: 16,
               padding: "16px 20px", borderRadius: 12,
-              background: "#161614", border: "1px solid #2A2A28",
+              background: "#FFFFFF", border: "1px solid #E8E4DF",
             }}>
               <div style={{ width: 38, height: 38, borderRadius: 9, flexShrink: 0,
                 background: "#2563EB18", display: "flex", alignItems: "center",
                 justifyContent: "center", fontSize: 16 }}>📄</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#F5F3EF",
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {e.empresa || "Sin empresa"}{e.evaluador ? ` · ${e.evaluador}` : ""}
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 4, alignItems: "center" }}>
                   <ScoreBadge v={e.score_global} sm />
-                  <span style={{ fontSize: 11, color: "#444" }}>
+                  <span style={{ fontSize: 11, color: "#BBB" }}>
                     {respuestas.filter(r => r.evaluacion_id === e.id).length}/35 resp.
                   </span>
-                  <span style={{ fontSize: 11, color: "#444" }}>{formatDate(e.created_at)}</span>
+                  <span style={{ fontSize: 11, color: "#BBB" }}>{formatDate(e.created_at)}</span>
                 </div>
               </div>
               <button onClick={() => dlIndividual(e)} className="btn-action" style={{
@@ -531,21 +531,21 @@ function ConfirmModal({ count, onConfirm, onCancel }) {
       zIndex: 1000, backdropFilter: "blur(4px)",
     }}>
       <div className="fade-up" style={{
-        width: 360, background: "#161614", borderRadius: 18,
-        border: "1px solid #2A2A28", padding: "32px",
-        boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+        width: 360, background: "#FFFFFF", borderRadius: 18,
+        border: "1px solid #E8E4DF", padding: "32px",
+        boxShadow: "0 40px 80px rgba(0,0,0,0.12)",
       }}>
         <div style={{ fontSize: 32, textAlign: "center", marginBottom: 16 }}>🗑️</div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#F5F3EF", textAlign: "center", marginBottom: 8 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: "#1A1A18", textAlign: "center", marginBottom: 8 }}>
           ¿Eliminar {count} evaluación{count > 1 ? "es" : ""}?
         </div>
-        <div style={{ fontSize: 12, color: "#555", textAlign: "center", marginBottom: 28, lineHeight: 1.7 }}>
+        <div style={{ fontSize: 12, color: "#AAA", textAlign: "center", marginBottom: 28, lineHeight: 1.7 }}>
           Esta acción no se puede deshacer. Se eliminarán también todas las respuestas asociadas.
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={onCancel} className="btn-action" style={{
-            flex: 1, padding: "11px", borderRadius: 10, border: "1px solid #2A2A28",
-            background: "#1E1E1C", color: "#888", fontWeight: 600, fontSize: 13, cursor: "pointer",
+            flex: 1, padding: "11px", borderRadius: 10, border: "1px solid #E8E4DF",
+            background: "#F7F5F2", color: "#999", fontWeight: 600, fontSize: 13, cursor: "pointer",
           }}>Cancelar</button>
           <button onClick={onConfirm} className="btn-action" style={{
             flex: 1, padding: "11px", borderRadius: 10, border: "none",
@@ -617,17 +617,17 @@ export default function ControlApp() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", background: "#0F0F0E" }}>
+    <div style={{ minHeight: "100vh", display: "flex", background: "#F7F5F2" }}>
 
       {/* Sidebar */}
       <div style={{
-        width: 220, flexShrink: 0, background: "#111110",
-        borderRight: "1px solid #1E1E1C",
+        width: 220, flexShrink: 0, background: "#FFFFFF",
+        borderRight: "1px solid #E8E4DF",
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
         <div style={{ marginBottom: 32, padding: "0 8px" }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#F5F3EF" }}>⚡ Admin Panel</div>
-          <div style={{ fontSize: 10, color: "#444", marginTop: 2 }}>Kearney · Inventarios</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#E8251F" }}>⚡ Admin Panel</div>
+          <div style={{ fontSize: 10, color: "#BBB", marginTop: 2 }}>Kearney · Inventarios</div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -637,7 +637,7 @@ export default function ControlApp() {
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px",
-                color: tab === t.id ? "#E8251F" : "#666",
+                color: tab === t.id ? "#E8251F" : "#999",
                 fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
               }}>
               <span style={{ fontSize: 16 }}>{t.icon}</span>{t.label}
@@ -646,8 +646,8 @@ export default function ControlApp() {
         </div>
 
         <button onClick={fetchData} className="btn-action" style={{
-          padding: "10px 12px", borderRadius: 10, border: "1px solid #2A2A28",
-          background: "#1A1A18", color: "#555", fontSize: 12,
+          padding: "10px 12px", borderRadius: 10, border: "1px solid #E8E4DF",
+          background: "#F7F5F2", color: "#999", fontSize: 12,
           fontWeight: 600, cursor: "pointer",
           display: "flex", alignItems: "center", gap: 6,
         }}>
@@ -657,18 +657,18 @@ export default function ControlApp() {
 
         <button onClick={() => setAuthed(false)} className="btn-action" style={{
           marginTop: 8, padding: "10px 12px", borderRadius: 10,
-          border: "1px solid #2A2A28", background: "transparent",
-          color: "#444", fontSize: 12, cursor: "pointer",
+          border: "1px solid #E8E4DF", background: "transparent",
+          color: "#BBB", fontSize: 12, cursor: "pointer",
         }}>🚪 Cerrar sesión</button>
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflow: "auto", padding: "32px 36px" }}>
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#F5F3EF", letterSpacing: "-.02em" }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#E8251F", letterSpacing: "-.02em" }}>
             {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
           </div>
-          <div style={{ fontSize: 12, color: "#444", marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
             {tab === "monitor" && "Vista general de todas las evaluaciones registradas"}
             {tab === "links" && "Genera y gestiona links de acceso al diagnóstico"}
             {tab === "downloads" && "Descarga evaluaciones en formato Excel"}

@@ -11,7 +11,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-async function guardarEvaluacion(answers) {
+async function guardarEvaluacion(answers, perfil = {}) {
   try {
     // Calcular scores por dimensión
     const scores = {};
@@ -29,6 +29,8 @@ async function guardarEvaluacion(answers) {
 
     // Insertar evaluación
     const { data, error } = await supabase.from("evaluaciones").insert([{
+      direccion:             perfil.direccion || null,
+      rol:                   perfil.rol || null,
       score_global:          scoreGlobal,
       score_estrategia:      scores.estrategia,
       score_caracterizacion: scores.caracterizacion,
@@ -382,7 +384,7 @@ function IntroTab({onNavigate}) {
                 background:"rgba(255,255,255,0.06)",
                 color:"rgba(255,255,255,0.8)",fontWeight:600,fontSize:13,cursor:"pointer",
               }}>🗂 Ver el Modelo</button>
-              <button className="btn-red" onClick={()=>onNavigate("assessment")} style={{
+              <button className="btn-red" onClick={()=>onNavigate("registro")} style={{
                 padding:"12px 26px",borderRadius:12,border:"none",
                 background:"linear-gradient(135deg,#E8251F,#B91A15)",
                 color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
@@ -945,9 +947,28 @@ function SummaryTab({answers}) {
 // ─── APP ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [answers,setAnswers] = useState(emptyAnswers);
+  const [perfil,setPerfil] = useState(null);
+  const [showPerfil,setShowPerfil] = useState(false);
+  const [showRegistro,setShowRegistro] = useState(false);
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
+  const [isFullscreen,setIsFullscreen] = useState(false);
+  const appRef = useRef(null);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      appRef.current?.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  }
+
+  useEffect(() => {
+    function onFsChange() { setIsFullscreen(!!document.fullscreenElement); }
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   useEffect(()=>{
     const s=document.createElement("style");
@@ -961,7 +982,7 @@ export default function App() {
   useEffect(() => {
     if (view === "summary" && !guardadoRef.current) {
       guardadoRef.current = true;
-      guardarEvaluacion(answers);
+      guardarEvaluacion(answers, perfil || {});
     }
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
@@ -988,7 +1009,7 @@ export default function App() {
   ];
 
   return (
-    <div style={{background:T.surface,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+    <div ref={appRef} style={{background:T.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
 
       {/* ═══ TOPBAR ═══ */}
       <header style={{
@@ -1039,11 +1060,20 @@ export default function App() {
               }}>{t.icon} {t.label}</button>
             ))}
           </div>
+          <button onClick={toggleFullscreen} title={isFullscreen?"Salir de pantalla completa":"Pantalla completa"} style={{
+            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
+            background:isFullscreen?T.redXsoft:T.card,
+            color:isFullscreen?T.red:T.inkMid,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            cursor:"pointer",fontSize:14,flexShrink:0,
+            transition:"all .15s",
+          }}>{isFullscreen?"⊠":"⛶"}</button>
         </div>
       </header>
 
       {/* ═══ CONTENT ═══ */}
-      {view==="intro"    &&<div style={{flex:1,overflow:"auto"}}><IntroTab onNavigate={setView}/></div>}
+      {view==="intro"    &&<div style={{flex:1,overflow:"auto"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/></div>}
+      {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);setView("assessment");}}/>}
       {view==="modelo"   &&<div style={{flex:1,overflow:"auto"}}><ModeloTab/></div>}
       {view==="summary"  &&<div style={{flex:1,overflow:"auto"}}><SummaryTab answers={answers}/></div>}
 
@@ -1225,6 +1255,8 @@ export default function App() {
           </main>
         </div>
       )}
+
+      {showPerfil && <PerfilModal onStart={(p)=>{ setPerfil(p); setShowPerfil(false); setView("assessment"); }} />}
 
       {/* ═══ FOOTER ═══ */}
       <footer style={{
