@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, Cell, CartesianGrid
 } from "recharts";
 import { createClient } from "@supabase/supabase-js";
+import * as XLSX from "xlsx";
 
 // ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const supabase = createClient(
@@ -758,11 +759,42 @@ function ModeloTab() {
 }
 
 // ─── SUMMARY TAB ──────────────────────────────────────────────────────────────
-function SummaryTab({answers}) {
-  const globalScore=useMemo(()=>{
-    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);
-    return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;
-  },[answers]);
+function SummaryTab({answers, perfil}) {
+  const globalScore=useMemo(()=>{\n    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);\n    return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;\n  },[answers]);
+
+  function descargarExcel() {
+    const LEVEL_LABELS = ["","Básico","Emergente","Robusto","End-to-End","Pivote"];
+    // Hoja resumen
+    const resumen = [
+      { Campo:"Dirección", Valor: perfil?.direccion || "—" },
+      { Campo:"Rol",       Valor: perfil?.rol       || "—" },
+      { Campo:"Score Global", Valor: globalScore || "—" },
+      { Campo:"Nivel Global", Valor: LEVEL_LABELS[Math.round(globalScore)] || "—" },
+      ...DIMS.map(d=>({ Campo:`Score ${d.num} ${d.label}`, Valor: getDimScore(d,answers) || "—" })),
+    ];
+    const wsRes = XLSX.utils.json_to_sheet(resumen);
+    wsRes["!cols"] = [{wch:28},{wch:30}];
+
+    // Hoja detalle respuestas
+    const detalle = [];
+    DIMS.forEach(d => d.subs.forEach(s => {
+      const v = answers[s.id];
+      if (v > 0) detalle.push({
+        "Dimensión": `${d.num} ${d.label}`,
+        "Sub-dimensión": s.label,
+        "Descripción": s.desc,
+        "Valor": v,
+        "Nivel": LEVEL_LABELS[v] || "—",
+      });
+    }));
+    const wsDet = XLSX.utils.json_to_sheet(detalle);
+    wsDet["!cols"] = [{wch:28},{wch:26},{wch:30},{wch:8},{wch:14}];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsRes, "Resumen");
+    XLSX.utils.book_append_sheet(wb, wsDet, "Respuestas");
+    XLSX.writeFile(wb, `Madurez_Inventarios_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
 
   const allGaps=useMemo(()=>{
     const gaps=[];
@@ -795,6 +827,17 @@ function SummaryTab({answers}) {
 
   return (
     <div style={{maxWidth:1100,margin:"0 auto",padding:"36px 36px 52px"}}>
+
+      {/* BOTÓN DESCARGA */}
+      <div className="fade-up" style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
+        <button onClick={descargarExcel} className="btn-red" style={{
+          display:"flex",alignItems:"center",gap:8,
+          padding:"10px 22px",borderRadius:11,border:"none",
+          background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+          color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
+          boxShadow:`0 4px 14px rgba(232,37,31,0.3)`,
+        }}>⬇ Descargar Excel</button>
+      </div>
 
       {/* SCORE BAR */}
       <div className="fade-up hover-lift" style={{
@@ -1164,7 +1207,7 @@ export default function App() {
       {view==="intro"    &&<div style={{flex:1,overflow:"auto"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/></div>}
       {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);setView("assessment");}}/>}
       {view==="modelo"   &&<div style={{flex:1,overflow:"auto"}}><ModeloTab/></div>}
-      {view==="summary"  &&<div style={{flex:1,overflow:"auto"}}><SummaryTab answers={answers}/></div>}
+      {view==="summary"  &&<div style={{flex:1,overflow:"auto"}}><SummaryTab answers={answers} perfil={perfil}/></div>}
 
       {view==="assessment"&&(
         <div style={{flex:1,display:"flex",overflow:"hidden"}}>
