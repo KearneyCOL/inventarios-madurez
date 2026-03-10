@@ -1037,6 +1037,370 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
 
 // ─── LINKS TAB ────────────────────────────────────────────────────────────────
+// ─── EMPRESAS TAB ─────────────────────────────────────────────────────────────
+
+const SUBS_META = [
+  {id:"e1", dim:"Estrategia",      label:"Objetivos & trade-offs",          desc:"Servicio, costo, capital de trabajo"},
+  {id:"e2", dim:"Estrategia",      label:"Políticas por canal",             desc:"B2B/B2C, SS/ROP"},
+  {id:"e3", dim:"Estrategia",      label:"Diseño de red",                   desc:"CDC, tiendas, hubs"},
+  {id:"e4", dim:"Estrategia",      label:"Gobernanza S&OP",                 desc:"S&OP/S&OE, Comercial, Finanzas"},
+  {id:"e5", dim:"Estrategia",      label:"Riesgos y resiliencia",           desc:"Disrupciones, fraude, regulación"},
+  {id:"c1", dim:"Caracterización", label:"Segmentación ABC/XYZ",            desc:"Categoría, criticidad, valor-volumen"},
+  {id:"c2", dim:"Caracterización", label:"Atributos & trazabilidad",        desc:"Serial/IMEI, lotes, caducidad"},
+  {id:"c3", dim:"Caracterización", label:"Ciclo de vida y SLOB",            desc:"SLOB, lanzamientos, fin de vida"},
+  {id:"c4", dim:"Caracterización", label:"Ubicación y propiedad",           desc:"Consignación, 3PL, tiendas, técnicos"},
+  {id:"c5", dim:"Caracterización", label:"Retornos y condición",            desc:"Nuevo, refurb, swap, scrap"},
+  {id:"p1", dim:"Procesos",        label:"Planeación & reposición",         desc:"DRP, min-max, MEIO"},
+  {id:"p2", dim:"Procesos",        label:"Asignación omnicanal",            desc:"ATP/CTP, reservas, disponibilidad"},
+  {id:"p3", dim:"Procesos",        label:"Ejecución física",                desc:"Recepción, almacenaje, picking"},
+  {id:"p4", dim:"Procesos",        label:"Control & exactitud",             desc:"Conteos cíclicos, shrinkage"},
+  {id:"p5", dim:"Procesos",        label:"Excepciones y retornos",          desc:"RMA, devoluciones, reparación"},
+  {id:"r1", dim:"Roles",           label:"Modelo operativo & RACI",         desc:"Dueños de proceso E2E"},
+  {id:"r2", dim:"Roles",           label:"Interfaces clave",                desc:"Comercial, Finanzas, Operaciones, TI"},
+  {id:"r3", dim:"Roles",           label:"Gestión de terceros",             desc:"OEM, 3PL, distribuidores, dealers"},
+  {id:"r4", dim:"Roles",           label:"Capacidades y formación",         desc:"Planificación, analítica, operación"},
+  {id:"r5", dim:"Roles",           label:"Incentivos & accountability",     desc:"SLAs, KPIs, consecuencias"},
+  {id:"h1", dim:"Herramientas",    label:"Arquitectura core",               desc:"ERP/OMS/WMS e integración"},
+  {id:"h2", dim:"Herramientas",    label:"Herramientas de planificación",   desc:"APS/DRP, pronóstico, S&OP"},
+  {id:"h3", dim:"Herramientas",    label:"Visibilidad & trazabilidad",      desc:"Serialización, RFID, track&trace"},
+  {id:"h4", dim:"Herramientas",    label:"Datos & analítica",               desc:"Lakehouse, BI, modelos, calidad"},
+  {id:"h5", dim:"Herramientas",    label:"Automatización",                  desc:"RPA, APIs/EDI, alertas, movilidad"},
+  {id:"i1", dim:"Indicadores",     label:"Servicio al cliente",             desc:"Fill rate, OTIF, backorders, NPS"},
+  {id:"i2", dim:"Indicadores",     label:"Eficiencia & capital",            desc:"Rotación, DIO, capital de trabajo"},
+  {id:"i3", dim:"Indicadores",     label:"Exactitud & pérdidas",            desc:"Accuracy, shrinkage, ajustes"},
+  {id:"i4", dim:"Indicadores",     label:"Salud del inventario",            desc:"Aging, SLOB, write-offs, DOH"},
+  {id:"i5", dim:"Indicadores",     label:"Cumplimiento & riesgo",           desc:"Fraude, auditoría, regulatorio"},
+  {id:"ab1",dim:"Abastecimiento",  label:"Dispositivos",                    desc:"Smartphones/tablets: lanzamiento-rampa-EOL"},
+  {id:"ab2",dim:"Abastecimiento",  label:"CPE/routers/STB",                 desc:"Proyectos, bundles, reposición de fallas"},
+  {id:"ab3",dim:"Abastecimiento",  label:"SIM/eSIM & kits",                 desc:"Alto volumen, bajo valor, control fraude"},
+  {id:"ab4",dim:"Abastecimiento",  label:"Accesorios",                      desc:"Amplia variedad, moda, obsolescencia"},
+  {id:"ab5",dim:"Abastecimiento",  label:"Repuestos/refurb/swap",           desc:"Circularidad, garantías, niveles de servicio"},
+];
+
+function EmpresasTab({ empresas, onRefresh, showToast }) {
+  const [view, setView] = useState("list"); // "list" | "new" | "edit"
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [editingSubs, setEditingSubs] = useState(false);
+  const [subsData, setSubsData] = useState({});
+  const [savingSubs, setSavingSubs] = useState(false);
+  const RED = "#E8251F";
+
+  // ── Form state ──
+  const emptyForm = { nombre:"", codigo:"", color_primary:"#E8251F", color_dark:"#C80F0A", logo_url:"" };
+  const [form, setForm] = useState(emptyForm);
+  const [formErr, setFormErr] = useState({});
+
+  function startNew() { setForm(emptyForm); setEditing(null); setView("new"); setEditingSubs(false); }
+  function startEdit(emp) {
+    setForm({ nombre:emp.nombre, codigo:emp.codigo, color_primary:emp.color_primary||"#E8251F",
+              color_dark:emp.color_dark||"#C80F0A", logo_url:emp.logo_url||"" });
+    setEditing(emp);
+    setView("edit");
+    setEditingSubs(false);
+  }
+
+  async function loadSubs(emp) {
+    const { data } = await supabase.from("subs_custom").select("*").eq("empresa_id", emp.id);
+    const map = {};
+    (data||[]).forEach(s => { map[s.sub_id] = { q: s.q||"", label: s.label||"", desc: s.desc||"" }; });
+    // Fill in defaults from SUBS_META for missing ones
+    SUBS_META.forEach(sm => {
+      if (!map[sm.id]) map[sm.id] = { q:"", label:"", desc:"" };
+    });
+    setSubsData(map);
+    setEditingSubs(true);
+  }
+
+  function validateForm() {
+    const errs = {};
+    if (!form.nombre.trim()) errs.nombre = "Requerido";
+    if (!form.codigo.trim()) errs.codigo = "Requerido";
+    if (!/^[A-Z0-9-_]{2,20}$/i.test(form.codigo.trim())) errs.codigo = "Solo letras, números y guiones (2-20 chars)";
+    setFormErr(errs);
+    return Object.keys(errs).length === 0;
+  }
+
+  async function saveEmpresa() {
+    if (!validateForm()) return;
+    setSaving(true);
+    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(),
+                      color_primary:form.color_primary, color_dark:form.color_dark,
+                      logo_url:form.logo_url.trim()||null };
+    let err;
+    if (editing) {
+      ({ error: err } = await supabase.from("empresas").update(payload).eq("id", editing.id));
+    } else {
+      ({ error: err } = await supabase.from("empresas").insert([payload]));
+    }
+    setSaving(false);
+    if (err) { showToast("Error: " + err.message, "error"); return; }
+    showToast(editing ? "Empresa actualizada" : "Empresa creada");
+    await onRefresh();
+    setView("list");
+  }
+
+  async function saveSubs() {
+    if (!editing) return;
+    setSavingSubs(true);
+    // Upsert all subs that have at least q, label or desc filled
+    const rows = SUBS_META
+      .filter(sm => subsData[sm.id]?.q || subsData[sm.id]?.label || subsData[sm.id]?.desc)
+      .map(sm => ({
+        empresa_id: editing.id, sub_id: sm.id,
+        q:     subsData[sm.id]?.q     || null,
+        label: subsData[sm.id]?.label || null,
+        descripcion: subsData[sm.id]?.desc  || null,
+      }));
+    if (rows.length > 0) {
+      const { error: err } = await supabase.from("subs_custom")
+        .upsert(rows, { onConflict: "empresa_id,sub_id" });
+      if (err) { showToast("Error: " + err.message, "error"); setSavingSubs(false); return; }
+    }
+    showToast("Preguntas guardadas");
+    setSavingSubs(false);
+    setEditingSubs(false);
+  }
+
+  async function deleteEmpresa(emp) {
+    if (!window.confirm(`¿Eliminar "${emp.nombre}"? Se borrarán también sus preguntas custom.`)) return;
+    await supabase.from("empresas").delete().eq("id", emp.id);
+    showToast("Empresa eliminada");
+    await onRefresh();
+  }
+
+  const inp = (label, key, placeholder, opts={}) => (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5, display:"flex", justifyContent:"space-between" }}>
+        <span>{label}</span>
+        {formErr[key] && <span style={{ color:RED, fontWeight:600, fontSize:10 }}>{formErr[key]}</span>}
+      </div>
+      <input
+        value={form[key]} onChange={e => { setForm(p=>({...p,[key]:e.target.value})); setFormErr(p=>({...p,[key]:undefined})); }}
+        placeholder={placeholder}
+        type={opts.type||"text"}
+        style={{ width:"100%", padding:"9px 12px", borderRadius:9,
+          border:`1.5px solid ${formErr[key]?RED:"#E8E4DF"}`, fontSize:12.5,
+          color:"#1A1A18", background:"#FAFAF8", outline:"none",
+        }}
+      />
+    </div>
+  );
+
+  // ── LIST VIEW ──
+  if (view === "list") return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div style={{ fontSize:12, color:"#AAA" }}>{empresas.length} empresa{empresas.length!==1?"s":""} registrada{empresas.length!==1?"s":""}</div>
+        <button onClick={startNew} style={{
+          padding:"9px 20px", borderRadius:99, background:RED, color:"#fff",
+          border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
+          boxShadow:"0 3px 10px rgba(232,37,31,0.3)",
+        }}>+ Nueva empresa</button>
+      </div>
+
+      {empresas.length === 0 ? (
+        <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"60px 40px", textAlign:"center" }}>
+          <div style={{ fontSize:36, marginBottom:16 }}>🏢</div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Sin empresas registradas</div>
+          <div style={{ fontSize:12, color:"#AAA", marginBottom:24 }}>Crea la primera empresa para habilitar el acceso multi-cliente</div>
+          <button onClick={startNew} style={{
+            padding:"10px 24px", borderRadius:99, background:RED, color:"#fff",
+            border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
+          }}>+ Crear empresa</button>
+        </div>
+      ) : (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))", gap:16 }}>
+          {empresas.map(emp => (
+            <div key={emp.id} style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF",
+              overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
+              {/* Color header strip */}
+              <div style={{ height:6, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#C80F0A"})` }} />
+              <div style={{ padding:"20px 22px" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:4 }}>{emp.nombre}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:10, fontWeight:700, color:"#fff", background:emp.color_primary||RED,
+                        padding:"3px 10px", borderRadius:99, letterSpacing:".06em" }}>
+                        {emp.codigo}
+                      </span>
+                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }}
+                        style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA", padding:"2px 6px",
+                          borderRadius:6 }}>
+                        📋 Copiar
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||RED, border:"2px solid rgba(0,0,0,0.1)" }} />
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#C80F0A", border:"2px solid rgba(0,0,0,0.1)" }} />
+                  </div>
+                </div>
+
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
+                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Evaluaciones</div>
+                    <div style={{ fontSize:18, fontWeight:900, color:"#1A1A18", letterSpacing:"-.02em" }}>
+                      {/* will be passed in future — placeholder */}—
+                    </div>
+                  </div>
+                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Creada</div>
+                    <div style={{ fontSize:11, fontWeight:600, color:"#555" }}>
+                      {new Date(emp.created_at).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"})}
+                    </div>
+                  </div>
+                </div>
+
+                {emp.logo_url && (
+                  <div style={{ marginBottom:14, padding:"8px 12px", background:"#F7F5F2", borderRadius:9,
+                    fontSize:10, color:"#AAA", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    🖼 {emp.logo_url}
+                  </div>
+                )}
+
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={()=>startEdit(emp)} style={{
+                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
+                    border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555",
+                  }}>✏️ Editar</button>
+                  <button onClick={()=>{ startEdit(emp); loadSubs(emp); }} style={{
+                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
+                    border:`1.5px solid ${emp.color_primary||RED}40`,
+                    background:(emp.color_primary||RED)+"12", color:emp.color_primary||RED,
+                  }}>💬 Preguntas</button>
+                  <button onClick={()=>deleteEmpresa(emp)} style={{
+                    padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer",
+                    border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444",
+                  }}>🗑</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ── EDIT SUBS VIEW ──
+  if (editingSubs && editing) {
+    const dims = [...new Set(SUBS_META.map(s=>s.dim))];
+    return (
+      <div>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
+          <button onClick={()=>setEditingSubs(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
+          <div>
+            <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Preguntas · {editing.nombre}</div>
+            <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Personaliza el texto de cada sub-dimensión. Dejar vacío usa el texto por defecto.</div>
+          </div>
+          <button onClick={saveSubs} disabled={savingSubs} style={{
+            marginLeft:"auto", padding:"9px 22px", borderRadius:99, background:editing.color_primary||RED,
+            color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
+            opacity:savingSubs?0.6:1,
+          }}>{savingSubs?"Guardando...":"Guardar preguntas"}</button>
+        </div>
+
+        {dims.map(dim => (
+          <div key={dim} style={{ background:"#fff", borderRadius:14, border:"1px solid #E8E4DF", marginBottom:16, overflow:"hidden" }}>
+            <div style={{ padding:"14px 20px", background:"#F7F5F2", borderBottom:"1px solid #E8E4DF",
+              fontSize:11, fontWeight:700, color:"#555", textTransform:"uppercase", letterSpacing:".08em" }}>
+              {dim}
+            </div>
+            <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", gap:14 }}>
+              {SUBS_META.filter(s=>s.dim===dim).map(sm => (
+                <div key={sm.id} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:12, alignItems:"flex-start" }}>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:700, color:"#1A1A18", marginBottom:3 }}>{sm.label}</div>
+                    <div style={{ fontSize:9.5, color:"#AAA" }}>{sm.desc}</div>
+                    <div style={{ fontSize:9, color:"#BBB", marginTop:4, fontFamily:"monospace" }}>{sm.id}</div>
+                  </div>
+                  <textarea
+                    value={subsData[sm.id]?.q||""}
+                    onChange={e=>setSubsData(p=>({...p,[sm.id]:{...p[sm.id],q:e.target.value}}))}
+                    placeholder={`Seleccione el nivel (1-5) que mejor describe la situación actual en: ${sm.label}...`}
+                    rows={2}
+                    style={{ width:"100%", padding:"8px 11px", borderRadius:8,
+                      border:"1.5px solid #E8E4DF", fontSize:11.5, color:"#1A1A18",
+                      background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5,
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ── NEW / EDIT FORM VIEW ──
+  return (
+    <div style={{ maxWidth:480 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
+        <button onClick={()=>setView("list")} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
+        <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>
+          {editing ? `Editar: ${editing.nombre}` : "Nueva empresa"}
+        </div>
+      </div>
+
+      <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px 28px" }}>
+        {/* Preview strip */}
+        <div style={{ height:8, borderRadius:6, background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#C80F0A"})`,
+          marginBottom:24 }} />
+
+        {inp("Nombre de la empresa", "nombre", "Ej: Claro Colombia")}
+        {inp("Código de acceso", "codigo", "Ej: CLARO-2025")}
+        <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>
+          Los evaluadores ingresan este código para acceder al diagnóstico. Solo letras, números y guiones.
+        </div>
+        {inp("URL del logo (opcional)", "logo_url", "https://...")}
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div>
+            <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>Color principal</div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <input type="color" value={form.color_primary}
+                onChange={e=>setForm(p=>({...p,color_primary:e.target.value}))}
+                style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
+              />
+              <input value={form.color_primary} onChange={e=>setForm(p=>({...p,color_primary:e.target.value}))}
+                style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
+                  fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
+              />
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>Color oscuro</div>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <input type="color" value={form.color_dark}
+                onChange={e=>setForm(p=>({...p,color_dark:e.target.value}))}
+                style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
+              />
+              <input value={form.color_dark} onChange={e=>setForm(p=>({...p,color_dark:e.target.value}))}
+                style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
+                  fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:"flex", gap:10, marginTop:16 }}>
+        <button onClick={()=>setView("list")} style={{
+          flex:1, padding:"11px 0", borderRadius:10, border:"1.5px solid #E8E4DF",
+          background:"#FAFAFA", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer",
+        }}>Cancelar</button>
+        <button onClick={saveEmpresa} disabled={saving} style={{
+          flex:2, padding:"11px 0", borderRadius:10, background:form.color_primary||RED,
+          border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer",
+          opacity:saving?0.6:1, boxShadow:`0 4px 14px ${form.color_primary||RED}50`,
+        }}>{saving?"Guardando...":editing?"Guardar cambios":"Crear empresa"}</button>
+      </div>
+    </div>
+  );
+}
+
 function LinksTab() {
   const [links, setLinks] = useState([]);
   const [copied, setCopied] = useState(null);
@@ -1367,750 +1731,572 @@ function ReportTab({ evaluaciones, respuestas }) {
   async function generatePDF() {
     setGenerating(true);
     try {
+      // Load jsPDF dynamically
       if (!window.jspdf) {
-        await new Promise((res,rej)=>{
-          const s=document.createElement("script");
-          s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-          s.onload=res; s.onerror=rej; document.head.appendChild(s);
+        await new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
         });
       }
-      const {jsPDF}=window.jspdf;
-      const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
+      const W = 210, H = 297;
+      const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
+      const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
 
-      // ─── TOKENS — exact app values ────────────────────────────────────────
-      const W=210,H=297,M=14;
-      const CW=W-M*2;
+      // ── helpers ──────────────────────────────────────────────────────────
+      function setFont(weight="normal", size=10, color=DARK) {
+        doc.setFont("helvetica", weight);
+        doc.setFontSize(size);
+        doc.setTextColor(...color);
+      }
+      function rect(x,y,w,h,r,fillRGB) {
+        doc.setFillColor(...fillRGB);
+        doc.roundedRect(x,y,w,h,r,r,"F");
+      }
+      function hline(y, color=[232,228,224]) {
+        doc.setDrawColor(...color);
+        doc.setLineWidth(0.3);
+        doc.line(16, y, W-16, y);
+      }
+      function pill(x, y, text, bgRGB, textRGB) {
+        setFont("bold", 7.5, textRGB);
+        const tw = doc.getTextWidth(text);
+        doc.setFillColor(...bgRGB);
+        doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
+        doc.text(text, x, y);
+      }
+      function miniBar(x, y, value, max, color, barW=40) {
+        doc.setFillColor(235,233,228);
+        doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
+        if (value && max) {
+          doc.setFillColor(...color);
+          doc.roundedRect(x, y, Math.max(1.5, (value/max)*barW), 2.5, 1, 1, "F");
+        }
+      }
+      function newPage(header=true) {
+        doc.addPage();
+        if (header) {
+          rect(0, 0, W, 14, 0, RED);
+          setFont("bold", 9, [255,255,255]);
+          doc.text(titulo, 16, 9.5);
+          setFont("normal", 7.5, [255,200,200]);
+          doc.text(now, W-16, 9.5, { align:"right" });
+        }
+        return 20;
+      }
+      function checkY(y, needed=30) {
+        if (y + needed > H - 20) return newPage();
+        return y;
+      }
 
-      // LV_META exact: c=text color, bg=background, dk=dark variant
-      const LV=[
-        {c:[120,113,108],bg:[250,250,248],dk:[100,94,90],  label:"Basico"},
-        {c:[217,119,  6],bg:[255,251,235],dk:[180, 98,  5],label:"Emergente"},
-        {c:[ 37, 99,235],bg:[239,246,255],dk:[ 29, 78,216],label:"Robusto"},
-        {c:[124, 58,237],bg:[245,243,255],dk:[109, 40,217],label:"End-to-End"},
-        {c:[  5,150,105],bg:[236,253,245],dk:[  4,120, 87],label:"Pivote"},
-      ];
-      const lv   = v=>LV[Math.max(0,Math.min(4,Math.round(v||1)-1))];
-      const lvC  = v=>lv(v).c;
-      const lvBg = v=>lv(v).bg;
-      const lvL  = v=>lv(v).label;
+      // ── data ─────────────────────────────────────────────────────────────
+      const globalAvg = avgArr(filtered.map(e=>e.score_global));
+      const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
+      const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
+      const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
+      const spread    = strongest&&weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
+      const LV_NAMES  = ["","Básico","Emergente","Robusto","End-to-End","Pivote"];
+      const LV_COLORS_RGB = [[120,113,108],[217,119,6],[37,99,235],[124,58,237],[5,150,105]];
 
-      // App palette — all from source
-      const RED   =[232, 37, 31];  // #E8251F
-      const REDDK =[200, 15, 10];  // #C80F0A
-      const REDMD =[192, 16, 16];  // #C01010
-      const REDLT =[255,248,247];  // #FFF8F7
-      const REDDA =[253,220,218];  // #FDDCDA
-      const INK   =[ 26, 26, 24];  // #1A1A18
-      const INK2  =[ 42, 42, 40];  // #2A2A28
-      const MID   =[ 85, 84, 80];  // #555
-      const AAA   =[170,168,163];  // #AAA
-      const CCC   =[209,208,203];  // #CCC / #D1D0CB
-      const BBB   =[187,185,180];  // #BBB
-      const BDR   =[232,228,223];  // #E8E4DF border
-      const SURF  =[247,245,242];  // #F7F5F2
-      const WARM  =[250,248,245];  // #FAFAF8
-      const FBF   =[251,249,247];  // #FBF9F7
-      const TRACK =[240,237,233];  // #F0EDE9 minibar track
-      const WHITE =[255,255,255];
+      const gapsData = DIMS_META.map(d => {
+        const sc = avgArr(filtered.map(e=>e[`score_${d.key}`]));
+        if (!sc || sc > 3) return null;
+        return { ...d, score:sc, gap:parseFloat((5-sc).toFixed(1)), n:filtered.filter(e=>e[`score_${d.key}`]).length };
+      }).filter(Boolean).sort((a,b)=>a.score-b.score);
+      const critGaps = gapsData.filter(g=>g.score<=2);
+      const modGaps  = gapsData.filter(g=>g.score>2);
 
-      // ASCII sanitizer
-      const T=v=>{
-        if(v==null)return"-";
-        return String(v)
-          .replace(/\u00e0|\u00e1|\u00e2|\u00e3|\u00e4/g,"a")
-          .replace(/\u00e8|\u00e9|\u00ea|\u00eb/g,"e")
-          .replace(/\u00ec|\u00ed|\u00ee|\u00ef/g,"i")
-          .replace(/\u00f2|\u00f3|\u00f4|\u00f5|\u00f6/g,"o")
-          .replace(/\u00f9|\u00fa|\u00fb|\u00fc/g,"u")
-          .replace(/\u00f1/g,"n").replace(/\u00e7/g,"c")
-          .replace(/\u00c0|\u00c1|\u00c2|\u00c3|\u00c4/g,"A")
-          .replace(/\u00c8|\u00c9|\u00ca|\u00cb/g,"E")
-          .replace(/\u00cc|\u00cd|\u00ce|\u00cf/g,"I")
-          .replace(/\u00d2|\u00d3|\u00d4|\u00d5|\u00d6/g,"O")
-          .replace(/\u00d9|\u00da|\u00db|\u00dc/g,"U")
-          .replace(/\u00d1/g,"N").replace(/\u00c7/g,"C")
-          .replace(/[\u2013\u2014]/g,"-").replace(/\u00d7/g,"x")
-          .replace(/\u2212/g,"-").replace(/\u00b7/g,".")
-          .replace(/[^\x00-\xFF]/g,"").replace(/\s{2,}/g," ").trim()||"-";
-      };
-
-      // ─── PRIMITIVES ───────────────────────────────────────────────────────
-      const F =(c)=>doc.setFillColor(c[0],c[1],c[2]);
-      const S =(c,w)=>{doc.setDrawColor(c[0],c[1],c[2]);if(w!=null)doc.setLineWidth(w);};
-      const R =(x,y,w,h,r,c)=>{F(c);doc.roundedRect(x,y,w,h,r,r,"F");};
-      const RD=(x,y,w,h,r,f,s,sw)=>{F(f);S(s,sw!=null?sw:0.25);doc.roundedRect(x,y,w,h,r,r,"FD");};
-      const LN=(x1,y1,x2,y2,c,w)=>{S(c||BDR,w||0.25);doc.line(x1,y1,x2,y2);};
-      const DOT=(x,y,r,c)=>{F(c);doc.circle(x,y,r,"F");};
-      const TRI=(x1,y1,x2,y2,x3,y3,c)=>{F(c);doc.triangle(x1,y1,x2,y2,x3,y3,"F");};
-
-      const sf=(w,s,c)=>{
-        doc.setFont("helvetica",w);doc.setFontSize(s);
-        if(c)doc.setTextColor(c[0],c[1],c[2]);
-      };
-      const tx =(t,x,y,o)=>doc.text(T(t),x,y,o||{});
-      const txR=(t,x,y)  =>doc.text(T(t),x,y,{align:"right"});
-      const txC=(t,x,y)  =>doc.text(T(t),x,y,{align:"center"});
-
-      // ─── DESIGN COMPONENTS ───────────────────────────────────────────────
-
-      // Card — white bg, #E8E4DF border 1px, borderRadius 16 (exact app AnalyticsCard)
-      const CARD=(x,y,w,h,r)=>RD(x,y,w,h,r!=null?r:14,WHITE,BDR,0.3);
-
-      // AnalyticsLabel — fontSize:9.5 fw:700 color:#D1D0CB uppercase letterSpacing:.12em
-      const LBL=(t,x,y)=>{
-        sf("bold",7.5,CCC);
-        doc.setCharSpace(0.55);
-        tx(T(t).toUpperCase(),x,y);
-        doc.setCharSpace(0);
-      };
-
-      // Value display — fontWeight:900 letterSpacing:-.02em (app's BIG numbers)
-      const VAL=(t,x,y,c,sz)=>{
-        sf("bold",sz||20,c||INK);
-        doc.setCharSpace(-0.12);
-        tx(T(t),x,y);
-        doc.setCharSpace(0);
-      };
-
-      // MiniBar — track:#F0EDE9 fill:color height:5 borderRadius:99 (exact app MiniBar)
-      const BAR=(x,y,val,max,c,bw,bh)=>{
-        bh=bh||4;const r=bh/2;
-        R(x,y,bw,bh,r,TRACK);
-        if(val&&max)R(x,y,Math.max(bh,(val/max)*bw),bh,r,c);
-      };
-
-      // Level pill — borderRadius:99, level bg, level text (app pill style)
-      const PILL=(v,x,y,w,h)=>{
-        h=h||6.5;const l=lv(v);
-        R(x,y,w,h,h/2,l.bg);
-        sf("bold",6,l.c);txC(T(l.label),x+w/2,y+h-1.5);
-      };
-
-      // ─── PAGE / SECTION MANAGEMENT ───────────────────────────────────────
-      let _pn=0,_sec="",_startY=21;
-
-      const NEWPAGE=(sec,dark)=>{
-        if(_pn>0)doc.addPage();
-        _pn++;if(sec)_sec=sec;
-
-        // Header — same as app: red strip height 13, left darker edge
-        R(0,0,W,13,0,RED);
-        R(0,0,4,13,0,REDDK);
-        // Thin bottom rule
-        R(0,12.6,W,0.4,0,REDMD);
-
-        // Document title left — uppercase tracked bold white
-        sf("bold",6.5,WHITE);doc.setCharSpace(0.6);
-        tx(T(titulo).toUpperCase().slice(0,34),7,9);doc.setCharSpace(0);
-
-        // Section right — faded red
-        sf("normal",6,[255,185,183]);doc.setCharSpace(0.4);
-        txR(T(_sec).toUpperCase(),W-M,9);doc.setCharSpace(0);
-
-        return 21;
-      };
-
-      const FOOTER=(p,tot)=>{
-        LN(M,H-13,W-M,H-13,BDR,0.2);
-        sf("normal",5.5,CCC);
-        tx("Kearney  |  Diagnostico de Madurez de Inventarios  |  Confidencial",M,H-8.5);
-        // Page number chip — app pill style
-        RD(W-M-22,H-12.5,22,8,4,SURF,BDR,0.25);
-        sf("bold",6.5,AAA);txC(p+" / "+tot,W-M-11,H-7.2);
-      };
-
-      const CY=(y,n)=>{if(y+(n||30)>H-18){return NEWPAGE();}return y;};
-
-      // Section header — left red bar + bold title + subtitle + rule (matches app section headers)
-      const SH=(title,sub,x,y)=>{
-        R(x,y,3.5,sub?11:7,1.5,RED);
-        sf("bold",14,INK);tx(T(title),x+7,y+(sub?7:5.5));
-        if(sub){sf("normal",7.5,AAA);tx(T(sub),x+7,y+12.5);}
-        LN(x,y+(sub?17:12),x+CW,y+(sub?17:12),BDR,0.18);
-        return y+(sub?23:17);
-      };
-
-      // ─── DATA PREP ────────────────────────────────────────────────────────
-      const now=new Date().toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"});
-      const avg=arr=>{const a=arr.filter(x=>x!=null&&!isNaN(x));return a.length?parseFloat((a.reduce((s,v)=>s+v,0)/a.length).toFixed(2)):null;};
-
-      const gAvg =avg(filtered.map(e=>e.score_global));
-      const dAvgs=DIMS_META.map(d=>({...d,score:avg(filtered.map(e=>e[`score_${d.key}`]))}));
-      const best =dAvgs.filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
-      const wrst =dAvgs.filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
-      const sprd =best&&wrst?parseFloat((best.score-wrst.score).toFixed(1)):null;
-
-      const gaps=dAvgs.filter(d=>d.score&&d.score<=3).map(d=>({
-        ...d,gap:parseFloat((5-d.score).toFixed(1)),
-        n:filtered.filter(e=>e[`score_${d.key}`]!=null).length
-      })).sort((a,b)=>a.score-b.score);
-      const critG=gaps.filter(g=>g.score<=2);
-      const modG =gaps.filter(g=>g.score>2);
-
-      const byRole=[...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(r=>{
-        const rows=filtered.filter(e=>e.rol===r);
-        return{rol:r,n:rows.length,score:avg(rows.map(e=>e.score_global))};
+      const byRoleData = [...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol=>{
+        const rows = filtered.filter(e=>e.rol===rol);
+        return { rol, n:rows.length, score:avgArr(rows.map(e=>e.score_global)) };
       }).filter(r=>r.score).sort((a,b)=>b.score-a.score);
 
-      const hDirs=[...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
-      const hRows=hDirs.map(dir=>{
-        const rows=filtered.filter(e=>e.direccion===dir);
-        const r={dir,n:rows.length,global:avg(rows.map(e=>e.score_global))};
-        DIMS_META.forEach(d=>{r[d.key]=avg(rows.map(e=>e[`score_${d.key}`]));});
+      const heatDirs = [...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
+      const heatRows = heatDirs.map(dir => {
+        const rows = filtered.filter(e=>e.direccion===dir);
+        const r = { dir, n:rows.length, global:avgArr(rows.map(e=>e.score_global)) };
+        DIMS_META.forEach(d => { r[d.key] = avgArr(rows.map(e=>e[`score_${d.key}`])); });
         return r;
-      }).sort((a,b)=>(b.global||0)-(a.global||0));
+      });
 
-      const dist=LV.map((l,i)=>({...l,v:i+1,
-        count:filtered.filter(e=>Math.round(e.score_global)===i+1).length,
-        pct:filtered.length?Math.round(filtered.filter(e=>Math.round(e.score_global)===i+1).length/filtered.length*100):0,
+      const distData = [1,2,3,4,5].map(v => ({
+        v, label: LV_NAMES[v],
+        count: filtered.filter(e=>Math.round(e.score_global)===v).length,
+        color: LV_COLORS_RGB[v-1],
       }));
 
       // ══════════════════════════════════════════════════════════════════════
-      //  PORTADA  — editorial cover matching app preview card exactly
-      //  App uses: linear-gradient(150deg,#C80F0A 0%,#E8251F 55%,#C01010 100%)
-      //  radial-gradient dot grid, fontWeight:900 letterSpacing:-.02em title
+      // PORTADA
       // ══════════════════════════════════════════════════════════════════════
-      if(sections.portada){
-        NEWPAGE("Portada");
+      if (sections.portada) {
+        // Red hero
+        rect(0, 0, W, 110, 0, RED);
+        // Dot grid pattern
+        doc.setFillColor(255,255,255);
+        for (let gx = 10; gx < W; gx += 14) {
+          for (let gy = 10; gy < 110; gy += 14) {
+            doc.circle(gx, gy, 0.4, "F");
+          }
+        }
+        // Decorative circles
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        doc.circle(W-20, 20, 60, "F");
+        doc.circle(30, 95, 35, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
 
-        // ── Hero gradient (top 62%) — replicate app cover preview gradient
-        R(0,0,W,162,0,RED);
-        // Gradient simulation: dark band top, mid, dark bottom
-        R(0,0,W,50,0,REDDK);           // #C80F0A — matches gradient start
-        R(0,115,W,47,0,REDMD);         // #C01010 — matches gradient end
-        // Geometric accent circles (decorative depth)
-        F([185,12,8]); doc.circle(W+15,-20,70,"F");
-        F([175,8,5]);  doc.circle(W-8,40,40,"F");
-        F([195,14,10]);doc.circle(-20,155,58,"F");
-        F([205,18,14]);doc.circle(W-5,158,28,"F");
+        // Logo area
+        rect(16, 16, 42, 9, 3, [200,20,15]);
+        setFont("bold", 9, [255,255,255]);
+        doc.text("KEARNEY", 37, 21.5, { align:"center" });
 
-        // Dot grid — exact app: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px) 20px 20px
-        F(WHITE);
-        for(let gx=M+2;gx<W-M;gx+=9)
-          for(let gy=5;gy<157;gy+=9)
-            doc.circle(gx,gy,0.2,"F");
+        // Title
+        setFont("bold", 28, [255,255,255]);
+        const titleLines = doc.splitTextToSize(titulo, W-40);
+        let ty = 48;
+        titleLines.forEach(line => { doc.text(line, 16, ty); ty += 11; });
 
-        // ── KEARNEY brand block ── (app header exact: red bg, bold white tracked)
-        RD(M,M,42,11,3,REDMD,[255,255,255,0].slice(0,3).map(()=>0).fill(0),0);
-        R(M,M,42,11,3,REDMD);
-        R(M,M,42,1.5,0,[160,8,6]);  // top highlight
-        sf("bold",8.5,WHITE);doc.setCharSpace(2.2);txC("KEARNEY",M+21,M+8);doc.setCharSpace(0);
+        setFont("normal", 12, [255,200,200]);
+        doc.text(subtitulo, 16, ty+4);
 
-        // Date top-right
-        sf("normal",7,[255,180,178]);txR(T(now),W-M,M+8);
+        // Date pill
+        doc.setFillColor(255,255,255);
+        doc.setGState(new doc.GState({ opacity: 0.15 }));
+        doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
+        doc.setGState(new doc.GState({ opacity: 1 }));
+        setFont("bold", 8, [255,255,255]);
+        doc.text(`📅 ${now}`, 18, ty+17);
 
-        // ── Overline — app label style: uppercase tracked faded ──
-        sf("normal",6.5,[255,160,158]);doc.setCharSpace(1.4);
-        tx("DIAGNOSTICO DE MADUREZ DE INVENTARIOS",M,42);doc.setCharSpace(0);
+        // Summary box
+        rect(16, 118, W-32, 44, 6, [255,248,248]);
+        doc.setDrawColor(232,37,31);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(16, 118, W-32, 44, 6, 6);
 
-        // ── Main title — fontWeight:900 letterSpacing:-.02em fontSize:22 (app exact) ──
-        sf("bold",26,WHITE);doc.setCharSpace(-0.25);
-        const tLines=doc.splitTextToSize(T(titulo),W-M*2-10);
-        let ty=53;
-        tLines.slice(0,3).forEach(l=>{tx(l,M,ty);ty+=12;});
-        doc.setCharSpace(0);
+        setFont("bold", 8, MID);
+        doc.text("RESUMEN EJECUTIVO", 24, 128);
+        hline(131, [255,220,218]);
 
-        // Subtitle — app: fontSize:13 color:rgba(255,200,200,.9)
-        sf("normal",11,[255,195,193]);
-        const stLines=doc.splitTextToSize(T(subtitulo),W-M*2-8);
-        stLines.slice(0,2).forEach(l=>{tx(l,M,ty+3);ty+=7;});
-
-        // ── Metric strip — 4 cards ──
-        // App StatCard style on dark: semi-dark cards with value fw:900
-        ty+=14;
-        const mw=(CW-9)/4;
-        const mdata=[
-          {v:String(filtered.length),   lbl:"Evaluaciones"},
-          {v:gAvg!=null?gAvg.toFixed(1):"-", lbl:"Score Promedio"},
-          {v:gAvg?lvL(gAvg):"-",        lbl:"Nivel Actual"},
-          {v:sprd!=null?sprd+"pts":"-", lbl:"Dispersion"},
+        // KPI boxes on cover
+        const kpis = [
+          { label:"Evaluaciones", value: String(filtered.length) },
+          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
+          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
+          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
         ];
-        mdata.forEach((m,i)=>{
-          const mx=M+i*(mw+3);
-          R(mx,ty,mw,30,6,[178,12,9]);
-          R(mx,ty,3,30,0,[140,6,4]);    // left edge accent
-          R(mx,ty,mw,1.5,0,[210,30,26]); // top highlight
-          // Value — fw:900
-          sf("bold",20,WHITE);doc.setCharSpace(-0.12);txC(T(m.v),mx+mw/2,ty+15);doc.setCharSpace(0);
-          // Label — uppercase tracked small
-          sf("normal",5.5,[255,165,163]);doc.setCharSpace(0.4);txC(T(m.lbl).toUpperCase(),mx+mw/2,ty+23);doc.setCharSpace(0);
+        kpis.forEach((k,i) => {
+          const kx = 24 + i*(W-48)/4;
+          rect(kx, 134, (W-48)/4-4, 20, 4, [255,241,241]);
+          setFont("bold", 16, RED);
+          doc.text(k.value, kx+((W-48)/4-4)/2, 146, { align:"center" });
+          setFont("normal", 7, MID);
+          doc.text(k.label, kx+((W-48)/4-4)/2, 152, { align:"center" });
         });
 
-        // ── White lower section ──
-        ty+=37;
-        R(0,ty,W,H-ty,0,WHITE);
-        // Sharp red triangle cutout
-        TRI(0,ty,38,ty,0,ty+25,RED);
-
-        let wy=ty+13;
-
-        // ── 7 dimension preview cards — exact app dim pill grid ──
-        sf("bold",7,INK);doc.setCharSpace(0.25);
-        tx("DIMENSIONES EVALUADAS",M,wy);doc.setCharSpace(0);
-        wy+=7;
-
-        const dw=(CW-12)/7;
-        DIMS_META.forEach((d,i)=>{
-          const sc=dAvgs.find(x=>x.key===d.key)?.score;
-          const dc=sc?lvC(sc):CCC;
-          const db=sc?lvBg(sc):WARM;
-          const dx=M+i*(dw+2);
-          // App AnalyticsCard exact
-          CARD(dx,wy,dw,30,8);
-          if(sc)R(dx,wy,dw,2.5,0,dc);     // colored top bar
-          // Dim num — app style: fontSize:9 fw:700 color:#BBB
-          sf("bold",7.5,sc?dc:BBB);txC(d.num,dx+dw/2,wy+11);
-          // Score — fw:900 color:level
-          sf("bold",12,sc?dc:CCC);doc.setCharSpace(-0.1);txC(sc!=null?sc.toFixed(1):"-",dx+dw/2,wy+21);doc.setCharSpace(0);
-          // Mini bar
-          BAR(dx+3,wy+24,sc||0,5,dc,dw-6,2);
-        });
-        wy+=38;
-
-        // ── Filter/section info ──
-        if(filterDir.length||filterRol.length){
-          RD(M,wy,CW,14,8,WARM,BDR,0.25);
-          LBL("Filtros aplicados",M+6,wy+6);
-          sf("normal",7.5,MID);
-          tx(T([
-            filterDir.length?"Dir: "+T(filterDir.slice(0,3).join(", ")):"",
-            filterRol.length?"Rol: "+T(filterRol.slice(0,2).join(", ")):"",
-          ].filter(Boolean).join("  |  ")),M+6,wy+11.5);
-          wy+=20;
+        // Filtros usados
+        let fy = 170;
+        if (filterDir.length || filterRol.length) {
+          setFont("bold", 8, MID);
+          doc.text("Filtros aplicados:", 16, fy); fy += 6;
+          if (filterDir.length) {
+            setFont("normal", 7.5, MID);
+            doc.text(`Dirección: ${filterDir.join(", ")}`, 20, fy); fy += 5;
+          }
+          if (filterRol.length) {
+            setFont("normal", 7.5, MID);
+            doc.text(`Rol: ${filterRol.join(", ")}`, 20, fy); fy += 5;
+          }
         }
 
-        // Section chips — app pill style: borderRadius:99 bg:#F7F5F2 border:#E8E4DF
-        LBL("Secciones incluidas",M,wy+3);wy+=8;
-        const slist=Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
-        let sx=M;
-        slist.forEach(lbl=>{
-          const tw=doc.getTextWidth(T(lbl))+10;
-          if(sx+tw>W-M){sx=M;wy+=7;}
-          RD(sx,wy-4,tw,6.5,3.5,SURF,BDR,0.25);
-          sf("normal",6.5,MID);tx(T(lbl),sx+5,wy);
-          sx+=tw+4;
+        // Sections included
+        setFont("bold", 8, MID);
+        doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
+        const included = Object.entries(sections).filter(([,v])=>v&&k!=="portada").map(([k])=>SECTION_LABELS[k]?.label||k);
+        setFont("normal", 7.5, MID);
+        const incText = included.join("  ·  ");
+        const incLines = doc.splitTextToSize(incText, W-32);
+        incLines.forEach((line,i) => doc.text(line, 16, Math.max(fy+4,178)+6+i*4.5));
+
+        // Footer on cover
+        rect(0, H-14, W, 14, 0, [30,30,28]);
+        setFont("normal", 7.5, [150,148,144]);
+        doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PAGE: KPIs EJECUTIVOS
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.resumen_kpis) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("KPIs Ejecutivos", 16, y); y += 4;
+        hline(y); y += 8;
+
+        // 4 big KPI boxes
+        const kpiBox = (x, bw, icon, label, value, sub, rgb) => {
+          rect(x, y, bw-3, 28, 5, [248,246,243]);
+          doc.setDrawColor(...rgb, 60);
+          doc.setLineWidth(0.5);
+          doc.roundedRect(x, y, bw-3, 28, 5, 5);
+          setFont("normal", 11, []);
+          doc.setTextColor(...rgb);
+          doc.text(icon, x+5, y+9);
+          setFont("bold", 18, rgb);
+          doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
+          setFont("normal", 7, MID);
+          doc.text(label, x+(bw-3)/2, y+25, { align:"center" });
+          if (sub) {
+            setFont("normal", 6.5, LIGHT);
+            doc.text(sub, x+(bw-3)/2, y+28.5, { align:"center" });
+          }
+        };
+        const bw = (W-32)/4;
+        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
+        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
+        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
+        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
+        y += 36;
+
+        // Dim scores row
+        setFont("bold", 9, DARK);
+        doc.text("Score promedio por dimensión", 16, y); y += 6;
+        DIMS_META.forEach((d,i) => {
+          const sc = dimAvgs.find(x=>x.key===d.key)?.score;
+          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
+          const dx = 16 + i*(W-32)/7;
+          const dw = (W-32)/7 - 3;
+          rect(dx, y, dw, 22, 4, [248,246,243]);
+          setFont("bold", 7, rgb);
+          doc.text(d.num, dx+dw/2, y+6, { align:"center" });
+          setFont("bold", 13, rgb);
+          doc.text(sc?.toFixed(1)||"—", dx+dw/2, y+15, { align:"center" });
+          miniBar(dx+2, y+18, sc||0, 5, rgb, dw-4);
+        });
+        y += 30;
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // PAGE: DISTRIBUCIÓN
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.distribucion) {
+        let y = checkY(999); // force new page for this section
+        y = newPage(); 
+        setFont("bold", 16, RED);
+        doc.text("Distribución por Nivel de Madurez", 16, y); y += 4;
+        hline(y); y += 10;
+
+        const maxCount = Math.max(...distData.map(d=>d.count), 1);
+        const barAreaH = 60;
+        const barW = (W-60) / 5;
+
+        distData.forEach((l, i) => {
+          const bx = 30 + i * barW;
+          const bh = l.count > 0 ? Math.max(4, (l.count/maxCount)*barAreaH) : 0;
+          // Bar BG
+          doc.setFillColor(240,238,233);
+          doc.roundedRect(bx, y, barW-4, barAreaH, 3, 3, "F");
+          // Bar fill
+          if (bh > 0) {
+            doc.setFillColor(...l.color);
+            doc.roundedRect(bx, y+barAreaH-bh, barW-4, bh, 3, 3, "F");
+          }
+          // Count on top
+          setFont("bold", 12, l.color);
+          doc.text(String(l.count), bx+(barW-4)/2, y+barAreaH-bh-2, { align:"center" });
+          // Label
+          setFont("bold", 7.5, l.color);
+          doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
+          // Pct
+          setFont("normal", 7, MID);
+          doc.text(`${l.pct}%`, bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
+        });
+        y += barAreaH + 20;
+
+        // Pill summary
+        distData.filter(d=>d.count>0).forEach(l => {
+          pill(16, y, `${l.label}: ${l.count} eval. (${l.pct}%)`, [...l.color, 0.15].slice(0,3), l.color);
+          y += 7;
         });
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      //  KPIs EJECUTIVOS  — replicates app AnalyticsTab KPI section exactly
-      //  StatCard: bg:#FFF border:#E8E4DF radius:16 padding:22 24
-      //  Value: fontSize:32 fw:900 letterSpacing:-.02em lineHeight:1 color:level
-      //  Label: fontSize:11 color:#999 fw:600 uppercase letterSpacing:.1em
-      //  Icon: width:40 height:40 borderRadius:10 bg:color+"18"
+      // PAGE: HEATMAP
       // ══════════════════════════════════════════════════════════════════════
-      if(sections.resumen_kpis){
-        let y=NEWPAGE("KPIs Ejecutivos");
-        y=SH("Resumen Ejecutivo","Indicadores clave del estado de madurez de inventarios",M,y);
+      if (sections.heatmap && heatRows.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("Heatmap Dirección × Dimensión", 16, y); y += 4;
+        hline(y); y += 8;
 
-        // ── 4 StatCards ──
-        const kpis=[
-          {lbl:"Score Global Prom.",v:gAvg!=null?gAvg.toFixed(2):"-",  sub:gAvg?lvL(gAvg):"-",                  c:gAvg?lvC(gAvg):CCC},
-          {lbl:"Dim. mas fuerte",   v:best?best.num:"-",               sub:best?T(best.label).slice(0,16):"-",   c:[5,150,105]},
-          {lbl:"Dim. mas debil",    v:wrst?wrst.num:"-",               sub:wrst?T(wrst.label).slice(0,16):"-",   c:RED},
-          {lbl:"Dispersion",        v:sprd!=null?sprd+"pts":"-",       sub:"max - min entre dims",               c:sprd>=2?RED:sprd>=1?LV[1].c:LV[4].c},
-        ];
-        const kw=(CW-9)/4;
-        kpis.forEach((k,i)=>{
-          const kx=M+i*(kw+3);
-          // StatCard body — bg:#FFF border:#E8E4DF radius:16
-          CARD(kx,y,kw,40);
-          // Colored top accent strip
-          R(kx,y,kw,3,0,k.c);
-          // Icon box — borderRadius:10 bg:color+"18" width:40 height:40 (scaled to PDF)
-          const ibg=k.c.map(v=>Math.min(255,v+185));
-          R(kx+kw-14,y+7,11,11,3,ibg);
-          R(kx+kw-12,y+9,7,7,2,k.c);  // inner icon block
-          // Label — fontSize:11 color:#999 fw:600 uppercase letterSpacing:.1em
-          LBL(k.lbl,kx+6,y+12);
-          // Value — fontSize:32 fw:900 letterSpacing:-.02em (PDF: ~22pt)
-          VAL(k.v,kx+6,y+27,k.c,20);
-          // Sub — level pill
-          if(k.sub&&k.sub!=="-"){
-            const sbg=k.c.map(v=>Math.min(255,v+185));
-            R(kx+6,y+31.5,kw-12,6.5,3.5,sbg);
-            sf("bold",6,k.c);txC(T(k.sub),kx+kw/2,y+36.2);
-          }
+        const cols = ["Dirección","n","Global",...DIMS_META.map(d=>d.num)];
+        const colW  = [42, 10, 18, ...Array(7).fill((W-32-42-10-18)/7)];
+        let cx = 16;
+
+        // Header row
+        rect(16, y, W-32, 7, 2, [248,246,243]);
+        cols.forEach((col,i) => {
+          setFont("bold", 7, MID);
+          doc.text(col, cx+colW[i]/2, y+4.8, { align:"center" });
+          cx += colW[i];
         });
-        y+=48;
+        y += 8;
 
-        // ── Dim score rows — exact app Analytics dim list ──
-        // Row: num(fw:700 #BBB) + label(fw:600 #555) + MiniBar(track:#F0EDE9) + score(fw:800 color)
-        y=CY(y,8+DIMS_META.length*13);
-        LBL("Score por dimension — ordenado de mayor a menor",M,y);y+=7;
-
-        [...dAvgs].sort((a,b)=>(b.score||0)-(a.score||0)).forEach((d,i)=>{
-          y=CY(y,12);
-          const sc=d.score;
-          const dc=sc?lvC(sc):CCC;
-          const db=sc?lvBg(sc):WARM;
-
-          // Row bg — app hover style: alternating #F7F5F2
-          if(i%2===0)R(M,y-1,CW,12,3,WARM);
-
-          // Dim num — app: fontSize:9 fw:700 color:#BBB
-          sf("bold",7.5,sc?dc:BBB);tx(d.num,M+3,y+7.2);
-
-          // Icon (dim.icon stripped of emoji, show colored square instead)
-          R(M+14,y+2,8,8,2,sc?db:SURF);
-          if(sc){S(dc,0.3);doc.roundedRect(M+14,y+2,8,8,2,2);}
-          sf("bold",5.5,dc);txC(d.num,M+18,y+7.2);
-
-          // Label — fw:600 color:#555
-          sf("bold",8.5,MID);tx(T(d.label),M+25,y+7.2);
-
-          // n evaluaciones — small #CCC
-          const nEval=filtered.filter(e=>e[`score_${d.key}`]!=null).length;
-          sf("normal",6,CCC);tx("n="+nEval,M+100,y+7.2);
-
-          // MiniBar — app exact: track:#F0EDE9 borderRadius:99 height:5
-          const bx=M+115,bw=CW-115-32;
-          BAR(bx,y+4,sc||0,5,dc,bw,4.5);
-
-          // Score + level pill — fw:800 color
-          if(sc){
-            const sbg=sc?db:WARM;
-            R(W-M-30,y+1.5,16,8,4,sbg);
-            sf("bold",7,dc);txC(sc.toFixed(1),W-M-30+8,y+7);
-            PILL(sc,W-M-12,y+1.5,11,8);
-          }
-          y+=12;
-        });
-
-        y+=6;LN(M,y,W-M,y,BDR,0.15);y+=8;
-
-        // ── Distribution mini chart ──
-        y=CY(y,75);
-        LBL("Distribucion por nivel de madurez",M,y);y+=8;
-        const maxC=Math.max(...dist.map(d=>d.count),1);
-        const bcw=(CW-16)/5;
-        dist.forEach((l,i)=>{
-          const bx=M+8+i*(bcw+4);
-          const mxH=45,bh=l.count>0?Math.max(5,(l.count/maxC)*mxH):0;
-          // Track
-          R(bx,y,bcw,mxH,4,SURF);
-          // Fill with rounded top
-          if(bh>0){R(bx,y+mxH-bh,bcw,bh,4,l.c);}
-          // Count label
-          if(bh>9){sf("bold",10,WHITE);txC(String(l.count),bx+bcw/2,y+mxH-bh+8);}
-          else{sf("normal",9,CCC);txC(String(l.count),bx+bcw/2,y+mxH/2+3);}
-          // Level label
-          sf("bold",7,l.c);txC(T(l.label),bx+bcw/2,y+mxH+7);
-          sf("normal",6,AAA);txC(l.pct+"%",bx+bcw/2,y+mxH+13);
-          // Level number dot
-          DOT(bx+bcw/2,y-3,2.8,bh>0?l.c:BDR);
-          sf("bold",5.5,WHITE);txC(String(i+1),bx+bcw/2,y-1.5);
-        });
-        y+=mxH+22;
-        var mxH=45;
-      }
-
-      // ══════════════════════════════════════════════════════════════════════
-      //  HEATMAP  — exact app heatmap table aesthetic
-      //  Header: bg:#F7F5F2, fw:700, color:#999, uppercase, letterSpacing:.1em
-      //  Cells: level bg + level color bold score, alternating white/#FBF9F7
-      //  Border: 1px solid #E8E4DF bottom each row
-      // ══════════════════════════════════════════════════════════════════════
-      if(sections.heatmap&&hRows.length>0){
-        let y=NEWPAGE("Heatmap");
-        y=SH("Heatmap Direccion x Dimension","Score promedio por unidad y dimension | Color = nivel de madurez",M,y);
-
-        const LW=42,NW=10,GW=20;
-        const DW=(CW-LW-NW-GW-3)/DIMS_META.length;
-
-        // Table wrapper card
-        CARD(M,y,CW,10+hRows.length*10+2,3);
-
-        // Header row — app: bg:#F7F5F2 border-bottom:#E8E4DF fw:700 #999 uppercase
-        R(M,y,CW,10,3,SURF);
-        LN(M,y+10,M+CW,y+10,BDR,0.25);
-        sf("bold",6.5,CCC);doc.setCharSpace(0.45);
-        tx("DIRECCION",M+3,y+7);
-        txC("N",M+LW+NW/2,y+7);
-        txC("GLOBAL",M+LW+NW+GW/2,y+7);
-        DIMS_META.forEach((d,i)=>txC(d.num,M+LW+NW+GW+3+i*DW+DW/2,y+7));
-        doc.setCharSpace(0);y+=10;
-
-        hRows.forEach((row,ri)=>{
-          y=CY(y,10.5);
-          R(M,y,CW,10,0,ri%2===0?WHITE:FBF);
-          LN(M,y+10,M+CW,y+10,BDR,0.15);
-
-          sf(ri===0?"bold":"normal",8,MID);tx(T(row.dir).slice(0,18),M+3,y+6.8);
-          sf("normal",7.5,AAA);txC(String(row.n),M+LW+NW/2,y+6.8);
-
-          if(row.global){
-            const gc=lvC(row.global),gb=lvBg(row.global);
-            R(M+LW+NW+1,y+2,GW-2,6.5,3,gb);
-            sf("bold",8,gc);txC(row.global.toFixed(1),M+LW+NW+GW/2,y+6.8);
-          }else{sf("normal",7,CCC);txC("-",M+LW+NW+GW/2,y+6.8);}
-
-          DIMS_META.forEach((d,i)=>{
-            const v=row[d.key];
-            const cx2=M+LW+NW+GW+3+i*DW;
-            if(v){
-              R(cx2+0.5,y+2,DW-1,6.5,2,lvBg(v));
-              sf("bold",7.5,lvC(v));txC(v.toFixed(1),cx2+DW/2,y+6.8);
-            }else{sf("normal",6.5,CCC);txC("-",cx2+DW/2,y+6.8);}
+        heatRows.sort((a,b)=>(b.global||0)-(a.global||0)).forEach(row => {
+          y = checkY(y, 10);
+          cx = 16;
+          // Dir
+          setFont("bold", 8, DARK);
+          doc.text(row.dir, cx+2, y+4.8);
+          cx += colW[0];
+          // n
+          setFont("normal", 7.5, MID);
+          doc.text(String(row.n), cx+colW[1]/2, y+4.8, { align:"center" });
+          cx += colW[1];
+          // Global
+          const gl = row.global ? LV_COLORS_RGB[Math.round(row.global)-1] : [200,198,192];
+          rect(cx, y+0.5, colW[2]-1, 6.5, 2, [...gl].map(c=>Math.min(255,c+200)));
+          setFont("bold", 8, gl);
+          doc.text(row.global?.toFixed(1)||"—", cx+colW[2]/2, y+4.8, { align:"center" });
+          cx += colW[2];
+          // Dims
+          DIMS_META.forEach(d => {
+            const v = row[d.key];
+            const rgb = v ? LV_COLORS_RGB[Math.round(v)-1] : [200,198,192];
+            if (v) {
+              rect(cx+0.5, y+0.5, colW[3]-1, 6.5, 2, [...rgb].map(c=>Math.min(255,c+200)));
+            }
+            setFont(v?"bold":"normal", v?8:7, v?rgb:LIGHT);
+            doc.text(v?.toFixed(1)||"—", cx+colW[3]/2, y+4.8, { align:"center" });
+            cx += colW[3];
           });
-          y+=10;
+          hline(y+8, [240,238,233]);
+          y += 9;
         });
 
-        y+=6;
         // Legend
-        LBL("Niveles de madurez",M,y+3);y+=8;
-        LV.forEach((l,i)=>{
-          const lx=M+i*37;
-          RD(lx,y-3.5,35,7,3.5,l.bg,l.c.map(v=>Math.min(255,v+120)),0.3);
-          sf("bold",6.5,l.c);txC((i+1)+" "+T(l.label),lx+17.5,y);
+        y += 6;
+        setFont("bold", 7, MID);
+        doc.text("Referencia de colores:", 16, y); y += 5;
+        ["#1","Básico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
+          if (i%2===0) return;
+          const lx = 16 + Math.floor(i/2)*42;
+          const rgb = LV_COLORS_RGB[Math.floor(i/2)];
+          doc.setFillColor(...rgb.map(c=>Math.min(255,c+200)));
+          doc.roundedRect(lx-1, y-3.5, 40, 5, 1.5, 1.5, "F");
+          setFont("bold", 7, rgb);
+          doc.text(lbl, lx+20, y, { align:"center" });
         });
-        y+=12;
+      }
 
-        // By Role
-        if(byRole.length>0){
-          y=CY(y,14+byRole.length*11);
-          LN(M,y,M+CW,y,BDR,0.18);y+=7;
-          LBL("Score promedio por rol",M,y);y+=8;
-          byRole.forEach((r,i)=>{
-            y=CY(y,11);
-            const rc=r.score?lvC(r.score):CCC;
-            if(i%2===0)R(M,y-1,CW,11,3,WARM);
-            // Rank dot
-            DOT(M+5,y+4.5,4.5,i<3?rc:BDR);
-            sf("bold",6.5,i<3?WHITE:AAA);txC(String(i+1),M+5,y+6);
+      // ══════════════════════════════════════════════════════════════════════
+      // POR ROL
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.por_rol && byRoleData.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("Score Promedio por Rol", 16, y); y += 4;
+        hline(y); y += 10;
+
+        byRoleData.forEach((r,i) => {
+          y = checkY(y, 12);
+          const sc = r.score;
+          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
+          setFont("bold", 8, rgb);
+          doc.text(`#${i+1}`, 16, y+3);
+          setFont("bold", 10, DARK);
+          doc.text(r.rol, 26, y+3);
+          setFont("normal", 8, MID);
+          doc.text(`n=${r.n}`, 110, y+3);
+          miniBar(120, y, sc||0, 5, rgb, 55);
+          setFont("bold", 11, rgb);
+          doc.text(sc?.toFixed(2)||"—", W-16, y+3, { align:"right" });
+          hline(y+7, [240,238,233]);
+          y += 10;
+        });
+      }
+
+      // ══════════════════════════════════════════════════════════════════════
+      // BRECHAS CRÍTICAS
+      // ══════════════════════════════════════════════════════════════════════
+      if (sections.brechas_crit) {
+        let y = newPage();
+        rect(0, 0, W, 14, 0, RED); // override header to red
+        setFont("bold", 9, [255,255,255]);
+        doc.text(titulo, 16, 9.5);
+        setFont("bold", 16, RED);
+        y = 20;
+        doc.text("🚨 Brechas Críticas — Nivel 1–2", 16, y); y += 4;
+        hline(y); y += 6;
+        setFont("normal", 9, MID);
+        doc.text(`${critGaps.length} dimensiones en estado básico o emergente. Acción inmediata recomendada.`, 16, y); y += 8;
+
+        if (critGaps.length === 0) {
+          rect(16, y, W-32, 14, 4, [236,253,245]);
+          setFont("bold", 9, [5,150,105]);
+          doc.text("✅  No se identificaron brechas críticas en la selección actual", W/2, y+9, { align:"center" });
+          y += 20;
+        } else {
+          critGaps.forEach(g => {
+            y = checkY(y, 28);
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(16, y, W-32, 24, 4, [255,248,248]);
+            doc.setDrawColor(254,202,202);
+            doc.roundedRect(16, y, W-32, 24, 4, 4);
+            // Icon + title
+            setFont("bold", 11, DARK);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+8);
             // Score badge
-            RD(M+13,y+1,22,8,4,r.score?lvBg(r.score):WARM,rc,0.3);
-            sf("bold",8,rc);txC(r.score!=null?r.score.toFixed(2):"-",M+24,y+6.3);
-            // Name
-            sf("bold",9,MID);tx(T(r.rol).slice(0,28),M+38,y+6.3);
-            sf("normal",6,CCC);tx("n="+r.n,M+38+doc.getTextWidth(T(r.rol).slice(0,28))+4,y+5.8);
-            // Bar
-            BAR(M+38,y+7.5,r.score||0,5,rc,CW-50,3);
-            y+=11;
+            rect(W-50, y+3, 32, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
+            setFont("bold", 8, rgb);
+            doc.text(`${g.score.toFixed(1)} · ${lvLabel(g.score)}`, W-34, y+7.5, { align:"center" });
+            // Gap
+            setFont("bold", 8, [220,38,38]);
+            doc.text(`+${g.gap.toFixed(1)} niveles de brecha`, 22, y+15);
+            // Minibar
+            miniBar(22, y+18.5, g.score, 5, rgb, W-52);
+            setFont("normal", 7, MID);
+            doc.text(`${g.n} evaluaciones promediadas`, W-16, y+22, { align:"right" });
+            y += 28;
           });
         }
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      //  BRECHAS CRITICAS  — app gap cards exactly
-      //  Card: bg:#FFF8F7 border:#FDDCDA radius:12
-      //  Num: colored pill fw:700 bg:level-bg
-      //  Bar: MiniBar with floating score marker
+      // BRECHAS MODERADAS
       // ══════════════════════════════════════════════════════════════════════
-      if(sections.brechas_crit){
-        let y=NEWPAGE("Brechas Criticas");
-        y=SH("Brechas Criticas","Dimensiones con score promedio 1–2 | Accion inmediata recomendada",M,y);
+      if (sections.brechas_mod) {
+        let y = newPage();
+        setFont("bold", 16, [217,119,6]);
+        doc.text("⚡ Brechas Moderadas — Nivel 3", 16, y); y += 4;
+        hline(y,[254,230,138]); y += 8;
 
-        if(critG.length===0){
-          CARD(M,y,CW,18,10);R(M,y,CW,2.5,0,LV[4].c);
-          sf("bold",10,LV[4].c);txC("Sin brechas criticas en la seleccion actual",M+CW/2,y+12);
-          y+=24;
-        }else{
-          critG.forEach((g,gi)=>{
-            y=CY(y,42);
-            const gc=lvC(g.score),gb=lvBg(g.score);
-
-            // Gap card — app tinted style: bg:#FFF8F7 (red tint) border:#FDDCDA
-            RD(M,y,CW,38,12,REDLT,REDDA,0.45);
-            // Left thick stripe — level color
-            R(M,y,5,38,0,gc);
-
-            // Priority circle (top-left, over stripe)
-            DOT(M+5.5,y+5.5,5,gc);
-            sf("bold",7,WHITE);txC(String(gi+1),M+5.5,y+7);
-
-            // Dim number pill — app borderRadius:99 style
-            RD(M+13,y+7,16,10,5,gb,gc,0.4);
-            sf("bold",8,gc);txC(g.num,M+21,y+13.5);
-
-            // Dim label — fw:800 large
-            sf("bold",12,INK);tx(T(g.label),M+33,y+13);
-
-            // n evaluaciones (top-right)
-            sf("normal",6.5,AAA);txR(g.n+" evaluaciones",W-M-4,y+10);
-
-            // Score pill + Gap badge (right side)
-            RD(W-M-52,y+16,24,8,4,gb,gc,0.35);
-            sf("bold",7.5,gc);txC("Score "+g.score.toFixed(1),W-M-52+12,y+21.5);
-            R(W-M-25,y+16,22,8,4,[255,235,235]);
-            sf("bold",7.5,RED);txC("+"+g.gap.toFixed(1)+" niv",W-M-25+11,y+21.5);
-
-            // Progress bar — MiniBar style with current score floating dot
-            const bX=M+13,bW=CW-65-6;
-            BAR(bX,y+28,g.score,5,gc,bW,5);
-            // Floating marker
-            const mk=bX+(g.score/5)*bW;
-            DOT(mk,y+30.5,4.5,gc);
-            sf("bold",5.5,WHITE);txC(g.score.toFixed(1),mk,y+31.5);
-            // Scale numbers
-            sf("normal",5.5,CCC);tx("1",bX,y+36.5);txR("5",bX+bW,y+36.5);
-
-            y+=44;
+        if (modGaps.length === 0) {
+          setFont("normal", 10, MID);
+          doc.text("Sin brechas moderadas identificadas.", 16, y);
+        } else {
+          modGaps.forEach(g => {
+            y = checkY(y, 22);
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(16, y, W-32, 18, 4, [255,251,240]);
+            doc.setDrawColor(253,230,138);
+            doc.roundedRect(16, y, W-32, 18, 4, 4);
+            setFont("bold", 10, DARK);
+            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+7);
+            miniBar(22, y+11, g.score, 5, rgb, W-52);
+            setFont("bold", 8, rgb);
+            doc.text(`${g.score.toFixed(1)} / 5`, W-16, y+8, { align:"right" });
+            setFont("normal", 7, MID);
+            doc.text(`n=${g.n}`, W-16, y+15, { align:"right" });
+            y += 22;
           });
         }
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      //  BRECHAS MODERADAS  — 2-column grid of cards
+      // ROADMAP
       // ══════════════════════════════════════════════════════════════════════
-      if(sections.brechas_mod){
-        let y=NEWPAGE("Brechas Moderadas");
-        y=SH("Brechas Moderadas","Dimensiones con score promedio de nivel 3 | Oportunidad de mejora",M,y);
+      if (sections.roadmap && gapsData.length > 0) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("🗺️ Hoja de Ruta Priorizada", 16, y); y += 4;
+        hline(y); y += 8;
 
-        if(modG.length===0){
-          CARD(M,y,CW,18,10);sf("normal",10,AAA);txC("Sin brechas moderadas",M+CW/2,y+12);y+=24;
-        }else{
-          const gw=(CW-6)/2;const rows2=Math.ceil(modG.length/2);
-          modG.forEach((g,i)=>{
-            const col=i<rows2?0:1,row=i<rows2?i:i-rows2;
-            const gx=M+col*(gw+6),gy=y+row*32;
-            y=CY(gy,30);
-            const gc=lvC(g.score),gb=lvBg(g.score);
-            CARD(gx,gy,gw,28,10);
-            R(gx,gy,gw,3,0,gc);
-            RD(gx+6,gy+7,14,9,4,gb,gc,0.35);
-            sf("bold",7.5,gc);txC(g.num,gx+13,gy+13);
-            sf("bold",9,MID);tx(T(g.label).slice(0,22),gx+24,gy+12);
-            sf("normal",6.5,AAA);tx("n="+g.n,gx+24,gy+18.5);
-            BAR(gx+6,gy+21,g.score,5,gc,gw-12,3.5);
-            sf("bold",10,gc);txR(g.score.toFixed(1)+" / 5",gx+gw-4,gy+12);
-          });
-          y+=rows2*32+4;
-        }
-      }
-
-      // ══════════════════════════════════════════════════════════════════════
-      //  ROADMAP  — 3-column phased plan
-      // ══════════════════════════════════════════════════════════════════════
-      if(sections.roadmap&&gaps.length>0){
-        let y=NEWPAGE("Hoja de Ruta");
-        y=SH("Hoja de Ruta Priorizada","Plan de accion en 3 horizontes segun impacto y urgencia",M,y);
-
-        const phases=[
-          {t:"Corto Plazo",  sub:"0–6 meses",  c:RED,    bg:REDLT,    br:REDDA, items:critG.slice(0,4)},
-          {t:"Mediano Plazo",sub:"6–12 meses", c:LV[1].c,bg:LV[1].bg, br:[253,230,138],items:[...critG.slice(4),...modG.slice(0,3)].slice(0,4)},
-          {t:"Largo Plazo",  sub:"12–24 meses",c:LV[4].c,bg:LV[4].bg, br:[167,243,208],items:modG.slice(3,7)},
+        const phases = [
+          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps.slice(0,4) },
+          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:[...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
+          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[5,150,105],  bgRGB:[236,253,245], items:modGaps.slice(3,7) },
         ];
-        const pw=(CW-8)/3;
-
-        // Phase headers
-        phases.forEach((ph,pi)=>{
-          const px=M+pi*(pw+4);
-          CARD(px,y,pw,24,10);
-          R(px,y,pw,3,0,ph.c);
-          DOT(px+10,y+13,5.5,ph.c);
-          sf("bold",8,WHITE);txC(String(pi+1),px+10,y+14.5);
-          sf("bold",10,ph.c);tx(T(ph.t),px+19,y+11);
-          sf("normal",7.5,ph.c);tx(T(ph.sub),px+19,y+18);
+        const colW2 = (W-38)/3;
+        phases.forEach((ph,pi) => {
+          const px = 16 + pi*(colW2+3);
+          rect(px, y, colW2, 12, 4, ph.bgRGB);
+          doc.setDrawColor(...ph.rgb,80);
+          doc.roundedRect(px, y, colW2, 12, 4, 4);
+          setFont("bold", 9, ph.rgb);
+          doc.text(ph.t, px+5, y+6);
+          setFont("normal", 7, [...ph.rgb].map(c=>Math.min(200,c+40)));
+          doc.text(ph.sub, px+5, y+10.5);
         });
+        y += 16;
 
-        // Timeline line
-        const tly=y+12;
-        LN(M+pw,tly,M+CW-pw,tly,BDR,0.4);
-        [0,1,2].forEach(pi=>{const px=M+pi*(pw+4)+pw/2;DOT(px,tly,2,BDR);DOT(px,tly,1,WHITE);});
-        y+=30;
-
-        const maxI=Math.max(...phases.map(p=>p.items.length),0);
-        for(let row=0;row<maxI;row++){
-          y=CY(y,17);
-          phases.forEach((ph,pi)=>{
-            const px=M+pi*(pw+4);const g=ph.items[row];
-            if(!g){if(row===0){R(px,y,pw,14,4,WARM);sf("normal",7,CCC);txC("Sin acciones",px+pw/2,y+9);}return;}
-            const gc=lvC(g.score);
-            RD(px,y,pw,14,5,WHITE,ph.br,0.4);
-            DOT(px+7,y+7,4.5,ph.c);
-            sf("bold",6.5,WHITE);txC(String(row+1),px+7,y+8.5);
-            sf("bold",8,MID);tx(T(g.label).slice(0,18),px+14,y+7.5);
-            R(px+pw-22,y+3,20,7,3.5,lvBg(g.score));
-            sf("bold",6,gc);txC(g.score.toFixed(1)+" nv",px+pw-12,y+7.5);
-            BAR(px+14,y+10,g.score,5,gc,pw-14-24,2.5);
+        const maxItems = Math.max(...phases.map(p=>p.items.length));
+        for (let row=0; row < maxItems; row++) {
+          y = checkY(y, 14);
+          phases.forEach((ph,pi) => {
+            const px = 16 + pi*(colW2+3);
+            const g = ph.items[row];
+            if (!g) return;
+            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
+            rect(px, y, colW2, 11, 3, [250,249,247]);
+            setFont("bold", 8.5, DARK);
+            doc.text(`${g.dimIcon} ${g.dimLabel}`, px+4, y+5);
+            miniBar(px+4, y+7, g.score, 5, rgb, colW2-18);
+            setFont("bold", 8, rgb);
+            doc.text(g.score.toFixed(1), px+colW2-4, y+5, { align:"right" });
           });
-          y+=17;
+          y += 14;
         }
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      //  RANKING  — exact app table style
-      //  Header: bg:#F7F5F2 fw:700 #999 uppercase letterSpacing:.1em
-      //  Rows: white/#FBF9F7 alt, first row bg:#FFF8F7 border:#FDDCDA
-      //  Level badge: borderRadius:99 bg:level-bg text:level-c
-      //  Spark: vertical bars per dim, level-colored
+      // RANKING
       // ══════════════════════════════════════════════════════════════════════
-      if(sections.ranking){
-        let y=NEWPAGE("Ranking");
-        y=SH("Ranking de Evaluaciones","Top 20 evaluaciones ordenadas por score global descendente",M,y);
+      if (sections.ranking) {
+        let y = newPage();
+        setFont("bold", 16, RED);
+        doc.text("🏆 Ranking de Evaluaciones", 16, y); y += 4;
+        hline(y); y += 8;
 
-        const sorted=[...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,20);
+        const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
+        // Header
+        rect(16, y, W-32, 7, 2, [248,246,243]);
+        setFont("bold", 7.5, MID);
+        const RCols = [[16,"#",8],[26,"Dirección",50],[78,"Rol",36],[116,"Score",18],[136,"Nivel",28],[166,"Fecha",30]];
+        RCols.forEach(([cx,lbl])=>{ doc.text(lbl, cx, y+4.8); });
+        y += 8;
 
-        const cols=[
-          {l:"#",     w:9, x:M},
-          {l:"Dir.",  w:44,x:M+10},
-          {l:"Rol",   w:34,x:M+55},
-          {l:"Score", w:18,x:M+90},
-          {l:"Nivel", w:28,x:M+109},
-          {l:"Fecha", w:24,x:M+138},
-          {l:"Dims",  w:CW-163,x:M+163},
-        ];
-
-        // Table wrapper
-        CARD(M,y,CW,10+sorted.length*11+2,3);
-
-        // Header — app table header: bg:#F7F5F2 fw:700 #999 uppercase letterSpacing:.1em
-        R(M,y,CW,10,3,SURF);
-        LN(M,y+10,M+CW,y+10,BDR,0.25);
-        sf("bold",6.5,CCC);doc.setCharSpace(0.4);
-        cols.forEach(c=>tx(T(c.l),c.x+1,y+7));
-        doc.setCharSpace(0);y+=10;
-
-        sorted.forEach((e,i)=>{
-          y=CY(y,11);
-          const rc=e.score_global?lvC(e.score_global):CCC;
-          const rb=e.score_global?lvBg(e.score_global):WARM;
-
-          // Row background — app: first row #FFF8F7/#FDDCDA, alt white/#FBF9F7
-          if(i===0)RD(M,y,CW,11,2,REDLT,REDDA,0.35);
-          else if(i%2===0)R(M,y,CW,11,0,FBF);
-          else R(M,y,CW,11,0,WHITE);
-
-          // Rank — medal colors for top 3
-          if(i<3){
-            const mc=i===0?[217,119,6]:i===1?[150,147,140]:LV[1].c;
-            DOT(cols[0].x+4.5,y+5.5,4.5,mc);
-            sf("bold",6.5,WHITE);txC(String(i+1),cols[0].x+4.5,y+6.8);
-          }else{sf("bold",7,CCC);tx(String(i+1),cols[0].x+2,y+6.8);}
-
-          // Direccion — fw:600 #555
-          sf(i<3?"bold":"normal",7.5,MID);tx(T(e.direccion||"-").slice(0,15),cols[1].x+1,y+6.8);
-          // Rol
-          sf("normal",7,AAA);tx(T(e.rol||"-").slice(0,12),cols[2].x+1,y+6.8);
-          // Score — fw:900 level color
-          sf("bold",9.5,rc);doc.setCharSpace(-0.1);tx(e.score_global!=null?e.score_global.toFixed(2):"-",cols[3].x+1,y+7);doc.setCharSpace(0);
-          // Level pill — app borderRadius:99 bg:level-bg text:level-c
-          PILL(e.score_global||1,cols[4].x,y+2.5,27,7);
-          // Date
-          sf("normal",6.5,CCC);tx((e.created_at||"").slice(0,10)||"-",cols[5].x+1,y+6.8);
-          // Dim spark bars — vertical, level-colored
-          const spX=cols[6].x,spW=cols[6].w-2;
-          const dW=(spW/DIMS_META.length)-0.5;
-          DIMS_META.forEach((d,di)=>{
-            const dv=e[`score_${d.key}`];
-            const dc=dv?lvC(dv):BDR;
-            const bh=dv?(dv/5)*8.5:1;
-            R(spX+di*(dW+0.5),y+10.5-bh,dW,bh,0.5,dc);
-          });
-          LN(M,y+11,M+CW,y+11,BDR,0.15);
-          y+=11;
+        sorted.forEach((e,i) => {
+          y = checkY(y, 10);
+          const rgb = e.score_global ? LV_COLORS_RGB[Math.round(e.score_global)-1] : [180,178,174];
+          if (i===0) rect(16, y-0.5, W-32, 9, 2, [255,248,248]);
+          setFont("bold", 8, i===0?RED:MID);
+          doc.text(`#${i+1}`, 16, y+4.5);
+          setFont(i<3?"bold":"normal", 8, DARK);
+          doc.text((e.direccion||"—").slice(0,22), 26, y+4.5);
+          setFont("normal", 8, MID);
+          doc.text((e.rol||"—").slice(0,18), 78, y+4.5);
+          setFont("bold", 9, rgb);
+          doc.text(e.score_global?.toFixed(2)||"—", 116, y+4.5);
+          rect(136, y+0.5, 28, 6, 2, [...rgb].map(c=>Math.min(255,c+200)));
+          setFont("bold", 7, rgb);
+          doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
+          setFont("normal", 7, LIGHT);
+          doc.text(e.created_at?.slice(0,10)||"—", 166, y+4.5);
+          hline(y+8.5,[240,238,233]);
+          y += 10;
         });
       }
 
-      // ─── FOOTERS ──────────────────────────────────────────────────────────
-      const tot=doc.internal.getNumberOfPages();
-      for(let p=1;p<=tot;p++){doc.setPage(p);FOOTER(p,tot);}
+      // ── Page numbers ──────────────────────────────────────────────────────
+      const totalPages = doc.getNumberOfPages();
+      for (let p=1; p<=totalPages; p++) {
+        doc.setPage(p);
+        if (p > 1 || !sections.portada) {
+          setFont("normal", 7, LIGHT);
+          doc.text(`Página ${p} de ${totalPages}`, W-16, H-5, { align:"right" });
+          setFont("normal", 7, LIGHT);
+          doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
+        }
+      }
 
-      doc.save("Reporte_Madurez_"+new Date().toISOString().slice(0,10)+".pdf");
-    }catch(err){
-      console.error("PDF error:",err);
-      alert("Error generando PDF: "+err.message);
+      const fname = `Reporte_Madurez_${new Date().toISOString().slice(0,10)}.pdf`;
+      doc.save(fname);
+    } catch(err) {
+      console.error("PDF error:", err);
+      alert("Error generando PDF: " + err.message);
     }
     setGenerating(false);
   }
@@ -2148,16 +2334,6 @@ function ReportTab({ evaluaciones, respuestas }) {
         {/* Filtros */}
         <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF", padding:"22px 20px" }}>
           <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".14em", marginBottom:14 }}>Datos a incluir</div>
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Consolidado</div>
-            <button onClick={()=>{ setFilterDir([]); setFilterRol([]); }} style={{
-              padding:"6px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
-              border:`1.5px solid ${!filterDir.length&&!filterRol.length?RED:"#E8E4DF"}`,
-              background:!filterDir.length&&!filterRol.length?RED+"18":"#FAFAFA",
-              color:!filterDir.length&&!filterRol.length?RED:"#999",
-            }}>Todas las evaluaciones ({evaluaciones.length})</button>
-          </div>
-          <div style={{ height:1, background:"#F0EDE9", marginBottom:14 }} />
           <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:10.5, fontWeight:600, color:"#555", marginBottom:7 }}>Dirección</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
@@ -2352,6 +2528,8 @@ export default function ControlApp() {
   const [tab, setTab] = useState("monitor");
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [respuestas, setRespuestas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+  const [empresaFiltro, setEmpresaFiltro] = useState(null); // null = todas
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -2366,12 +2544,14 @@ export default function ControlApp() {
 
   async function fetchData() {
     setLoading(true);
-    const [{ data: evals }, { data: resps }] = await Promise.all([
+    const [{ data: evals }, { data: resps }, { data: emps }] = await Promise.all([
       supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
       supabase.from("respuestas").select("*"),
+      supabase.from("empresas").select("*").order("created_at", { ascending: false }),
     ]);
     setEvaluaciones(evals || []);
     setRespuestas(resps || []);
+    setEmpresas(emps || []);
     setLoading(false);
   }
 
@@ -2418,6 +2598,7 @@ export default function ControlApp() {
   const TABS = [
     { id: "monitor",   icon: "📊", label: "Monitoreo" },
     { id: "analytics", icon: "📈", label: "Analytics" },
+    { id: "empresas",  icon: "🏢", label: "Empresas" },
     { id: "links",     icon: "🔗", label: "Links" },
     { id: "reporte",   icon: "📄", label: "Reporte PDF" },
     { id: "downloads", icon: "⬇",  label: "Descargas" },
@@ -2473,30 +2654,56 @@ export default function ControlApp() {
 
       {/* Content */}
       <div style={{ flex: 1, overflow: "auto", padding: "32px 36px" }}>
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#E8251F", letterSpacing: "-.02em" }}>
-            {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
-          </div>
-          <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
-            {tab === "monitor" && "Vista general de todas las evaluaciones registradas"}
-            {tab === "links" && "Genera y gestiona links de acceso al diagnóstico"}
-            {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
-            {tab === "reporte" && "Genera un reporte PDF personalizado con portada y secciones seleccionables"}
-            {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#E8251F", letterSpacing: "-.02em" }}>
+                {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
+              </div>
+              <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
+                {tab === "monitor"   && "Vista general de todas las evaluaciones registradas"}
+                {tab === "links"     && "Genera y gestiona links de acceso al diagnóstico"}
+                {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
+                {tab === "reporte"   && "Genera un reporte PDF personalizado con portada y secciones seleccionables"}
+                {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
+                {tab === "empresas"  && "Gestiona empresas cliente, códigos de acceso y preguntas personalizadas"}
+              </div>
+            </div>
+            {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (
+              <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em" }}>Empresa</span>
+                <button onClick={()=>setEmpresaFiltro(null)} style={{
+                  padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+                  border:`1.5px solid ${!empresaFiltro?"#E8251F":"#E8E4DF"}`,
+                  background:!empresaFiltro?"#E8251F18":"#FAFAFA",
+                  color:!empresaFiltro?"#E8251F":"#999",
+                }}>Todas</button>
+                {empresas.map(emp=>(
+                  <button key={emp.id} onClick={()=>setEmpresaFiltro(emp.id)} style={{
+                    padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+                    border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#E8251F":"#E8E4DF"}`,
+                    background:empresaFiltro===emp.id?(emp.color_primary||"#E8251F")+"18":"#FAFAFA",
+                    color:empresaFiltro===emp.id?(emp.color_primary||"#E8251F"):"#999",
+                  }}>{emp.nombre}</button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {tab === "monitor" && (
           <MonitorTab
-            evaluaciones={evaluaciones} respuestas={respuestas}
+            evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones}
+            respuestas={respuestas}
             selected={selected} setSelected={setSelected}
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
-        {tab === "reporte" && <ReportTab evaluaciones={evaluaciones} respuestas={respuestas} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
+        {tab === "reporte" && <ReportTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
-        {tab === "downloads" && <DownloadsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
+        {tab === "empresas" && <EmpresasTab empresas={empresas} onRefresh={fetchData} showToast={showToast} />}
+        {tab === "downloads" && <DownloadsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
       </div>
 
       {confirmDelete && (

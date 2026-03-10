@@ -32,6 +32,7 @@ async function guardarEvaluacion(answers, perfil = {}) {
     const { data, error } = await supabase.from("evaluaciones").insert([{
       direccion:             perfil.direccion || null,
       rol:                   perfil.rol || null,
+      empresa_id:            perfil.empresa_id || null,
       score_global:          scoreGlobal,
       score_estrategia:      scores.estrategia,
       score_caracterizacion: scores.caracterizacion,
@@ -135,23 +136,18 @@ const DIMS = [
   { num:"01", key:"estrategia", icon:"🎯", label:"Estrategia de Gestión", sub:"Objetivos · Políticas · Red · Gobernanza · Riesgos",
     subs:[
       { id:"e1", label:"Objetivos & trade-offs", desc:"Servicio, costo, capital de trabajo",
-        q:"Objetivos & trade-offs (servicio, costo, capital)",
         ndesc:["Sin estrategia documentada. Objetivo: disponibilidad sin considerar costos ni capital.","Metas a nivel agregado vinculadas al presupuesto. Foco en reducir costos de almacenamiento.","Estrategia integrada con B2B/B2C. Objetivos por canal y categoría. Trade-offs costo-servicio-capital.","Estrategia alineada al negocio e integrada al IBP. Objetivos a nivel SKU-ubicación con balance óptimo.","Estrategia dinámica informada por datos en tiempo real. Objetivos ajustados automáticamente."],
         opp:"Definir política formal de inventarios con metas diferenciadas por canal, categoría y SKU. Integrar al ciclo S&OP. Reducción esperada de capital inmovilizado: 15–25%."},
       { id:"e2", label:"Políticas por canal", desc:"B2B/B2C, SS/ROP",
-        q:"Politicas de inventario por canal/segmento (B2B/B2C)",
         ndesc:["No existen políticas por canal. Gestión one-size-fits-all; decisiones reactivas. Sin parámetros claros.","Políticas básicas por categoría y canal. Clasificación ABC simple. Parámetros uniformes.","Políticas diferenciadas por B2B/B2C y ABC/XYZ. Niveles de servicio por canal; reglas documentadas.","Políticas multicriterio a nivel SKU-ubicación. Integradas a S&OP/IBP y revisión trimestral.","Políticas dinámicas con IA: micro-segmentación SKU-tienda-cliente, auto-ajuste en tiempo real."],
         opp:"Implementar parámetros SS/ROP diferenciados por ABC/XYZ y canal. Documentar reglas de asignación B2B/B2C. Reducción de quiebres críticos: 20–30%."},
       { id:"e3", label:"Diseño de red", desc:"CDC, tiendas, hubs",
-        q:"Diseno de red y posicionamiento (CDC, tiendas, hubs)",
         ndesc:["Red no diseñada formalmente. Almacenamiento centralizado sin optimización. Tiempos inconsistentes.","Red básica con CD central y puntos de cross-docking regionales. Sin optimización de costos.","Red diseñada para balance costo-servicio. Puntos estratégicos por región. Rutas optimizadas.","Red integrada para todos los canales y técnicos/campo. Posicionamiento óptimo por nodo.","Red dinámica ship-from-anywhere: optimización automática según demanda y costos."],
         opp:"Estudio de red para optimizar posicionamiento por nodo (CDC vs hubs vs tiendas). Reducción de costos de distribución: 10–18% y mejora de OTIF."},
       { id:"e4", label:"Gobernanza S&OP", desc:"S&OP/S&OE, Comercial, Finanzas",
-        q:"Gobernanza & alineacion comercial/finanzas (S&OP/S&OE)",
         ndesc:["No existe gobernanza formal. Decisiones desconectadas de comercial/finanzas; sin foros.","Coordinación básica e informal. Foco en apagar incendios. Participación limitada de finanzas.","S&OP formalizado mensual con participación de comercial, finanzas y supply chain.","IBP/E2E: plan integrado demanda-suministro-inventario-finanzas con escenarios. RACI claro.","Planificación continua y dinámica. Automatización de excepciones. IA en decisiones."],
         opp:"Formalizar ciclo S&OP mensual con Comercial, Finanzas y Supply Chain. Establecer único número y RACI. Reducción de quiebres por desalineación: 25–35%."},
       { id:"e5", label:"Riesgos y resiliencia", desc:"Disrupciones, fraude, regulación",
-        q:"Riesgos y resiliencia (disrupciones, fraude, regulacion)",
         ndesc:["Sin proceso formal de gestión de riesgos. Reacción tardía ante quiebres, robos o cambios regulatorios.","Identificación reactiva de riesgos principales. Planes de mitigación ad-hoc.","Proceso estructurado: registro de riesgos, owners y planes por categorías críticas.","Gestión proactiva integrada al S&OP: escenarios y estrategias de cobertura (buffers, dual-sourcing).","Modelamiento predictivo con IA: alertas tempranas de disrupción, fraude y SLOB."],
         opp:"Crear registro de riesgos (SLOB, fraude SIM/IMEI, disrupciones) con owners y planes de contingencia. Controles anti-fraude en categorías de alto riesgo."},
     ]
@@ -159,23 +155,18 @@ const DIMS = [
   { num:"02", key:"caracterizacion", icon:"🏷️", label:"Caracterización", sub:"Segmentación · Trazabilidad · Ciclo de vida · Ubicación · Retornos",
     subs:[
       { id:"c1", label:"Segmentación ABC/XYZ", desc:"Categoría, criticidad, valor-volumen",
-        q:"Segmentacion por categoria/criticidad (ABC/XYZ, valor-volumen)",
         ndesc:["No existe clasificación formal. Productos sin diferenciación. No se conoce la contribución de cada SKU.","Clasificación ABC básica por volumen o valor. Aplica a categorías principales. Actualización anual.","Clasificación ABC/XYZ combinando valor y variabilidad. Aplica a todas las categorías.","Clasificación multidimensional: margen, rotación, ciclo de vida. Actualización trimestral automatizada.","Clasificación dinámica continua. ML reclasifica SKUs. Integración con roadmap de OEMs."],
         opp:"Implementar clasificación ABC/XYZ para todo el catálogo activo. Diferenciar parámetros por segmento. Reducción de inventario: 15–20% manteniendo nivel de servicio."},
       { id:"c2", label:"Atributos & trazabilidad", desc:"Serial/IMEI, lotes, caducidad",
-        q:"Atributos & trazabilidad (serial/IMEI, lotes, caducidad)",
         ndesc:["Catálogo maestro incompleto. Atributos críticos (serial/IMEI, lote) faltantes o no confiables.","Maestros parcialmente completos. Trazabilidad limitada para SKUs de alto valor.","Gobernanza de maestros estandarizada. Trazabilidad por serial/IMEI para dispositivos y CPE.","Trazabilidad E2E incluyendo 3PL/distribuidores. Validaciones automáticas de IMEI/serial.","Trazabilidad en tiempo real con control tower; RFID/IoT donde aplique."],
         opp:"Captura obligatoria de IMEI/serial en recepción, venta y swap. Limpiar maestro de ítems activos. Reducción de fraude SIM/dispositivos: 30–50%."},
       { id:"c3", label:"Ciclo de vida y SLOB", desc:"SLOB, lanzamientos, fin de vida",
-        q:"Ciclo de vida y obsolescencia (SLOB, lanzamientos, fin de vida)",
         ndesc:["No se considera el ciclo de vida. Mismas políticas para productos nuevos y maduros. SLOB acumulado.","Reconocimiento informal del ciclo de vida; ajustes manuales en EOL. Identificación reactiva de SLOB.","Gestión por fases (lanzamiento-crecimiento-declive-EOL) con políticas por fase.","Gestión integrada con roadmap de OEMs y S&OP: transiciones planificadas; alertas tempranas de SLOB.","Gestión predictiva: modelos anticipan adopción/declive. Provisiones automáticas con analítica."],
         opp:"Proceso de gestión SLOB con criterios claros (antigüedad, rotación). Planes de depleción antes de superar X días de cobertura. Reducción de write-offs: 40–60%."},
       { id:"c4", label:"Ubicación y propiedad", desc:"Consignación, 3PL, tiendas, técnicos",
-        q:"Ubicacion y propiedad (consignacion, 3PL, tiendas, tecnicos)",
         ndesc:["Ubicaciones y propiedad no claramente definidas. Visibilidad limitada a bodegas principales.","Estructura básica de ubicaciones y marca simple propio vs consignado. Reportes periódicos.","Maestro de ubicaciones estandarizado (nodo-bodega-bin) y atributos de propiedad/estado.","Visibilidad E2E multi-parte (3PL, dealers, distribuidores) casi en tiempo real.","Visibilidad en tiempo real con partners. Optimización de posicionamiento dinámica."],
         opp:"Maestro completo de ubicaciones con jerarquía nodo-bodega-bin. Control de inventario en poder de técnicos de campo. Reducción de discrepancias contables."},
       { id:"c5", label:"Retornos y condición", desc:"Nuevo, refurb, swap, scrap",
-        q:"Retornos/garantias y condicion (nuevo, refurb, swap, scrap)",
         ndesc:["Sin proceso formal de retornos. Productos devueltos acumulados sin clasificación.","Proceso básico de recepción de devoluciones. Clasificación manual simple (apto/no apto).","Proceso estructurado (RMA) con políticas por canal y tipo. Triage por condición.","Logística inversa integrada E2E: enrutamiento optimizado a reparación/refurb/reciclaje.","Economía circular optimizada: asignación dinámica automática del destino óptimo."],
         opp:"Implementar proceso RMA con triage estandarizado y tiempos objetivo de reingreso. Potencial de recuperación de valor: 10–20% del costo de los retornos."},
     ]
@@ -183,23 +174,18 @@ const DIMS = [
   { num:"03", key:"procesos", icon:"⚙️", label:"Procesos", sub:"Planeación · Omnicanal · Ejecución · Control · Excepciones",
     subs:[
       { id:"p1", label:"Planeación & reposición", desc:"DRP, min-max, MEIO",
-        q:"Planeacion de inventario & reposicion (DRP, min-max, MEIO)",
         ndesc:["Sin proceso formal. Pedidos manuales basados en intuición. Sin parámetros SS/ROP/EOQ.","Forecast básico por categoría/canal en Excel. Frecuencias fijas; parámetros a nivel agregado.","Planeación a nivel SKU con modelos estadísticos. Parámetros diferenciados por ABC/XYZ.","Planeación integrada a S&OP/IBP: parámetros a nivel SKU-ubicación y optimización MEIO.","Planeación continua y autónoma: modelos ML + señales externas. Digital twin; ejecución automática."],
         opp:"Migrar de reposición reactiva a planeación estadística por SKU. Calcular SS y ROP por ABC/XYZ y lead time real. Reducción de quiebres: 30–40%. Reducción de inventario total: 10–15%."},
       { id:"p2", label:"Asignación omnicanal", desc:"ATP/CTP, reservas, disponibilidad",
-        q:"Asignacion y disponibilidad omnicanal (ATP/CTP, reservas)",
         ndesc:["Inventarios gestionados en silos. Sin visibilidad cruzada. Exceso en un canal y quiebre en otro.","Visibilidad consolidada básica. Reglas simples de reserva/ATP manual. Transferencias lentas.","Pool compartido para categorías principales; reglas de asignación por prioridad de canal.","Orquestación omnicanal integrada: ATP/CTP con reglas dinámicas. Fulfillment flexible.","Orquestación en tiempo real. Promesa de disponibilidad dinámica. Inventario virtual en toda la red."],
         opp:"Crear pool de inventario compartido con reglas de priorización B2B/B2C. Eliminar el fenómeno de exceso en un canal y quiebre en otro. Mejora de disponibilidad: 15–25% sin incrementar inventario."},
       { id:"p3", label:"Ejecución física", desc:"Recepción, almacenaje, picking",
-        q:"Ejecucion fisica (recepcion, almacenaje, picking, transferencias)",
         ndesc:["Procesos físicos manuales y no estandarizados. Uso limitado de códigos de barras; errores frecuentes.","SOPs básicos en CDC; registro en sistema al cierre del día. Picking con listas impresas.","Procesos estandarizados con WMS en CDC (RF/escáner), layout y slotting definidos.","Ejecución E2E en CDC/tiendas/3PL: integración WMS-OMS-TMS. Automatización selectiva.","Ejecución altamente automatizada (robotización/IoT). Slotting dinámico."],
         opp:"Implementar WMS con captura RF/escáner en CDC. Estandarizar SOPs de recepción, picking y despacho. Reducción de errores: 50–70%. Mejora de productividad: 20–30%."},
       { id:"p4", label:"Control & exactitud", desc:"Conteos cíclicos, shrinkage",
-        q:"Control & exactitud (conteos ciclicos, auditorias, shrinkage)",
         ndesc:["Sin proceso de conteo cíclico. Inventarios físicos anuales con alta discrepancia. Exactitud desconocida.","Inventario físico semestral. Conteos cíclicos básicos en algunas ubicaciones. Exactitud 80–90%.","Programa de conteo cíclico estructurado por ABC con exactitud >95%. Investigación de causas.","Conteo cíclico continuo con tecnología. Exactitud >98%. Controles anti-shrinkage.","Control en tiempo real (RFID/IoT) con exactitud >99% y detección automática de anomalías."],
         opp:"Implementar conteos cíclicos por ABC (A: semanal, B: mensual, C: trimestral). Investigar causas de diferencias. Objetivo: exactitud >95% en 6 meses."},
       { id:"p5", label:"Excepciones y retornos", desc:"RMA, devoluciones, reparación",
-        q:"Excepciones y retornos (RMA, devoluciones, reparacion, disposicion)",
         ndesc:["Sin proceso formal para devoluciones. Productos devueltos acumulados sin gestión.","Proceso básico de recepción de devoluciones. Políticas elementales por canal.","Proceso estructurado con políticas claras por canal y tipo de producto. Categorización del devuelto.","Logística inversa integrada. Routing optimizado de devoluciones. Mercado secundario activo.","Logística inversa automatizada con asignación dinámica del destino óptimo."],
         opp:"Definir políticas formales de devolución por tipo y canal. Medir TAT del proceso de retornos. Calcular el capital inmovilizado en retornos sin clasificar y establecer SLAs de reingreso."},
     ]
@@ -207,23 +193,18 @@ const DIMS = [
   { num:"04", key:"roles", icon:"👥", label:"Roles y Responsabilidades", sub:"Modelo operativo · Interfaces · Terceros · Capacidades · Incentivos",
     subs:[
       { id:"r1", label:"Modelo operativo & RACI", desc:"Dueños de proceso E2E",
-        q:"Modelo operativo & RACI (duenos de proceso E2E)",
         ndesc:["No existe modelo operativo definido. Roles no documentados; duplicidades/vacíos. Silos B2B/B2C.","Modelo operativo básico dentro de supply chain; algunos roles definidos. RACI parcial.","Gobernanza y modelo operativo claros con dueños de proceso. RACI completo; matriz de autoridad.","Modelo operativo E2E integrado con proveedores/3PL y canales. Roles especializados.","Modelo operativo adaptable: automatización de tareas rutinarias, equipos en decisiones de alto valor."],
         opp:"Documentar modelo operativo con RACI completo. Asignar dueños formales a procesos críticos (planeación, control, retornos). Eliminar duplicidades con roles y handoffs claros."},
       { id:"r2", label:"Interfaces clave", desc:"Comercial, Finanzas, Operaciones, TI",
-        q:"Interfaces clave (Comercial, Finanzas, Operaciones, TI)",
         ndesc:["Interfaces no formalizadas. Información compartida tarde/incompleta; conflictos frecuentes.","Rituales básicos de coordinación; finanzas participa ocasionalmente.","Interfaces estructuradas con cadencia y agenda (S&OP/S&OE). Reglas claras para lanzamientos.","Integración E2E: planificación conectada con comercial/finanzas/operaciones/TI. SLAs definidos.","Colaboración en tiempo real: decisiones automatizadas para rutinas. Squads cross-funcionales."],
         opp:"Formalizar la agenda Supply-Comercial-Finanzas. Definir derechos de decisión para campañas y quiebres críticos. Reducción de tiempo de respuesta ante disrupciones: 40–60%."},
       { id:"r3", label:"Gestión de terceros", desc:"OEM, 3PL, distribuidores, dealers",
-        q:"Gestion de terceros (OEM, 3PL, distribuidores, dealers)",
         ndesc:["Relaciones transaccionales con OEMs enfocadas en precio. Lead times no monitoreados.","Relación por contratos básicos. Lead times conocidos pero poca gestión de performance.","Gestión estructurada con scorecards para OEMs/3PL/dealers. SLAs definidos.","Partnerships E2E: planes de mejora conjuntos; visibilidad de pipeline; acuerdos de buffers.","Ecosistema integrado: datos en tiempo real, planificación colaborativa automatizada. Co-innovación."],
         opp:"Implementar scorecards para top-10 proveedores/3PL con KPIs de lead time, OTIF y exactitud. Iniciar planificación colaborativa con OEMs en lanzamientos. Reducción de variabilidad de lead time: 20–30%."},
       { id:"r4", label:"Capacidades y formación", desc:"Planificación, analítica, operación",
-        q:"Capacidades y formacion (planificacion, analitica, operacion)",
         ndesc:["Sin programa de capacitación específico. Aprendizaje ad-hoc. Brechas no identificadas.","Capacitaciones básicas disponibles. Materiales genéricos. Dependencia de consultores externos.","Programa de capacitación estructurado con módulos específicos de inventarios telco.","Programas de desarrollo individualizados. Formación cross-funcional. Certificaciones.","Programas avanzados en analytics, IA aplicada a inventarios. Aprendizaje continuo."],
         opp:"Evaluar competencias del equipo actual. Diseñar plan de formación en planeación estadística, gestión SLOB y herramientas digitales. Reducción de dependencia de consultores externos."},
       { id:"r5", label:"Incentivos & accountability", desc:"SLAs, KPIs, consecuencias",
-        q:"Incentivos & accountability (SLAs, KPIs, consecuencias)",
         ndesc:["Sin accountability clara ni incentivos alineados. Áreas optimizan objetivos locales.","Revisión periódica enfocada en costos. Incentivos que incentivan sobre-stock.","Gestión de desempeño estructurada: KPIs balanceados (costo-servicio-capital) por función.","Accountability E2E: KPIs compartidos cross-funcionales y con terceros. Incentivos alineados.","Gestión optimizada. Incentivos dinámicos en tiempo real. Compensación ligada al desempeño del ecosistema."],
         opp:"Diseñar tablero de KPIs balanceados visible para todas las áreas. Alinear incentivos de Comercial y Supply Chain. Resolver el dilema ventas vs. capital."},
     ]
@@ -231,23 +212,18 @@ const DIMS = [
   { num:"05", key:"herramientas", icon:"🔧", label:"Herramientas", sub:"ERP/OMS/WMS · APS · Visibilidad · Analytics · Automatización",
     subs:[
       { id:"h1", label:"Arquitectura core", desc:"ERP/OMS/WMS e integración",
-        q:"Arquitectura core (ERP/OMS/WMS) e integracion",
         ndesc:["Sistemas legacy o uso básico sin integración. Registros paralelos en Excel. Sin WMS robusto.","ERP implementado pero no armonizado entre canales. WMS básico en CDC. OMS parcial.","ERP integrado con módulos de inventario/compras y WMS robusto en CDC. Datos diarios.","Arquitectura armonizada E2E (ERP-OMS-WMS-TMS) para tiendas, CDC, distribuidores y 3PL.","Plataforma modular cloud con integración en tiempo real vía APIs/eventos. Capacidades IA."],
         opp:"Armonizar ERP para todos los canales y eliminar registros paralelos en Excel. Implementar WMS en tiempo real. Roadmap de arquitectura target de 18–24 meses. Reducción de esfuerzo de conciliación: 60–70%."},
       { id:"h2", label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP",
-        q:"Planificacion (APS/DRP, pronostico, S&OP/S&OE)",
         ndesc:["Planificación basada en Excel. Sin herramientas analíticas. Sin capacidad de forecast.","Reporting básico (BI estático). Planificación en Excel con modelos simples. Dashboards manuales.","Herramienta de planificación con modelos estadísticos. BI interactivo. Reportes automatizados.","Suite de planificación avanzada (APS) con optimización de inventarios. Simulación de escenarios.","Plataforma de planning con IA/ML. Digital twin de la cadena de suministro. Analytics predictivos."],
         opp:"Evaluar e implementar herramienta de planificación de demanda. Automatizar cálculo de parámetros SS/ROP. Reducción de tiempo de ciclo de planeación: 50–60%."},
       { id:"h3", label:"Visibilidad & trazabilidad", desc:"Serialización, RFID, track&trace",
-        q:"Visibilidad & trazabilidad (serializacion, RFID, track&trace)",
         ndesc:["Sin visibilidad del inventario en tránsito ni en puntos de venta. Sin trazabilidad por serie.","Visibilidad básica del inventario en CDs y algunas tiendas. Tránsito conocido solo al llegar.","Visibilidad de inventario en toda la red propia. Inventario en tránsito visible.","Visibilidad en tiempo real de toda la red incluyendo distribuidores y 3PLs. Alertas.","Visibilidad total en tiempo real con IoT/RFID en todos los nodos. Control tower 360°."],
         opp:"Implementar dashboard consolidado de inventario por nodo. Integrar visibilidad de 3PL y distribuidores. Alertas automáticas de quiebre proyectado. Reducción de tiempo de respuesta: 40–50%."},
       { id:"h4", label:"Datos & analítica", desc:"Lakehouse, BI, modelos, calidad",
-        q:"Datos & analitica (lakehouse, BI, modelos, calidad de datos)",
         ndesc:["Datos dispersos en silos; calidad desconocida. Reportes manuales. Sin gobierno de datos.","BI básico con extracción periódica. Calidad de datos corregida manualmente.","Plataforma de datos corporativa (DWH/lakehouse). Gobierno de datos. BI autoservicio.","Analítica avanzada integrada: modelos de pronóstico, optimización y riesgo.","Analítica predictiva/prescriptiva a escala. Recomendaciones automatizadas. Gemelo digital."],
         opp:"Definir modelo de datos unificado de inventarios. Establecer data owners y métricas estándar. Habilitar BI autoservicio para planeadores. Eliminar inconsistencias entre reportes."},
       { id:"h5", label:"Automatización", desc:"RPA, APIs/EDI, alertas, movilidad",
-        q:"Automatizacion (RPA, APIs/EDI, alertas, movilidad)",
         ndesc:["Procesos manuales intensivos. Sin integración entre sistemas. Comunicación por email.","Automatización básica de procesos transaccionales. Integración limitada entre sistemas.","Workflows automatizados para procesos clave. Integración vía EDI/API con proveedores.","Alto nivel de automatización E2E. Integración bidireccional con OEMs y 3PLs. RPA.","Automatización inteligente: APIs/eventos + RPA/IA. Movilidad completa en CDC/tiendas."],
         opp:"Automatizar procesos de alta frecuencia: órdenes de reposición, alertas de quiebre/exceso, conciliaciones. Implementar movilidad en CDC (handhelds). Reducción de esfuerzo manual: 40–55%."},
     ]
@@ -255,23 +231,18 @@ const DIMS = [
   { num:"06", key:"indicadores", icon:"📊", label:"Indicadores", sub:"Servicio · Capital · Exactitud · Salud · Cumplimiento",
     subs:[
       { id:"i1", label:"Servicio al cliente", desc:"Fill rate, OTIF, backorders, NPS",
-        q:"Servicio al cliente (fill rate, OTIF, backorders, NPS impacto)",
         ndesc:["No se mide servicio de forma consistente. Se conocen quiebres solo por reclamos.","Métricas básicas de quiebres a nivel agregado; medición manual y periódica.","Set estandarizado de KPIs de servicio (fill rate, OTIF, backorders) por canal/categoría.","KPIs de servicio integrados E2E y a nivel SKU-ubicación. Tableros con drill-down.","Servicio en tiempo real con métricas predictivas (riesgo de quiebre) y prescriptivas."],
         opp:"Definir y medir fill rate y OTIF por canal y categoría. Vincular quiebres a impacto en activaciones/NPS. Establecer targets diferenciados por clasificación ABC."},
       { id:"i2", label:"Eficiencia & capital", desc:"Rotación, DIO, capital de trabajo",
-        q:"Eficiencia & capital (rotacion, DIO, capital de trabajo)",
         ndesc:["Solo se monitorea valor total de inventario. No se mide rotación/DIO de forma confiable.","Métricas básicas (valor, cobertura en días) con actualización mensual.","KPIs completos de eficiencia (rotación, DIO, DOH, capital de trabajo) por categoría/canal.","Gestión integrada: KPIs a nivel SKU-ubicación y costo de servir. Optimización de trade-offs.","KPIs en tiempo real y predictivos (proyección de capital, riesgo de exceso)."],
         opp:"Reporte semanal de DIO/rotación por categoría. Targets de capital de trabajo vinculados a objetivos financieros. Potencial de liberación de capital: 15–30% del inventario total."},
       { id:"i3", label:"Exactitud & pérdidas", desc:"Accuracy, shrinkage, ajustes",
-        q:"Exactitud & perdidas (accuracy, shrinkage, ajustes)",
         ndesc:["Exactitud desconocida o baja; ajustes frecuentes sin análisis. Shrinkage no medido.","Exactitud medida esporádicamente. Shrinkage estimado con baja granularidad.","Exactitud >95% con programa de conteo cíclico; KPIs de ajustes y pérdidas por nodo.","Exactitud >98% con monitoreo continuo; shrinkage gestionado proactivamente.","Exactitud >99% y detección automática de anomalías/pérdidas."],
         opp:"Medir IRA (Inventory Record Accuracy) por nodo. Cuantificar pérdidas anuales por shrinkage y fraude. Implementar controles físicos mínimos en nodos de alto riesgo."},
       { id:"i4", label:"Salud del inventario", desc:"Aging, SLOB, write-offs, DOH",
-        q:"Salud del inventario (aging, SLOB, write-offs, DOH por categoria)",
         ndesc:["No se mide salud (aging/SLOB). Inventario envejecido detectado tarde; write-offs imprecisos.","Reportes manuales de aging y SLOB; criterios inconsistentes. Provisiones reactivas.","KPIs estandarizados de salud (aging, SLOB, DOH, write-offs) con revisión periódica.","Salud integrada a S&OP y ciclo de vida: alertas tempranas, estrategias de depleción.","Métricas predictivas de obsolescencia con prevención automática. Provisiones automáticas."],
         opp:"Reporte mensual de salud con aging por categoría (30/60/90/120+ días). Criterios de clasificación SLOB y provisiones consistentes. Comité mensual de depleción para accionar inventario en riesgo."},
       { id:"i5", label:"Cumplimiento & riesgo", desc:"Fraude, auditoría, regulatorio",
-        q:"Cumplimiento & riesgo (fraude, auditoria, regulatorio, seguridad)",
         ndesc:["Cumplimiento reactivo. Controles de seguridad mínimos; riesgo de fraude alto.","Controles básicos y auditorías puntuales. Cumplimiento regulatorio atendido caso a caso.","Marco de cumplimiento y riesgo definido: políticas de seguridad, auditorías, controles anti-fraude.","Gestión E2E del riesgo: controles automatizados, monitoreo continuo y analítica de anomalías.","Gestión predictiva del riesgo: modelos anticipan fraude/robos; acciones automáticas."],
         opp:"Establecer marco formal de riesgo: políticas de seguridad física, controles de IMEI/SIM, segregación de funciones. Auditorías periódicas en canales de mayor riesgo. Reducción de incidentes de fraude: 30–50%."},
     ]
@@ -279,23 +250,18 @@ const DIMS = [
   { num:"07", key:"abastecimiento", icon:"📦", label:"Abastecimiento", sub:"Dispositivos · CPE · SIM/eSIM · Accesorios · Repuestos",
     subs:[
       { id:"ab1", label:"Dispositivos", desc:"Smartphones/tablets: lanzamiento-rampa-fin de vida",
-        q:"Dispositivos (smartphones/tablets): lanzamiento-rampa-fin de vida",
         ndesc:["Compras reactivas. Sin planificación de lanzamientos; quiebres o sobre-stocks frecuentes.","Planificación básica de lanzamientos basada en históricos y estimaciones comerciales.","Estrategia por ciclo de vida: planificación de lanzamientos con 4–8 semanas. Acuerdos con OEM.","E2E con OEMs: integración a roadmap y pipeline; escenarios de demanda. Acuerdos de devolución.","Estrategia dinámica: IA para ramp-up/down, mix óptimo por tienda/segmento en tiempo real."],
         opp:"Proceso formal de planeación de lanzamientos con 4–8 semanas de anticipación. Negociar acuerdos de devolución/crédito con OEMs para dispositivos al EOL. Reducción de SLOB por EOL: 40–50%."},
       { id:"ab2", label:"CPE/routers/STB", desc:"Proyectos, bundles, reposición de fallas",
-        q:"CPE/routers/STB: proyectos, bundles, reposicion de fallas",
         ndesc:["Abastecimiento basado en pedidos de proyectos sin estándar. Faltantes afectan altas y soporte.","Planificación básica por proyectos/bundles con buffers simples. RMA manual.","Planeación por demanda de instalaciones y fallas (forecast + históricos). RMA estructurado.","E2E: integración con planes comerciales/operaciones y proveedores. Optimización MEIO.","Estrategia dinámica: analítica predictiva de fallas y demanda; reposición autónoma."],
         opp:"Integrar el plan de instalaciones/altas con la planeación de CPE. Implementar reposición por fallas con histórico de tasas de falla por modelo. Reducción de quiebres que afectan instalaciones: 25–35%."},
       { id:"ab3", label:"SIM/eSIM & kits", desc:"Alto volumen, bajo valor, control de fraude",
-        q:"SIM/eSIM & kits: alto volumen, bajo valor, control de fraude",
         ndesc:["Compras reactivas; control débil de inventario y numeración. Riesgo alto de fraude.","Políticas básicas de reposición por volumen (min-max). Control parcial de numeración.","Gestión estructurada: reposición por consumo y distribución por canal/tienda. Trazabilidad.","E2E: integración con sistemas de activación y cumplimiento regulatorio. Analítica de anomalías.","Monitoreo en tiempo real de pérdidas y fraude con modelos predictivos; bloqueos automáticos."],
         opp:"Control de lote/serie para SIM/kits con cadena de custodia documentada. Auditorías de numeración periódicas. KPIs de activación vs. distribución para detectar anomalías. Reducción de fraude SIM: 30–60%."},
       { id:"ab4", label:"Accesorios", desc:"Amplia variedad, moda, riesgo de obsolescencia",
-        q:"Accesorios: amplia variedad, moda, alto riesgo de obsolescencia",
         ndesc:["Catálogo sin segmentación; compras reactivas. Alto sobre-stock y obsolescencia.","Segmentación básica por valor/rotación; reposición con reglas simples.","Gestión por portafolio: ABC/XYZ + margen y tendencia. Surtido por tienda/segmento.","E2E: integración con marketing y e-commerce. Acuerdos con proveedores para devoluciones.","Estrategia dinámica: IA para predicción de tendencias, personalización por tienda."],
         opp:"Reducir catálogo activo de accesorios priorizando por margen y rotación. Surtido diferenciado por formato de tienda (A/B/C). Ciclos de revisión de aging mensuales. Reducción de SLOB: 35–50%."},
       { id:"ab5", label:"Repuestos/refurb/swap", desc:"Circularidad, garantías y niveles de servicio",
-        q:"Repuestos/refurb/swap: circularidad, garantias y niveles de servicio",
         ndesc:["Gestión reactiva de repuestos y swaps; sin visibilidad de condición. Altas demoras.","Proceso básico de inventario de repuestos; stock de seguridad simple.","Estrategia definida: niveles de servicio para repuestos por familia/tecnología. Triage estructurado.","E2E: optimización multi-escalón (MEIO) y logística inversa integrada. Refurb industrializado.","Estrategia dinámica y circular: modelos predictivos de fallas. Orquestación automática del destino."],
         opp:"Calcular demanda histórica de repuestos/swaps por modelo. Establecer niveles de servicio y targets de TAT. Proceso de reingreso de equipos refurbishados. Recuperación de valor de activos: 20–30%."},
     ]
@@ -374,10 +340,126 @@ const ROLES = [
   "Director","Gerente","Jefe","Ingeniero","Analista",
 ];
 
-function RegistroForm({onStart}) {
+// ─── CÓDIGO DE ACCESO ─────────────────────────────────────────────────────────
+
+function CodigoAccesoScreen({ onSuccess }) {
+  const [codigo, setCodigo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit() {
+    const cod = codigo.trim().toUpperCase();
+    if (!cod) { setError("Ingresa un código de acceso"); return; }
+    setLoading(true); setError("");
+    try {
+      const { data, error: err } = await supabase
+        .from("empresas").select("*").eq("codigo", cod).single();
+      if (err || !data) {
+        setError("Código no encontrado. Verifica e intenta de nuevo.");
+        setLoading(false); return;
+      }
+      // Load custom subs
+      const { data: subs } = await supabase
+        .from("subs_custom").select("*").eq("empresa_id", data.id);
+      const subsMap = {};
+      (subs||[]).forEach(s => { subsMap[s.sub_id] = { q:s.q, label:s.label, desc:s.descripcion }; });
+      onSuccess(data, subsMap);
+    } catch(e) {
+      setError("Error al conectar. Intenta de nuevo.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{
+      minHeight:"100vh", background:"#FFF8F8",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:24,
+    }}>
+      <div style={{
+        width:"100%", maxWidth:420,
+        background:"#fff", borderRadius:22,
+        border:"1px solid #F0EEE9",
+        boxShadow:"0 24px 64px rgba(0,0,0,0.1)",
+        overflow:"hidden",
+      }}>
+        {/* Red header strip */}
+        <div style={{
+          background:"linear-gradient(135deg,#C80F0A,#E8251F)",
+          padding:"36px 40px 32px",
+          position:"relative", overflow:"hidden",
+        }}>
+          <div style={{
+            position:"absolute", inset:0,
+            backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)",
+            backgroundSize:"18px 18px",
+          }}/>
+          <div style={{ position:"relative", zIndex:1 }}>
+            <Logo h={28}/>
+            <div style={{ marginTop:20, fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.55)",
+              textTransform:"uppercase", letterSpacing:".14em", marginBottom:8 }}>
+              Modelo de Madurez · Inventarios
+            </div>
+            <div style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:"-.02em", lineHeight:1.2 }}>
+              Diagnóstico de<br/>Gestión de Inventarios
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding:"32px 40px 36px" }}>
+          <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>
+            Ingresa tu código de acceso
+          </div>
+          <div style={{ fontSize:11.5, color:"#9C9A95", marginBottom:24, lineHeight:1.5 }}>
+            Tu facilitador Kearney te habrá compartido un código único para tu empresa.
+          </div>
+
+          <input
+            value={codigo}
+            onChange={e=>{ setCodigo(e.target.value.toUpperCase()); setError(""); }}
+            onKeyDown={e=>e.key==="Enter"&&handleSubmit()}
+            placeholder="Ej: CLARO-2025"
+            style={{
+              width:"100%", padding:"13px 16px", borderRadius:11,
+              border:`2px solid ${error?"#ef4444":"#E8E4DF"}`,
+              fontSize:15, fontWeight:700, color:"#1A1A18",
+              background:"#FAFAF8", outline:"none",
+              letterSpacing:".04em", textAlign:"center",
+              marginBottom: error ? 8 : 16,
+              transition:"border-color .15s",
+            }}
+          />
+          {error && (
+            <div style={{ fontSize:11, color:"#ef4444", marginBottom:16, textAlign:"center" }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{
+              width:"100%", padding:"13px 0", borderRadius:11,
+              background:loading?"#ccc":"linear-gradient(135deg,#C80F0A,#E8251F)",
+              color:"#fff", border:"none", fontSize:13.5, fontWeight:700,
+              cursor:loading?"not-allowed":"pointer",
+              boxShadow:loading?"none":"0 4px 16px rgba(232,37,31,0.35)",
+              transition:"all .15s",
+            }}>
+            {loading ? "Verificando..." : "Acceder al diagnóstico →"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RegistroForm({onStart, empresa}) {
   const [dir,setDir]   = useState("");
   const [rol,setRol]   = useState("");
   const [err,setErr]   = useState(false);
+  const color = empresa?.color_primary || "#E8251F";
+  const colorDk = empresa?.color_dark || "#C80F0A";
 
   function start() {
     if (!dir || !rol) { setErr(true); return; }
@@ -389,9 +471,9 @@ function RegistroForm({onStart}) {
       {opts.map(o=>(
         <button key={o} onClick={()=>{set(o);setErr(false);}} style={{
           padding:"7px 16px",borderRadius:99,fontSize:12,fontWeight:600,cursor:"pointer",
-          border:`1.5px solid ${val===o?T.red:T.border}`,
-          background:val===o?T.redBg:T.card,
-          color:val===o?T.red:T.inkMid,
+          border:`1.5px solid ${val===o?color:T.border}`,
+          background:val===o?colorBg:T.card,
+          color:val===o?color:T.inkMid,
           transition:"all .15s",
         }}>{o}</button>
       ))}
@@ -432,14 +514,14 @@ function RegistroForm({onStart}) {
         </div>
 
         {err && (
-          <div style={{fontSize:12,color:T.red,marginBottom:16}}>
+          <div style={{fontSize:12,color:color,marginBottom:16}}>
             Por favor selecciona tu dirección y rol para continuar.
           </div>
         )}
 
         <button onClick={start} className="btn-red" style={{
           width:"100%",padding:"13px",borderRadius:12,border:"none",
-          background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+          background:`linear-gradient(135deg,${color},${colorDk})`,
           color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer",
           boxShadow:`0 4px 16px rgba(232,37,31,0.3)`,
         }}>Iniciar diagnóstico →</button>
@@ -1273,6 +1355,8 @@ export default function App() {
   const [perfil,setPerfil] = useState(()=>loadLS(LS_PERFIL,null));
   const [showPerfil,setShowPerfil] = useState(false);
   const [showRegistro,setShowRegistro] = useState(()=>!loadLS(LS_PERFIL,null));
+  const [empresa, setEmpresa] = useState(null);       // loaded from Supabase by code
+  const [subsCustom, setSubsCustom] = useState({});   // sub_id -> {q,label,desc}
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
@@ -1332,17 +1416,38 @@ export default function App() {
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
 
-  const dim=DIMS[activeDim];
+  // Dynamic theme — override red colors with empresa branding if loaded
+  const ET = empresa ? {
+    ...T,
+    red:    empresa.color_primary || T.red,
+    redDk:  empresa.color_dark    || T.redDk,
+    redBg:  (empresa.color_primary||T.red)+"18",
+    redSoft:(empresa.color_primary||T.red)+"30",
+    redXsoft:(empresa.color_primary||T.red)+"10",
+    surface: "#FFF8F8",
+  } : T;
+
+  // Dynamic DIMS — merge subsCustom into subs
+  const EDIMS = empresa ? DIMS.map(d=>({
+    ...d,
+    subs: d.subs.map(s => {
+      const c = subsCustom[s.id];
+      if (!c) return s;
+      return { ...s, q: c.q||s.q, label: c.label||s.label, desc: c.desc||s.desc };
+    }),
+  })) : DIMS;
+
+  const dim=EEDIMS[activeDim];
   const sub=dim.subs[activeSub];
   const setVal=(id,v)=>setAnswers(p=>({...p,[id]:v}));
 
-  const totalQ=DIMS.reduce((a,d)=>a+d.subs.length,0);
+  const totalQ=EDIMS.reduce((a,d)=>a+d.subs.length,0);
   const answered=Object.values(answers).filter(v=>v>0).length;
   const pct=Math.round(answered/totalQ*100);
-  const completedDims=DIMS.filter(d=>d.subs.every(s=>answers[s.id]>0)).length;
+  const completedDims=EDIMS.filter(d=>d.subs.every(s=>answers[s.id]>0)).length;
 
   const totalScore=useMemo(()=>{
-    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean).map(Number);
+    const sc=EDIMS.map(d=>getDimScore(d,answers)).filter(Boolean).map(Number);
     return sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):null;
   },[answers]);
 
@@ -1353,14 +1458,21 @@ export default function App() {
     {id:"summary",   label:"Resumen & Brechas", icon:"📊"},
   ];
 
+  if (!empresa) return (
+    <CodigoAccesoScreen onSuccess={(emp, subs) => {
+      setEmpresa(emp);
+      setSubsCustom(subs);
+    }}/>
+  );
+
   return (
-    <div ref={appRef} style={{background:T.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
+    <div ref={appRef} style={{background:ET.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
 
       {/* ═══ TOPBAR ═══ */}
       <header style={{
         background:"rgba(255,255,255,0.88)",
         backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
-        borderBottom:`1px solid ${T.borderSm}`,
+        borderBottom:`1px solid ${ET.borderSm}`,
         padding:"0 28px",height:60,
         display:"flex",alignItems:"center",justifyContent:"space-between",
         flexShrink:0,position:"sticky",top:0,zIndex:200,
@@ -1368,10 +1480,12 @@ export default function App() {
       }}>
         <div style={{display:"flex",alignItems:"center",gap:18}}>
           <Logo h={24}/>
-          <div style={{width:1,height:28,background:T.borderSm}}/>
+          <div style={{width:1,height:28,background:ET.borderSm}}/>
           <div>
-            <div className="display" style={{fontSize:12,fontWeight:700,color:T.ink,letterSpacing:"-.01em"}}>Modelo de Madurez · Gestión de Inventarios</div>
-            <div style={{fontSize:9.5,color:T.inkSoft}}>SoE · Telco Retail B2B/B2C · {totalQ} sub-dimensiones</div>
+            <div className="display" style={{fontSize:12,fontWeight:700,color:ET.ink,letterSpacing:"-.01em"}}>
+                {empresa?.nombre || "Modelo de Madurez"} · Gestión de Inventarios
+              </div>
+              <div style={{fontSize:9.5,color:ET.inkSoft}}>SoE · {empresa?.codigo} · {totalQ} sub-dimensiones</div>
           </div>
         </div>
 
@@ -1379,25 +1493,25 @@ export default function App() {
           {totalScore&&(
             <div style={{
               display:"flex",alignItems:"center",gap:8,
-              padding:"5px 14px",background:T.redXsoft,
-              borderRadius:99,border:`1px solid ${T.redSoft}`,
+              padding:"5px 14px",background:ET.redXsoft,
+              borderRadius:99,border:`1px solid ${ET.redSoft}`,
             }}>
-              <span style={{fontSize:10,color:T.inkMid,fontWeight:500}}>Global</span>
-              <span className="display" style={{fontSize:18,fontWeight:900,color:T.red}}>{totalScore}</span>
-              <span style={{fontSize:10,color:T.inkSoft}}>/5</span>
+              <span style={{fontSize:10,color:ET.inkMid,fontWeight:500}}>Global</span>
+              <span className="display" style={{fontSize:18,fontWeight:900,color:ET.red}}>{totalScore}</span>
+              <span style={{fontSize:10,color:ET.inkSoft}}>/5</span>
               <LvBadge v={Math.round(Number(totalScore))} sm/>
             </div>
           )}
           <div style={{
             display:"flex",gap:2,
-            background:T.surface,borderRadius:12,padding:"3px",
-            border:`1px solid ${T.borderSm}`,
+            background:ET.surface,borderRadius:12,padding:"3px",
+            border:`1px solid ${ET.borderSm}`,
           }}>
             {TABS.map(t=>(
               <button key={t.id} className="tab-pill" onClick={()=>setView(t.id)} style={{
                 padding:"6px 14px",borderRadius:10,border:"none",
-                background:view===t.id?T.card:"transparent",
-                color:view===t.id?T.ink:T.inkMid,
+                background:view===t.id?ET.card:"transparent",
+                color:view===t.id?ET.ink:ET.inkMid,
                 fontWeight:view===t.id?700:500,
                 fontSize:11,cursor:"pointer",
                 boxShadow:view===t.id?"0 2px 6px rgba(0,0,0,0.09)":"none",
@@ -1406,16 +1520,16 @@ export default function App() {
             ))}
           </div>
           <button onClick={toggleFullscreen} title={isFullscreen?"Salir de pantalla completa":"Pantalla completa"} style={{
-            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
-            background:isFullscreen?T.redXsoft:T.card,
-            color:isFullscreen?T.red:T.inkMid,
+            width:34,height:34,borderRadius:9,border:`1px solid ${ET.borderSm}`,
+            background:isFullscreen?ET.redXsoft:ET.card,
+            color:isFullscreen?ET.red:ET.inkMid,
             display:"flex",alignItems:"center",justifyContent:"center",
             cursor:"pointer",fontSize:14,flexShrink:0,
             transition:"all .15s",
           }}>{isFullscreen?"⊠":"⛶"}</button>
           <button onClick={()=>setConfirmReset(true)} title="Reiniciar evaluación" style={{
-            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
-            background:T.card,color:T.inkMid,
+            width:34,height:34,borderRadius:9,border:`1px solid ${ET.borderSm}`,
+            background:ET.card,color:ET.inkMid,
             display:"flex",alignItems:"center",justifyContent:"center",
             cursor:"pointer",fontSize:14,flexShrink:0,
             transition:"all .15s",
@@ -1425,7 +1539,10 @@ export default function App() {
 
       {/* ═══ CONTENT ═══ */}
       {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator scrollRef={introScrollRef}/></div>}
-      {showRegistro&&<RegistroForm onStart={(p)=>{setPerfil(p);setShowRegistro(false);}}/>}
+      {showRegistro&&<RegistroForm
+        empresa={empresa}
+        onStart={(p)=>{setPerfil({...p, empresa_id: empresa?.id});setShowRegistro(false);}}
+      />}
       {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab/><ScrollIndicator scrollRef={modeloScrollRef}/></div>}
       {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab answers={answers} perfil={perfil}/><ScrollIndicator scrollRef={summaryScrollRef}/></div>}
 
@@ -1434,22 +1551,22 @@ export default function App() {
 
           {/* SIDEBAR */}
           <aside style={{
-            width:224,background:T.card,
-            borderRight:`1px solid ${T.borderSm}`,
+            width:224,background:ET.card,
+            borderRight:`1px solid ${ET.borderSm}`,
             overflow:"auto",flexShrink:0,
           }}>
-            <div style={{padding:"14px 16px",borderBottom:`1px solid ${T.borderSm}`,background:T.surface}}>
+            <div style={{padding:"14px 16px",borderBottom:`1px solid ${ET.borderSm}`,background:ET.surface}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <span style={{fontSize:9,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".12em"}}>Progreso</span>
-                <span className="display" style={{fontSize:14,fontWeight:900,color:T.red}}>{pct}%</span>
+                <span style={{fontSize:9,fontWeight:700,color:ET.inkSoft,textTransform:"uppercase",letterSpacing:".12em"}}>Progreso</span>
+                <span className="display" style={{fontSize:14,fontWeight:900,color:ET.red}}>{pct}%</span>
               </div>
-              <div style={{height:5,background:T.borderSm,borderRadius:99,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${T.red},#FF6B6B)`,borderRadius:99,transition:"width .5s cubic-bezier(.22,1,.36,1)"}}/>
+              <div style={{height:5,background:ET.borderSm,borderRadius:99,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${ET.red},#FF6B6B)`,borderRadius:99,transition:"width .5s cubic-bezier(.22,1,.36,1)"}}/>
               </div>
-              <div style={{fontSize:9,color:T.inkSoft,marginTop:5}}>{answered}/{totalQ} resp. · {completedDims}/7 dims</div>
+              <div style={{fontSize:9,color:ET.inkSoft,marginTop:5}}>{answered}/{totalQ} resp. · {completedDims}/7 dims</div>
             </div>
 
-            {DIMS.map((d,i)=>{
+            {EDIMS.map((d,i)=>{
               const sc=getDimScore(d,answers);
               const active=i===activeDim;
               return (
@@ -1457,20 +1574,20 @@ export default function App() {
                   <button className="sidebar-item" onClick={()=>{setActiveDim(i);setActiveSub(0);}} style={{
                     width:"100%",textAlign:"left",padding:"10px 14px",
                     background:active?"#FFF8F7":"transparent",
-                    borderLeft:`3px solid ${active?T.red:"transparent"}`,
-                    border:"none",borderBottom:`1px solid ${T.borderSm}`,
+                    borderLeft:`3px solid ${active?ET.red:"transparent"}`,
+                    border:"none",borderBottom:`1px solid ${ET.borderSm}`,
                     cursor:"pointer",
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:9}}>
                       <span style={{fontSize:15}}>{d.icon}</span>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:10.5,fontWeight:active?700:500,color:active?T.red:T.ink,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.num} {d.label}</div>
-                        <div style={{fontSize:8.5,color:T.inkSoft,marginTop:1}}>{d.subs.filter(s=>answers[s.id]>0).length}/{d.subs.length} evaluadas</div>
+                        <div style={{fontSize:10.5,fontWeight:active?700:500,color:active?ET.red:ET.ink,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.num} {d.label}</div>
+                        <div style={{fontSize:8.5,color:ET.inkSoft,marginTop:1}}>{d.subs.filter(s=>answers[s.id]>0).length}/{d.subs.length} evaluadas</div>
                       </div>
                       {sc&&<span className="display" style={{fontSize:12,fontWeight:900,color:getLv(Math.round(sc)).c,flexShrink:0}}>{sc}</span>}
                     </div>
                     {sc&&(
-                      <div style={{marginTop:4,height:3,background:T.borderSm,borderRadius:99,overflow:"hidden"}}>
+                      <div style={{marginTop:4,height:3,background:ET.borderSm,borderRadius:99,overflow:"hidden"}}>
                         <div style={{height:"100%",width:`${(sc/5)*100}%`,background:getLv(Math.round(sc)).c,borderRadius:99,transition:"width .4s"}}/>
                       </div>
                     )}
@@ -1483,7 +1600,7 @@ export default function App() {
                           padding:"4px 10px",borderRadius:7,border:"none",
                           background:j===activeSub?"#FFF1F0":"transparent",cursor:"pointer",marginBottom:1,
                         }}>
-                          <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?T.red:answers[s.id]?getLv(answers[s.id]).text:T.inkSoft}}>
+                          <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).text:ET.inkSoft}}>
                             {answers[s.id]?"●":"○"} {s.label}
                           </span>
                         </button>
@@ -1502,14 +1619,14 @@ export default function App() {
             <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}>
               <div style={{
                 width:48,height:48,borderRadius:14,
-                background:T.redBg,border:`1.5px solid ${T.redSoft}`,
+                background:ET.redBg,border:`1.5px solid ${ET.redSoft}`,
                 display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
               }}>
                 <span style={{fontSize:23}}>{dim.icon}</span>
               </div>
               <div style={{flex:1}}>
-                <div className="display" style={{fontSize:18,fontWeight:900,color:T.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
-                <div style={{fontSize:11,color:T.inkSoft,marginTop:2}}>{dim.sub}</div>
+                <div className="display" style={{fontSize:18,fontWeight:900,color:ET.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
+                <div style={{fontSize:11,color:ET.inkSoft,marginTop:2}}>{dim.sub}</div>
               </div>
               {getDimScore(dim,answers)&&(
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
@@ -1524,9 +1641,9 @@ export default function App() {
               {dim.subs.map((s,j)=>(
                 <button key={s.id} className="sub-pill" onClick={()=>setActiveSub(j)} style={{
                   padding:"5px 13px",borderRadius:99,
-                  border:`1.5px solid ${j===activeSub?T.red:answers[s.id]?getLv(answers[s.id]).border:T.borderSm}`,
-                  background:j===activeSub?T.red:answers[s.id]?getLv(answers[s.id]).bg:T.card,
-                  color:j===activeSub?"#fff":answers[s.id]?getLv(answers[s.id]).text:T.inkMid,
+                  border:`1.5px solid ${j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).border:ET.borderSm}`,
+                  background:j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).bg:ET.card,
+                  color:j===activeSub?"#fff":answers[s.id]?getLv(answers[s.id]).text:ET.inkMid,
                   fontSize:10.5,fontWeight:j===activeSub?700:500,
                   whiteSpace:"nowrap",cursor:"pointer",
                   boxShadow:j===activeSub?`0 3px 10px rgba(232,37,31,0.3)`:"none",
@@ -1538,36 +1655,27 @@ export default function App() {
 
             {/* sub card */}
             <div key={sub.id} className="scale-in" style={{
-              background:T.card,borderRadius:18,
-              border:`1px solid ${T.borderSm}`,
+              background:ET.card,borderRadius:18,
+              border:`1px solid ${ET.borderSm}`,
               padding:"26px",marginBottom:20,
               boxShadow:"0 4px 16px rgba(0,0,0,0.06)",
             }}>
-              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16,gap:14}}>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                    <span style={{fontSize:9,fontWeight:700,color:T.red,textTransform:"uppercase",letterSpacing:".12em",background:T.redBg,padding:"2px 8px",borderRadius:99,border:`1px solid ${T.redSoft}`}}>Pregunta {activeSub+1} de {dim.subs.length}</span>
-                    <span style={{fontSize:9,color:T.inkSoft,fontWeight:500}}>{dim.num}. {dim.label}</span>
-                  </div>
-                  <div className="display" style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-.015em",marginBottom:5,lineHeight:1.35}}>
-                    Seleccione el nivel que mejor describe la situacion actual en:
-                  </div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.red,marginBottom:5,lineHeight:1.3}}>
-                    {sub.q||sub.label}
-                  </div>
-                  <div style={{fontSize:11,color:T.inkMid}}>{sub.desc}</div>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:20,gap:14}}>
+                <div>
+                  <div className="display" style={{fontSize:16,fontWeight:800,color:ET.ink,letterSpacing:"-.015em",marginBottom:5}}>{sub.label}</div>
+                  <div style={{fontSize:12,color:ET.inkMid}}>{sub.desc}</div>
                 </div>
                 {answers[sub.id]>0&&<LvBadge v={answers[sub.id]}/>}
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:18}}>
-                {T.L.map((l,i)=>{
+                {ET.L.map((l,i)=>{
                   const v=i+1;
                   const sel=answers[sub.id]===v;
                   return (
                     <div key={v} className={`lv-card${sel?" selected":""}`} onClick={()=>setVal(sub.id,v)} style={{
                       borderRadius:14,border:`2px solid ${sel?l.c:l.border}`,
-                      background:sel?l.bg:T.card,overflow:"hidden",
+                      background:sel?l.bg:ET.card,overflow:"hidden",
                       boxShadow:sel?`0 6px 20px ${l.c}40`:"0 1px 4px rgba(0,0,0,0.04)",
                     }}>
                       <div style={{background:l.c,padding:"9px 11px",display:"flex",alignItems:"center",gap:7}}>
@@ -1578,19 +1686,19 @@ export default function App() {
                         {sel&&<span style={{fontSize:11,color:"#fff"}}>✓</span>}
                       </div>
                       <div style={{padding:"11px 11px 7px"}}>
-                        <p style={{fontSize:10,color:sel?l.text:T.inkMid,margin:0,lineHeight:1.65}}>{sub.ndesc[i]}</p>
+                        <p style={{fontSize:10,color:sel?l.text:ET.inkMid,margin:0,lineHeight:1.65}}>{sub.ndesc[i]}</p>
                       </div>
                       <div style={{padding:"0 11px 10px",display:"flex",gap:3}}>
-                        {[0,1,2,3,4].map(j=><div key={j} style={{flex:1,height:3,borderRadius:99,background:j<=i?l.c:T.borderSm}}/>)}
+                        {[0,1,2,3,4].map(j=><div key={j} style={{flex:1,height:3,borderRadius:99,background:j<=i?l.c:ET.borderSm}}/>)}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div style={{background:T.surface,borderRadius:10,padding:"10px 14px",border:`1px solid ${T.borderSm}`}}>
-                <span style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".1em"}}>Oportunidad: </span>
-                <span style={{fontSize:11.5,color:T.inkMid,lineHeight:1.65}}>{sub.opp}</span>
+              <div style={{background:ET.surface,borderRadius:10,padding:"10px 14px",border:`1px solid ${ET.borderSm}`}}>
+                <span style={{fontSize:9.5,fontWeight:700,color:ET.inkSoft,textTransform:"uppercase",letterSpacing:".1em"}}>Oportunidad: </span>
+                <span style={{fontSize:11.5,color:ET.inkMid,lineHeight:1.65}}>{sub.opp}</span>
               </div>
             </div>
 
@@ -1598,24 +1706,24 @@ export default function App() {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={()=>{
                 if(activeSub>0)setActiveSub(activeSub-1);
-                else if(activeDim>0){setActiveDim(activeDim-1);setActiveSub(DIMS[activeDim-1].subs.length-1);}
+                else if(activeDim>0){setActiveDim(activeDim-1);setActiveSub(EDIMS[activeDim-1].subs.length-1);}
               }} disabled={activeDim===0&&activeSub===0} style={{
                 padding:"10px 22px",borderRadius:12,
-                border:`1.5px solid ${T.borderSm}`,background:T.card,
-                color:T.inkMid,fontWeight:600,fontSize:12,cursor:"pointer",
+                border:`1.5px solid ${ET.borderSm}`,background:ET.card,
+                color:ET.inkMid,fontWeight:600,fontSize:12,cursor:"pointer",
                 opacity:(activeDim===0&&activeSub===0)?.4:1,transition:"all .15s",
               }}>← Anterior</button>
-              <div style={{fontSize:10.5,color:T.inkSoft}}>{dim.num} · {activeSub+1}/{dim.subs.length}</div>
+              <div style={{fontSize:10.5,color:ET.inkSoft}}>{dim.num} · {activeSub+1}/{dim.subs.length}</div>
               <button className="btn-red" onClick={()=>{
                 if(activeSub<dim.subs.length-1)setActiveSub(activeSub+1);
-                else if(activeDim<DIMS.length-1){setActiveDim(activeDim+1);setActiveSub(0);}
+                else if(activeDim<EDIMS.length-1){setActiveDim(activeDim+1);setActiveSub(0);}
                 else setView("summary");
               }} style={{
                 padding:"10px 24px",borderRadius:12,border:"none",
-                background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+                background:`linear-gradient(135deg,${ET.red},${ET.redDk})`,
                 color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",
                 boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
-              }}>{activeDim===DIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
+              }}>{activeDim===EDIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
             </div>
 
           </main>
@@ -1632,24 +1740,24 @@ export default function App() {
           zIndex:500,backdropFilter:"blur(4px)",
         }}>
           <div className="scale-in" style={{
-            width:360,background:T.card,borderRadius:20,
-            border:`1px solid ${T.borderSm}`,padding:"36px 32px",
+            width:360,background:ET.card,borderRadius:20,
+            border:`1px solid ${ET.borderSm}`,padding:"36px 32px",
             boxShadow:"0 40px 80px rgba(0,0,0,0.15)",textAlign:"center",
           }}>
             <div style={{fontSize:36,marginBottom:14}}>↺</div>
-            <div style={{fontSize:16,fontWeight:800,color:T.ink,marginBottom:8}}>¿Reiniciar evaluación?</div>
-            <div style={{fontSize:12,color:T.inkMid,lineHeight:1.7,marginBottom:28}}>
+            <div style={{fontSize:16,fontWeight:800,color:ET.ink,marginBottom:8}}>¿Reiniciar evaluación?</div>
+            <div style={{fontSize:12,color:ET.inkMid,lineHeight:1.7,marginBottom:28}}>
               Se borrarán todas las respuestas actuales y volverás al inicio. Esta acción no se puede deshacer.
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setConfirmReset(false)} style={{
                 flex:1,padding:"11px",borderRadius:10,
-                border:`1px solid ${T.borderSm}`,background:T.surface,
-                color:T.inkMid,fontWeight:600,fontSize:13,cursor:"pointer",
+                border:`1px solid ${ET.borderSm}`,background:ET.surface,
+                color:ET.inkMid,fontWeight:600,fontSize:13,cursor:"pointer",
               }}>Cancelar</button>
               <button onClick={doReset} style={{
                 flex:1,padding:"11px",borderRadius:10,border:"none",
-                background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+                background:`linear-gradient(135deg,${ET.red},${ET.redDk})`,
                 color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
                 boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
               }}>Reiniciar</button>
@@ -1671,7 +1779,7 @@ export default function App() {
         const next = currentIdx < NAV_TABS.length-1 ? NAV_TABS[currentIdx+1] : null;
         return (
           <footer style={{
-            background:T.card, borderTop:`1px solid ${T.borderSm}`,
+            background:ET.card, borderTop:`1px solid ${ET.borderSm}`,
             height:52, display:"flex", alignItems:"center",
             justifyContent:"space-between", padding:"0 24px", flexShrink:0,
           }}>
@@ -1679,15 +1787,15 @@ export default function App() {
             {prev ? (
               <button onClick={()=>setView(prev.id)} style={{
                 display:"flex",alignItems:"center",gap:8,
-                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
-                background:T.surface,cursor:"pointer",transition:"all .15s",
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${ET.borderSm}`,
+                background:ET.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=ET.red;e.currentTarget.style.color=ET.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=ET.borderSm;e.currentTarget.style.color=ET.ink;}}
               >
                 <span style={{fontSize:14}}>←</span>
                 <div style={{textAlign:"left"}}>
-                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Anterior</div>
+                  <div style={{fontSize:8.5,color:ET.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Anterior</div>
                   <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{prev.icon} {prev.label}</div>
                 </div>
               </button>
@@ -1699,7 +1807,7 @@ export default function App() {
                 <div key={t.id} onClick={()=>setView(t.id)} style={{
                   width: t.id===view ? 20 : 6,
                   height:6, borderRadius:99,
-                  background: t.id===view ? T.red : T.borderSm,
+                  background: t.id===view ? ET.red : ET.borderSm,
                   cursor:"pointer", transition:"all .25s cubic-bezier(.22,1,.36,1)",
                 }}/>
               ))}
@@ -1709,14 +1817,14 @@ export default function App() {
             {next ? (
               <button onClick={()=>setView(next.id)} style={{
                 display:"flex",alignItems:"center",gap:8,
-                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
-                background:T.surface,cursor:"pointer",transition:"all .15s",
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${ET.borderSm}`,
+                background:ET.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=ET.red;e.currentTarget.style.color=ET.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=ET.borderSm;e.currentTarget.style.color=ET.ink;}}
               >
                 <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Siguiente</div>
+                  <div style={{fontSize:8.5,color:ET.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Siguiente</div>
                   <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{next.icon} {next.label}</div>
                 </div>
                 <span style={{fontSize:14}}>→</span>
