@@ -2446,7 +2446,7 @@ function ConfirmModal({ count, onConfirm, onCancel }) {
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function ControlApp() {
   const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState("monitor");
+  const [tab, setTab] = useState("empresas");
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [respuestas, setRespuestas] = useState([]);
   const [empresas, setEmpresas]           = useState([]);
@@ -2517,9 +2517,9 @@ export default function ControlApp() {
   if (!authed) return <Login onLogin={() => setAuthed(true)} />;
 
   const TABS = [
+    { id: "empresas",  icon: "🏢", label: "Empresas" },
     { id: "monitor",   icon: "📊", label: "Monitoreo" },
     { id: "analytics", icon: "📈", label: "Analytics" },
-    { id: "empresas",  icon: "🏢", label: "Empresas" },
     { id: "links",     icon: "🔗", label: "Links" },
     { id: "reporte",   icon: "📄", label: "Reporte PDF" },
     { id: "downloads", icon: "⬇",  label: "Descargas" },

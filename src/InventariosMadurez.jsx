@@ -496,7 +496,7 @@ function CodigoAccesoScreen({ onSuccess }) {
             value={codigo}
             onChange={e => { setCodigo(e.target.value.toUpperCase()); setError(""); }}
             onKeyDown={e => e.key === "Enter" && handleSubmit()}
-            placeholder="Ej: CLARO-2025"
+            placeholder="Código de acceso"
             style={{
               width:"100%", padding:"13px 16px", borderRadius:11,
               border:`2px solid ${error ? "#ef4444" : "#E0D8F7"}`,
@@ -521,7 +521,7 @@ function CodigoAccesoScreen({ onSuccess }) {
   );
 }
 
-function RegistroForm({onStart, color=color, colorDk=colorDk}) {
+function RegistroForm({onStart, color=T.red, colorDk=T.redDk}) {
   const [dir,setDir]   = useState("");
   const [rol,setRol]   = useState("");
   const [err,setErr]   = useState(false);
@@ -601,11 +601,11 @@ function PerfilModal({onStart}) {
 }
 
 // ─── INTRO TAB ────────────────────────────────────────────────────────────────
-function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
+function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
   const STEPS=[
-    {n:"01",icon:"📖",c:"color",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
+    {n:"01",icon:"📖",c:color,bg:(color+"18"),label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
     {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
@@ -618,7 +618,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
       {/* ═══ HERO ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#C80F0A 0%,color 50%,#C01010 100%)",
+        background:`linear-gradient(150deg,${colorDk} 0%,${color} 50%,${colorDk} 100%)`,
         boxShadow:"0 32px 80px rgba(0,0,0,0.28)",
       }}>
         <NoiseSVG/>
@@ -780,7 +780,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
     </div>
   );
 }
-function ModeloTab({color=color, colorDk=colorDk}) {
+function ModeloTab({color=T.red, colorDk=T.redDk}) {
   const [open,setOpen] = useState(null);
 
   const DESC={
@@ -799,7 +799,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
       {/* ═══ HERO DARK ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,color 100%)",
+        background:`linear-gradient(150deg,${colorDk} 0%,${colorDk} 45%,${color} 100%)`,
         boxShadow:"0 28px 72px rgba(0,0,0,0.24)",
       }}>
         <NoiseSVG/>
@@ -958,7 +958,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
 }
 
 // ─── SUMMARY TAB ──────────────────────────────────────────────────────────────
-function SummaryTab({answers, perfil, color=color, colorDk=colorDk}) {
+function SummaryTab({answers, perfil, color=T.red, colorDk=T.redDk}) {
   const globalScore=useMemo(()=>{
     const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);
     return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;
@@ -1323,7 +1323,7 @@ function SummaryTab({answers, perfil, color=color, colorDk=colorDk}) {
 }
 
 // ─── SCROLL INDICATOR ─────────────────────────────────────────────────────────
-function ScrollIndicator({ scrollRef, color=color }) {
+function ScrollIndicator({ scrollRef, color=T.red }) {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
@@ -1565,9 +1565,10 @@ export default function App() {
               <button key={t.id} className="tab-pill" onClick={()=>setView(t.id)} style={{
                 padding:"6px 14px",borderRadius:10,border:"none",
                 background:view===t.id?T.card:"transparent",
-                color:view===t.id?T.ink:T.inkMid,
+                color:view===t.id?EC:T.inkMid,
                 fontWeight:view===t.id?700:500,
                 fontSize:11,cursor:"pointer",
+                borderBottom:view===t.id?`2px solid ${EC}`:"2px solid transparent",
                 boxShadow:view===t.id?"0 2px 6px rgba(0,0,0,0.09)":"none",
                 whiteSpace:"nowrap",
               }}>{t.icon} {t.label}</button>
