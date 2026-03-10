@@ -135,18 +135,23 @@ const DIMS = [
   { num:"01", key:"estrategia", icon:"🎯", label:"Estrategia de Gestión", sub:"Objetivos · Políticas · Red · Gobernanza · Riesgos",
     subs:[
       { id:"e1", label:"Objetivos & trade-offs", desc:"Servicio, costo, capital de trabajo",
+        q:"Objetivos & trade-offs (servicio, costo, capital)",
         ndesc:["Sin estrategia documentada. Objetivo: disponibilidad sin considerar costos ni capital.","Metas a nivel agregado vinculadas al presupuesto. Foco en reducir costos de almacenamiento.","Estrategia integrada con B2B/B2C. Objetivos por canal y categoría. Trade-offs costo-servicio-capital.","Estrategia alineada al negocio e integrada al IBP. Objetivos a nivel SKU-ubicación con balance óptimo.","Estrategia dinámica informada por datos en tiempo real. Objetivos ajustados automáticamente."],
         opp:"Definir política formal de inventarios con metas diferenciadas por canal, categoría y SKU. Integrar al ciclo S&OP. Reducción esperada de capital inmovilizado: 15–25%."},
       { id:"e2", label:"Políticas por canal", desc:"B2B/B2C, SS/ROP",
+        q:"Politicas de inventario por canal/segmento (B2B/B2C)",
         ndesc:["No existen políticas por canal. Gestión one-size-fits-all; decisiones reactivas. Sin parámetros claros.","Políticas básicas por categoría y canal. Clasificación ABC simple. Parámetros uniformes.","Políticas diferenciadas por B2B/B2C y ABC/XYZ. Niveles de servicio por canal; reglas documentadas.","Políticas multicriterio a nivel SKU-ubicación. Integradas a S&OP/IBP y revisión trimestral.","Políticas dinámicas con IA: micro-segmentación SKU-tienda-cliente, auto-ajuste en tiempo real."],
         opp:"Implementar parámetros SS/ROP diferenciados por ABC/XYZ y canal. Documentar reglas de asignación B2B/B2C. Reducción de quiebres críticos: 20–30%."},
       { id:"e3", label:"Diseño de red", desc:"CDC, tiendas, hubs",
+        q:"Diseno de red y posicionamiento (CDC, tiendas, hubs)",
         ndesc:["Red no diseñada formalmente. Almacenamiento centralizado sin optimización. Tiempos inconsistentes.","Red básica con CD central y puntos de cross-docking regionales. Sin optimización de costos.","Red diseñada para balance costo-servicio. Puntos estratégicos por región. Rutas optimizadas.","Red integrada para todos los canales y técnicos/campo. Posicionamiento óptimo por nodo.","Red dinámica ship-from-anywhere: optimización automática según demanda y costos."],
         opp:"Estudio de red para optimizar posicionamiento por nodo (CDC vs hubs vs tiendas). Reducción de costos de distribución: 10–18% y mejora de OTIF."},
       { id:"e4", label:"Gobernanza S&OP", desc:"S&OP/S&OE, Comercial, Finanzas",
+        q:"Gobernanza & alineacion comercial/finanzas (S&OP/S&OE)",
         ndesc:["No existe gobernanza formal. Decisiones desconectadas de comercial/finanzas; sin foros.","Coordinación básica e informal. Foco en apagar incendios. Participación limitada de finanzas.","S&OP formalizado mensual con participación de comercial, finanzas y supply chain.","IBP/E2E: plan integrado demanda-suministro-inventario-finanzas con escenarios. RACI claro.","Planificación continua y dinámica. Automatización de excepciones. IA en decisiones."],
         opp:"Formalizar ciclo S&OP mensual con Comercial, Finanzas y Supply Chain. Establecer único número y RACI. Reducción de quiebres por desalineación: 25–35%."},
       { id:"e5", label:"Riesgos y resiliencia", desc:"Disrupciones, fraude, regulación",
+        q:"Riesgos y resiliencia (disrupciones, fraude, regulacion)",
         ndesc:["Sin proceso formal de gestión de riesgos. Reacción tardía ante quiebres, robos o cambios regulatorios.","Identificación reactiva de riesgos principales. Planes de mitigación ad-hoc.","Proceso estructurado: registro de riesgos, owners y planes por categorías críticas.","Gestión proactiva integrada al S&OP: escenarios y estrategias de cobertura (buffers, dual-sourcing).","Modelamiento predictivo con IA: alertas tempranas de disrupción, fraude y SLOB."],
         opp:"Crear registro de riesgos (SLOB, fraude SIM/IMEI, disrupciones) con owners y planes de contingencia. Controles anti-fraude en categorías de alto riesgo."},
     ]
@@ -154,18 +159,23 @@ const DIMS = [
   { num:"02", key:"caracterizacion", icon:"🏷️", label:"Caracterización", sub:"Segmentación · Trazabilidad · Ciclo de vida · Ubicación · Retornos",
     subs:[
       { id:"c1", label:"Segmentación ABC/XYZ", desc:"Categoría, criticidad, valor-volumen",
+        q:"Segmentacion por categoria/criticidad (ABC/XYZ, valor-volumen)",
         ndesc:["No existe clasificación formal. Productos sin diferenciación. No se conoce la contribución de cada SKU.","Clasificación ABC básica por volumen o valor. Aplica a categorías principales. Actualización anual.","Clasificación ABC/XYZ combinando valor y variabilidad. Aplica a todas las categorías.","Clasificación multidimensional: margen, rotación, ciclo de vida. Actualización trimestral automatizada.","Clasificación dinámica continua. ML reclasifica SKUs. Integración con roadmap de OEMs."],
         opp:"Implementar clasificación ABC/XYZ para todo el catálogo activo. Diferenciar parámetros por segmento. Reducción de inventario: 15–20% manteniendo nivel de servicio."},
       { id:"c2", label:"Atributos & trazabilidad", desc:"Serial/IMEI, lotes, caducidad",
+        q:"Atributos & trazabilidad (serial/IMEI, lotes, caducidad)",
         ndesc:["Catálogo maestro incompleto. Atributos críticos (serial/IMEI, lote) faltantes o no confiables.","Maestros parcialmente completos. Trazabilidad limitada para SKUs de alto valor.","Gobernanza de maestros estandarizada. Trazabilidad por serial/IMEI para dispositivos y CPE.","Trazabilidad E2E incluyendo 3PL/distribuidores. Validaciones automáticas de IMEI/serial.","Trazabilidad en tiempo real con control tower; RFID/IoT donde aplique."],
         opp:"Captura obligatoria de IMEI/serial en recepción, venta y swap. Limpiar maestro de ítems activos. Reducción de fraude SIM/dispositivos: 30–50%."},
       { id:"c3", label:"Ciclo de vida y SLOB", desc:"SLOB, lanzamientos, fin de vida",
+        q:"Ciclo de vida y obsolescencia (SLOB, lanzamientos, fin de vida)",
         ndesc:["No se considera el ciclo de vida. Mismas políticas para productos nuevos y maduros. SLOB acumulado.","Reconocimiento informal del ciclo de vida; ajustes manuales en EOL. Identificación reactiva de SLOB.","Gestión por fases (lanzamiento-crecimiento-declive-EOL) con políticas por fase.","Gestión integrada con roadmap de OEMs y S&OP: transiciones planificadas; alertas tempranas de SLOB.","Gestión predictiva: modelos anticipan adopción/declive. Provisiones automáticas con analítica."],
         opp:"Proceso de gestión SLOB con criterios claros (antigüedad, rotación). Planes de depleción antes de superar X días de cobertura. Reducción de write-offs: 40–60%."},
       { id:"c4", label:"Ubicación y propiedad", desc:"Consignación, 3PL, tiendas, técnicos",
+        q:"Ubicacion y propiedad (consignacion, 3PL, tiendas, tecnicos)",
         ndesc:["Ubicaciones y propiedad no claramente definidas. Visibilidad limitada a bodegas principales.","Estructura básica de ubicaciones y marca simple propio vs consignado. Reportes periódicos.","Maestro de ubicaciones estandarizado (nodo-bodega-bin) y atributos de propiedad/estado.","Visibilidad E2E multi-parte (3PL, dealers, distribuidores) casi en tiempo real.","Visibilidad en tiempo real con partners. Optimización de posicionamiento dinámica."],
         opp:"Maestro completo de ubicaciones con jerarquía nodo-bodega-bin. Control de inventario en poder de técnicos de campo. Reducción de discrepancias contables."},
       { id:"c5", label:"Retornos y condición", desc:"Nuevo, refurb, swap, scrap",
+        q:"Retornos/garantias y condicion (nuevo, refurb, swap, scrap)",
         ndesc:["Sin proceso formal de retornos. Productos devueltos acumulados sin clasificación.","Proceso básico de recepción de devoluciones. Clasificación manual simple (apto/no apto).","Proceso estructurado (RMA) con políticas por canal y tipo. Triage por condición.","Logística inversa integrada E2E: enrutamiento optimizado a reparación/refurb/reciclaje.","Economía circular optimizada: asignación dinámica automática del destino óptimo."],
         opp:"Implementar proceso RMA con triage estandarizado y tiempos objetivo de reingreso. Potencial de recuperación de valor: 10–20% del costo de los retornos."},
     ]
@@ -173,18 +183,23 @@ const DIMS = [
   { num:"03", key:"procesos", icon:"⚙️", label:"Procesos", sub:"Planeación · Omnicanal · Ejecución · Control · Excepciones",
     subs:[
       { id:"p1", label:"Planeación & reposición", desc:"DRP, min-max, MEIO",
+        q:"Planeacion de inventario & reposicion (DRP, min-max, MEIO)",
         ndesc:["Sin proceso formal. Pedidos manuales basados en intuición. Sin parámetros SS/ROP/EOQ.","Forecast básico por categoría/canal en Excel. Frecuencias fijas; parámetros a nivel agregado.","Planeación a nivel SKU con modelos estadísticos. Parámetros diferenciados por ABC/XYZ.","Planeación integrada a S&OP/IBP: parámetros a nivel SKU-ubicación y optimización MEIO.","Planeación continua y autónoma: modelos ML + señales externas. Digital twin; ejecución automática."],
         opp:"Migrar de reposición reactiva a planeación estadística por SKU. Calcular SS y ROP por ABC/XYZ y lead time real. Reducción de quiebres: 30–40%. Reducción de inventario total: 10–15%."},
       { id:"p2", label:"Asignación omnicanal", desc:"ATP/CTP, reservas, disponibilidad",
+        q:"Asignacion y disponibilidad omnicanal (ATP/CTP, reservas)",
         ndesc:["Inventarios gestionados en silos. Sin visibilidad cruzada. Exceso en un canal y quiebre en otro.","Visibilidad consolidada básica. Reglas simples de reserva/ATP manual. Transferencias lentas.","Pool compartido para categorías principales; reglas de asignación por prioridad de canal.","Orquestación omnicanal integrada: ATP/CTP con reglas dinámicas. Fulfillment flexible.","Orquestación en tiempo real. Promesa de disponibilidad dinámica. Inventario virtual en toda la red."],
         opp:"Crear pool de inventario compartido con reglas de priorización B2B/B2C. Eliminar el fenómeno de exceso en un canal y quiebre en otro. Mejora de disponibilidad: 15–25% sin incrementar inventario."},
       { id:"p3", label:"Ejecución física", desc:"Recepción, almacenaje, picking",
+        q:"Ejecucion fisica (recepcion, almacenaje, picking, transferencias)",
         ndesc:["Procesos físicos manuales y no estandarizados. Uso limitado de códigos de barras; errores frecuentes.","SOPs básicos en CDC; registro en sistema al cierre del día. Picking con listas impresas.","Procesos estandarizados con WMS en CDC (RF/escáner), layout y slotting definidos.","Ejecución E2E en CDC/tiendas/3PL: integración WMS-OMS-TMS. Automatización selectiva.","Ejecución altamente automatizada (robotización/IoT). Slotting dinámico."],
         opp:"Implementar WMS con captura RF/escáner en CDC. Estandarizar SOPs de recepción, picking y despacho. Reducción de errores: 50–70%. Mejora de productividad: 20–30%."},
       { id:"p4", label:"Control & exactitud", desc:"Conteos cíclicos, shrinkage",
+        q:"Control & exactitud (conteos ciclicos, auditorias, shrinkage)",
         ndesc:["Sin proceso de conteo cíclico. Inventarios físicos anuales con alta discrepancia. Exactitud desconocida.","Inventario físico semestral. Conteos cíclicos básicos en algunas ubicaciones. Exactitud 80–90%.","Programa de conteo cíclico estructurado por ABC con exactitud >95%. Investigación de causas.","Conteo cíclico continuo con tecnología. Exactitud >98%. Controles anti-shrinkage.","Control en tiempo real (RFID/IoT) con exactitud >99% y detección automática de anomalías."],
         opp:"Implementar conteos cíclicos por ABC (A: semanal, B: mensual, C: trimestral). Investigar causas de diferencias. Objetivo: exactitud >95% en 6 meses."},
       { id:"p5", label:"Excepciones y retornos", desc:"RMA, devoluciones, reparación",
+        q:"Excepciones y retornos (RMA, devoluciones, reparacion, disposicion)",
         ndesc:["Sin proceso formal para devoluciones. Productos devueltos acumulados sin gestión.","Proceso básico de recepción de devoluciones. Políticas elementales por canal.","Proceso estructurado con políticas claras por canal y tipo de producto. Categorización del devuelto.","Logística inversa integrada. Routing optimizado de devoluciones. Mercado secundario activo.","Logística inversa automatizada con asignación dinámica del destino óptimo."],
         opp:"Definir políticas formales de devolución por tipo y canal. Medir TAT del proceso de retornos. Calcular el capital inmovilizado en retornos sin clasificar y establecer SLAs de reingreso."},
     ]
@@ -192,18 +207,23 @@ const DIMS = [
   { num:"04", key:"roles", icon:"👥", label:"Roles y Responsabilidades", sub:"Modelo operativo · Interfaces · Terceros · Capacidades · Incentivos",
     subs:[
       { id:"r1", label:"Modelo operativo & RACI", desc:"Dueños de proceso E2E",
+        q:"Modelo operativo & RACI (duenos de proceso E2E)",
         ndesc:["No existe modelo operativo definido. Roles no documentados; duplicidades/vacíos. Silos B2B/B2C.","Modelo operativo básico dentro de supply chain; algunos roles definidos. RACI parcial.","Gobernanza y modelo operativo claros con dueños de proceso. RACI completo; matriz de autoridad.","Modelo operativo E2E integrado con proveedores/3PL y canales. Roles especializados.","Modelo operativo adaptable: automatización de tareas rutinarias, equipos en decisiones de alto valor."],
         opp:"Documentar modelo operativo con RACI completo. Asignar dueños formales a procesos críticos (planeación, control, retornos). Eliminar duplicidades con roles y handoffs claros."},
       { id:"r2", label:"Interfaces clave", desc:"Comercial, Finanzas, Operaciones, TI",
+        q:"Interfaces clave (Comercial, Finanzas, Operaciones, TI)",
         ndesc:["Interfaces no formalizadas. Información compartida tarde/incompleta; conflictos frecuentes.","Rituales básicos de coordinación; finanzas participa ocasionalmente.","Interfaces estructuradas con cadencia y agenda (S&OP/S&OE). Reglas claras para lanzamientos.","Integración E2E: planificación conectada con comercial/finanzas/operaciones/TI. SLAs definidos.","Colaboración en tiempo real: decisiones automatizadas para rutinas. Squads cross-funcionales."],
         opp:"Formalizar la agenda Supply-Comercial-Finanzas. Definir derechos de decisión para campañas y quiebres críticos. Reducción de tiempo de respuesta ante disrupciones: 40–60%."},
       { id:"r3", label:"Gestión de terceros", desc:"OEM, 3PL, distribuidores, dealers",
+        q:"Gestion de terceros (OEM, 3PL, distribuidores, dealers)",
         ndesc:["Relaciones transaccionales con OEMs enfocadas en precio. Lead times no monitoreados.","Relación por contratos básicos. Lead times conocidos pero poca gestión de performance.","Gestión estructurada con scorecards para OEMs/3PL/dealers. SLAs definidos.","Partnerships E2E: planes de mejora conjuntos; visibilidad de pipeline; acuerdos de buffers.","Ecosistema integrado: datos en tiempo real, planificación colaborativa automatizada. Co-innovación."],
         opp:"Implementar scorecards para top-10 proveedores/3PL con KPIs de lead time, OTIF y exactitud. Iniciar planificación colaborativa con OEMs en lanzamientos. Reducción de variabilidad de lead time: 20–30%."},
       { id:"r4", label:"Capacidades y formación", desc:"Planificación, analítica, operación",
+        q:"Capacidades y formacion (planificacion, analitica, operacion)",
         ndesc:["Sin programa de capacitación específico. Aprendizaje ad-hoc. Brechas no identificadas.","Capacitaciones básicas disponibles. Materiales genéricos. Dependencia de consultores externos.","Programa de capacitación estructurado con módulos específicos de inventarios telco.","Programas de desarrollo individualizados. Formación cross-funcional. Certificaciones.","Programas avanzados en analytics, IA aplicada a inventarios. Aprendizaje continuo."],
         opp:"Evaluar competencias del equipo actual. Diseñar plan de formación en planeación estadística, gestión SLOB y herramientas digitales. Reducción de dependencia de consultores externos."},
       { id:"r5", label:"Incentivos & accountability", desc:"SLAs, KPIs, consecuencias",
+        q:"Incentivos & accountability (SLAs, KPIs, consecuencias)",
         ndesc:["Sin accountability clara ni incentivos alineados. Áreas optimizan objetivos locales.","Revisión periódica enfocada en costos. Incentivos que incentivan sobre-stock.","Gestión de desempeño estructurada: KPIs balanceados (costo-servicio-capital) por función.","Accountability E2E: KPIs compartidos cross-funcionales y con terceros. Incentivos alineados.","Gestión optimizada. Incentivos dinámicos en tiempo real. Compensación ligada al desempeño del ecosistema."],
         opp:"Diseñar tablero de KPIs balanceados visible para todas las áreas. Alinear incentivos de Comercial y Supply Chain. Resolver el dilema ventas vs. capital."},
     ]
@@ -211,18 +231,23 @@ const DIMS = [
   { num:"05", key:"herramientas", icon:"🔧", label:"Herramientas", sub:"ERP/OMS/WMS · APS · Visibilidad · Analytics · Automatización",
     subs:[
       { id:"h1", label:"Arquitectura core", desc:"ERP/OMS/WMS e integración",
+        q:"Arquitectura core (ERP/OMS/WMS) e integracion",
         ndesc:["Sistemas legacy o uso básico sin integración. Registros paralelos en Excel. Sin WMS robusto.","ERP implementado pero no armonizado entre canales. WMS básico en CDC. OMS parcial.","ERP integrado con módulos de inventario/compras y WMS robusto en CDC. Datos diarios.","Arquitectura armonizada E2E (ERP-OMS-WMS-TMS) para tiendas, CDC, distribuidores y 3PL.","Plataforma modular cloud con integración en tiempo real vía APIs/eventos. Capacidades IA."],
         opp:"Armonizar ERP para todos los canales y eliminar registros paralelos en Excel. Implementar WMS en tiempo real. Roadmap de arquitectura target de 18–24 meses. Reducción de esfuerzo de conciliación: 60–70%."},
       { id:"h2", label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP",
+        q:"Planificacion (APS/DRP, pronostico, S&OP/S&OE)",
         ndesc:["Planificación basada en Excel. Sin herramientas analíticas. Sin capacidad de forecast.","Reporting básico (BI estático). Planificación en Excel con modelos simples. Dashboards manuales.","Herramienta de planificación con modelos estadísticos. BI interactivo. Reportes automatizados.","Suite de planificación avanzada (APS) con optimización de inventarios. Simulación de escenarios.","Plataforma de planning con IA/ML. Digital twin de la cadena de suministro. Analytics predictivos."],
         opp:"Evaluar e implementar herramienta de planificación de demanda. Automatizar cálculo de parámetros SS/ROP. Reducción de tiempo de ciclo de planeación: 50–60%."},
       { id:"h3", label:"Visibilidad & trazabilidad", desc:"Serialización, RFID, track&trace",
+        q:"Visibilidad & trazabilidad (serializacion, RFID, track&trace)",
         ndesc:["Sin visibilidad del inventario en tránsito ni en puntos de venta. Sin trazabilidad por serie.","Visibilidad básica del inventario en CDs y algunas tiendas. Tránsito conocido solo al llegar.","Visibilidad de inventario en toda la red propia. Inventario en tránsito visible.","Visibilidad en tiempo real de toda la red incluyendo distribuidores y 3PLs. Alertas.","Visibilidad total en tiempo real con IoT/RFID en todos los nodos. Control tower 360°."],
         opp:"Implementar dashboard consolidado de inventario por nodo. Integrar visibilidad de 3PL y distribuidores. Alertas automáticas de quiebre proyectado. Reducción de tiempo de respuesta: 40–50%."},
       { id:"h4", label:"Datos & analítica", desc:"Lakehouse, BI, modelos, calidad",
+        q:"Datos & analitica (lakehouse, BI, modelos, calidad de datos)",
         ndesc:["Datos dispersos en silos; calidad desconocida. Reportes manuales. Sin gobierno de datos.","BI básico con extracción periódica. Calidad de datos corregida manualmente.","Plataforma de datos corporativa (DWH/lakehouse). Gobierno de datos. BI autoservicio.","Analítica avanzada integrada: modelos de pronóstico, optimización y riesgo.","Analítica predictiva/prescriptiva a escala. Recomendaciones automatizadas. Gemelo digital."],
         opp:"Definir modelo de datos unificado de inventarios. Establecer data owners y métricas estándar. Habilitar BI autoservicio para planeadores. Eliminar inconsistencias entre reportes."},
       { id:"h5", label:"Automatización", desc:"RPA, APIs/EDI, alertas, movilidad",
+        q:"Automatizacion (RPA, APIs/EDI, alertas, movilidad)",
         ndesc:["Procesos manuales intensivos. Sin integración entre sistemas. Comunicación por email.","Automatización básica de procesos transaccionales. Integración limitada entre sistemas.","Workflows automatizados para procesos clave. Integración vía EDI/API con proveedores.","Alto nivel de automatización E2E. Integración bidireccional con OEMs y 3PLs. RPA.","Automatización inteligente: APIs/eventos + RPA/IA. Movilidad completa en CDC/tiendas."],
         opp:"Automatizar procesos de alta frecuencia: órdenes de reposición, alertas de quiebre/exceso, conciliaciones. Implementar movilidad en CDC (handhelds). Reducción de esfuerzo manual: 40–55%."},
     ]
@@ -230,18 +255,23 @@ const DIMS = [
   { num:"06", key:"indicadores", icon:"📊", label:"Indicadores", sub:"Servicio · Capital · Exactitud · Salud · Cumplimiento",
     subs:[
       { id:"i1", label:"Servicio al cliente", desc:"Fill rate, OTIF, backorders, NPS",
+        q:"Servicio al cliente (fill rate, OTIF, backorders, NPS impacto)",
         ndesc:["No se mide servicio de forma consistente. Se conocen quiebres solo por reclamos.","Métricas básicas de quiebres a nivel agregado; medición manual y periódica.","Set estandarizado de KPIs de servicio (fill rate, OTIF, backorders) por canal/categoría.","KPIs de servicio integrados E2E y a nivel SKU-ubicación. Tableros con drill-down.","Servicio en tiempo real con métricas predictivas (riesgo de quiebre) y prescriptivas."],
         opp:"Definir y medir fill rate y OTIF por canal y categoría. Vincular quiebres a impacto en activaciones/NPS. Establecer targets diferenciados por clasificación ABC."},
       { id:"i2", label:"Eficiencia & capital", desc:"Rotación, DIO, capital de trabajo",
+        q:"Eficiencia & capital (rotacion, DIO, capital de trabajo)",
         ndesc:["Solo se monitorea valor total de inventario. No se mide rotación/DIO de forma confiable.","Métricas básicas (valor, cobertura en días) con actualización mensual.","KPIs completos de eficiencia (rotación, DIO, DOH, capital de trabajo) por categoría/canal.","Gestión integrada: KPIs a nivel SKU-ubicación y costo de servir. Optimización de trade-offs.","KPIs en tiempo real y predictivos (proyección de capital, riesgo de exceso)."],
         opp:"Reporte semanal de DIO/rotación por categoría. Targets de capital de trabajo vinculados a objetivos financieros. Potencial de liberación de capital: 15–30% del inventario total."},
       { id:"i3", label:"Exactitud & pérdidas", desc:"Accuracy, shrinkage, ajustes",
+        q:"Exactitud & perdidas (accuracy, shrinkage, ajustes)",
         ndesc:["Exactitud desconocida o baja; ajustes frecuentes sin análisis. Shrinkage no medido.","Exactitud medida esporádicamente. Shrinkage estimado con baja granularidad.","Exactitud >95% con programa de conteo cíclico; KPIs de ajustes y pérdidas por nodo.","Exactitud >98% con monitoreo continuo; shrinkage gestionado proactivamente.","Exactitud >99% y detección automática de anomalías/pérdidas."],
         opp:"Medir IRA (Inventory Record Accuracy) por nodo. Cuantificar pérdidas anuales por shrinkage y fraude. Implementar controles físicos mínimos en nodos de alto riesgo."},
       { id:"i4", label:"Salud del inventario", desc:"Aging, SLOB, write-offs, DOH",
+        q:"Salud del inventario (aging, SLOB, write-offs, DOH por categoria)",
         ndesc:["No se mide salud (aging/SLOB). Inventario envejecido detectado tarde; write-offs imprecisos.","Reportes manuales de aging y SLOB; criterios inconsistentes. Provisiones reactivas.","KPIs estandarizados de salud (aging, SLOB, DOH, write-offs) con revisión periódica.","Salud integrada a S&OP y ciclo de vida: alertas tempranas, estrategias de depleción.","Métricas predictivas de obsolescencia con prevención automática. Provisiones automáticas."],
         opp:"Reporte mensual de salud con aging por categoría (30/60/90/120+ días). Criterios de clasificación SLOB y provisiones consistentes. Comité mensual de depleción para accionar inventario en riesgo."},
       { id:"i5", label:"Cumplimiento & riesgo", desc:"Fraude, auditoría, regulatorio",
+        q:"Cumplimiento & riesgo (fraude, auditoria, regulatorio, seguridad)",
         ndesc:["Cumplimiento reactivo. Controles de seguridad mínimos; riesgo de fraude alto.","Controles básicos y auditorías puntuales. Cumplimiento regulatorio atendido caso a caso.","Marco de cumplimiento y riesgo definido: políticas de seguridad, auditorías, controles anti-fraude.","Gestión E2E del riesgo: controles automatizados, monitoreo continuo y analítica de anomalías.","Gestión predictiva del riesgo: modelos anticipan fraude/robos; acciones automáticas."],
         opp:"Establecer marco formal de riesgo: políticas de seguridad física, controles de IMEI/SIM, segregación de funciones. Auditorías periódicas en canales de mayor riesgo. Reducción de incidentes de fraude: 30–50%."},
     ]
@@ -249,18 +279,23 @@ const DIMS = [
   { num:"07", key:"abastecimiento", icon:"📦", label:"Abastecimiento", sub:"Dispositivos · CPE · SIM/eSIM · Accesorios · Repuestos",
     subs:[
       { id:"ab1", label:"Dispositivos", desc:"Smartphones/tablets: lanzamiento-rampa-fin de vida",
+        q:"Dispositivos (smartphones/tablets): lanzamiento-rampa-fin de vida",
         ndesc:["Compras reactivas. Sin planificación de lanzamientos; quiebres o sobre-stocks frecuentes.","Planificación básica de lanzamientos basada en históricos y estimaciones comerciales.","Estrategia por ciclo de vida: planificación de lanzamientos con 4–8 semanas. Acuerdos con OEM.","E2E con OEMs: integración a roadmap y pipeline; escenarios de demanda. Acuerdos de devolución.","Estrategia dinámica: IA para ramp-up/down, mix óptimo por tienda/segmento en tiempo real."],
         opp:"Proceso formal de planeación de lanzamientos con 4–8 semanas de anticipación. Negociar acuerdos de devolución/crédito con OEMs para dispositivos al EOL. Reducción de SLOB por EOL: 40–50%."},
       { id:"ab2", label:"CPE/routers/STB", desc:"Proyectos, bundles, reposición de fallas",
+        q:"CPE/routers/STB: proyectos, bundles, reposicion de fallas",
         ndesc:["Abastecimiento basado en pedidos de proyectos sin estándar. Faltantes afectan altas y soporte.","Planificación básica por proyectos/bundles con buffers simples. RMA manual.","Planeación por demanda de instalaciones y fallas (forecast + históricos). RMA estructurado.","E2E: integración con planes comerciales/operaciones y proveedores. Optimización MEIO.","Estrategia dinámica: analítica predictiva de fallas y demanda; reposición autónoma."],
         opp:"Integrar el plan de instalaciones/altas con la planeación de CPE. Implementar reposición por fallas con histórico de tasas de falla por modelo. Reducción de quiebres que afectan instalaciones: 25–35%."},
       { id:"ab3", label:"SIM/eSIM & kits", desc:"Alto volumen, bajo valor, control de fraude",
+        q:"SIM/eSIM & kits: alto volumen, bajo valor, control de fraude",
         ndesc:["Compras reactivas; control débil de inventario y numeración. Riesgo alto de fraude.","Políticas básicas de reposición por volumen (min-max). Control parcial de numeración.","Gestión estructurada: reposición por consumo y distribución por canal/tienda. Trazabilidad.","E2E: integración con sistemas de activación y cumplimiento regulatorio. Analítica de anomalías.","Monitoreo en tiempo real de pérdidas y fraude con modelos predictivos; bloqueos automáticos."],
         opp:"Control de lote/serie para SIM/kits con cadena de custodia documentada. Auditorías de numeración periódicas. KPIs de activación vs. distribución para detectar anomalías. Reducción de fraude SIM: 30–60%."},
       { id:"ab4", label:"Accesorios", desc:"Amplia variedad, moda, riesgo de obsolescencia",
+        q:"Accesorios: amplia variedad, moda, alto riesgo de obsolescencia",
         ndesc:["Catálogo sin segmentación; compras reactivas. Alto sobre-stock y obsolescencia.","Segmentación básica por valor/rotación; reposición con reglas simples.","Gestión por portafolio: ABC/XYZ + margen y tendencia. Surtido por tienda/segmento.","E2E: integración con marketing y e-commerce. Acuerdos con proveedores para devoluciones.","Estrategia dinámica: IA para predicción de tendencias, personalización por tienda."],
         opp:"Reducir catálogo activo de accesorios priorizando por margen y rotación. Surtido diferenciado por formato de tienda (A/B/C). Ciclos de revisión de aging mensuales. Reducción de SLOB: 35–50%."},
       { id:"ab5", label:"Repuestos/refurb/swap", desc:"Circularidad, garantías y niveles de servicio",
+        q:"Repuestos/refurb/swap: circularidad, garantias y niveles de servicio",
         ndesc:["Gestión reactiva de repuestos y swaps; sin visibilidad de condición. Altas demoras.","Proceso básico de inventario de repuestos; stock de seguridad simple.","Estrategia definida: niveles de servicio para repuestos por familia/tecnología. Triage estructurado.","E2E: optimización multi-escalón (MEIO) y logística inversa integrada. Refurb industrializado.","Estrategia dinámica y circular: modelos predictivos de fallas. Orquestación automática del destino."],
         opp:"Calcular demanda histórica de repuestos/swaps por modelo. Establecer niveles de servicio y targets de TAT. Proceso de reingreso de equipos refurbishados. Recuperación de valor de activos: 20–30%."},
     ]
@@ -1508,10 +1543,19 @@ export default function App() {
               padding:"26px",marginBottom:20,
               boxShadow:"0 4px 16px rgba(0,0,0,0.06)",
             }}>
-              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:20,gap:14}}>
-                <div>
-                  <div className="display" style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-.015em",marginBottom:5}}>{sub.label}</div>
-                  <div style={{fontSize:12,color:T.inkMid}}>{sub.desc}</div>
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:16,gap:14}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                    <span style={{fontSize:9,fontWeight:700,color:T.red,textTransform:"uppercase",letterSpacing:".12em",background:T.redBg,padding:"2px 8px",borderRadius:99,border:`1px solid ${T.redSoft}`}}>Pregunta {activeSub+1} de {dim.subs.length}</span>
+                    <span style={{fontSize:9,color:T.inkSoft,fontWeight:500}}>{dim.num}. {dim.label}</span>
+                  </div>
+                  <div className="display" style={{fontSize:15,fontWeight:800,color:T.ink,letterSpacing:"-.015em",marginBottom:5,lineHeight:1.35}}>
+                    Seleccione el nivel que mejor describe la situacion actual en:
+                  </div>
+                  <div style={{fontSize:14,fontWeight:700,color:T.red,marginBottom:5,lineHeight:1.3}}>
+                    {sub.q||sub.label}
+                  </div>
+                  <div style={{fontSize:11,color:T.inkMid}}>{sub.desc}</div>
                 </div>
                 {answers[sub.id]>0&&<LvBadge v={answers[sub.id]}/>}
               </div>
