@@ -100,8 +100,8 @@ function Login({ onLogin }) {
         boxShadow: "0 40px 100px rgba(0,0,0,0.08)",
       }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMxRTFFMUUiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4=" alt="Kearney" style={{height:30, display:"block", margin:"0 auto 10px"}}/>
-          <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase", marginBottom:0 }}>Inventarios · Admin</div>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:26, display:"block", margin:"0 auto 10px"}}/>
+          <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase" }}>Inventarios · Admin</div>
         </div>
 
         <input
@@ -1004,7 +1004,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
             const l = e.score_global?lvMeta(e.score_global):null;
             return (
               <div key={e.id} style={{ display:"grid", gridTemplateColumns:"22px 1fr 100px 80px", alignItems:"center", gap:12,
-                padding:"8px 12px", borderRadius:10, background:i===0?"#FAF7FF":"#FAFAF8",
+                padding:"8px 12px", borderRadius:10, background:i===0?"#FFF8F7":"#FAFAF8",
                 border:`1px solid ${i===0?"#FDDCDA":"#F0EDE9"}` }}>
                 <div style={{ fontSize:11, fontWeight:800, color:i===0?RED:"#CCC" }}>#{i+1}</div>
                 <div>
@@ -1031,23 +1031,24 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
 
 // ─── LINKS TAB ────────────────────────────────────────────────────────────────
-// ─── EMPRESA INPUT (module-level avoids re-render focus loss) ────────────────
+// ─── INDUSTRIAS ───────────────────────────────────────────────────────────────
+const INDUSTRIAS = ["Telecomunicaciones","Farmacéutica","Oil & Gas","Manufactura","CPG"];
+
+// ─── EMPRESA INPUT FIELD (module-level to prevent focus loss) ─────────────────
 function EmpresaInputField({ label, fieldKey, placeholder, type="text", form, setForm, formErr, setFormErr }) {
-  const RED = "#7823DC";
   return (
     <div style={{ marginBottom:16 }}>
       <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5, display:"flex", justifyContent:"space-between" }}>
         <span>{label}</span>
-        {formErr[fieldKey] && <span style={{ color:RED, fontSize:10 }}>{formErr[fieldKey]}</span>}
+        {formErr[fieldKey] && <span style={{ color:"#7823DC", fontSize:10 }}>{formErr[fieldKey]}</span>}
       </div>
       <input
         value={form[fieldKey]}
-        onChange={e => { setForm(p=>({...p,[fieldKey]:e.target.value})); setFormErr(p=>({...p,[fieldKey]:undefined})); }}
+        onChange={e => { setForm(p=>(({...p,[fieldKey]:e.target.value})));setFormErr(p=>(({...p,[fieldKey]:undefined})));}}
         placeholder={placeholder} type={type}
         style={{ width:"100%", padding:"9px 12px", borderRadius:9,
-          border:`1.5px solid ${formErr[fieldKey]?RED:"#E8E4DF"}`,
-          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none",
-          boxSizing:"border-box" }}
+          border:`1.5px solid ${formErr[fieldKey]?"#7823DC":"#E8E4DF"}`,
+          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none", boxSizing:"border-box" }}
       />
     </div>
   );
@@ -1094,27 +1095,30 @@ const SUBS_META = [
 
 // ─── EMPRESAS TAB ─────────────────────────────────────────────────────────────
 function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
-  const [view,       setView]       = useState("list");
-  const [editing,    setEditing]    = useState(null);
-  const [saving,     setSaving]     = useState(false);
-  const [editingSubs,setEditingSubs]= useState(false);
-  const [subsData,   setSubsData]   = useState({});
-  const [savingSubs, setSavingSubs] = useState(false);
-  const [form,       setForm]       = useState({ nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" });
-  const [formErr,    setFormErr]    = useState({});
+  const [view,        setView]       = useState("list");
+  const [editing,     setEditing]    = useState(null);
+  const [saving,      setSaving]     = useState(false);
+  const [editingSubs, setEditingSubs]= useState(false);
+  const [subsData,    setSubsData]   = useState({});
+  const [savingSubs,  setSavingSubs] = useState(false);
+  const [form,        setForm]       = useState({ nombre:"", codigo:"", industria:"Telecomunicaciones", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" });
+  const [formErr,     setFormErr]    = useState({});
   const PURPLE = "#7823DC";
 
-  function startNew() { setForm({ nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" }); setEditing(null); setView("new"); setEditingSubs(false); }
+  function startNew() {
+    setForm({ nombre:"", codigo:"", industria:"Telecomunicaciones", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" });
+    setEditing(null); setView("new"); setEditingSubs(false);
+  }
   function startEdit(emp) {
-    setForm({ nombre:emp.nombre, codigo:emp.codigo, color_primary:emp.color_primary||"#7823DC", color_dark:emp.color_dark||"#5A1AA0", logo_url:emp.logo_url||"" });
+    setForm({ nombre:emp.nombre, codigo:emp.codigo, industria:emp.industria||"Telecomunicaciones", color_primary:emp.color_primary||"#7823DC", color_dark:emp.color_dark||"#5A1AA0", logo_url:emp.logo_url||"" });
     setEditing(emp); setView("edit"); setEditingSubs(false);
   }
 
   async function loadSubs(emp) {
     const { data } = await supabase.from("subs_custom").select("*").eq("empresa_id", emp.id);
     const map = {};
+    SUBS_META.forEach(sm => { map[sm.id] = { q:"", label:"", desc:"" }; });
     (data||[]).forEach(s => { map[s.sub_id] = { q:s.q||"", label:s.label||"", desc:s.descripcion||"" }; });
-    SUBS_META.forEach(sm => { if (!map[sm.id]) map[sm.id] = { q:"", label:"", desc:"" }; });
     setSubsData(map); setEditing(emp); setEditingSubs(true); setView("edit");
   }
 
@@ -1122,7 +1126,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     const errs = {};
     if (!form.nombre.trim()) errs.nombre = "Requerido";
     if (!form.codigo.trim()) errs.codigo = "Requerido";
-    if (!/^[A-Z0-9\-_]{2,20}$/i.test(form.codigo.trim())) errs.codigo = "Solo letras, números y guiones (2-20 chars)";
+    if (!/^[A-Z0-9\-_]{2,20}$/i.test(form.codigo.trim())) errs.codigo = "Solo letras, números y guiones";
     setFormErr(errs);
     return Object.keys(errs).length === 0;
   }
@@ -1130,7 +1134,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   async function saveEmpresa() {
     if (!validateForm()) return;
     setSaving(true);
-    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(), color_primary:form.color_primary, color_dark:form.color_dark, logo_url:form.logo_url.trim()||null };
+    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(), industria:form.industria, color_primary:form.color_primary, color_dark:form.color_dark, logo_url:form.logo_url.trim()||null };
     let err;
     if (editing) { ({ error:err } = await supabase.from("empresas").update(payload).eq("id", editing.id)); }
     else         { ({ error:err } = await supabase.from("empresas").insert([payload])); }
@@ -1160,9 +1164,9 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   }
 
   const evalCount = (id) => evaluaciones.filter(e => e.empresa_id === id).length;
-  const accentColor = editing?.color_primary || form.color_primary || PURPLE;
+  const INDUSTRIA_ICONS = { "Telecomunicaciones":"📡","Farmacéutica":"💊","Oil & Gas":"🛢️","Manufactura":"🏭","CPG":"🛒" };
 
-  // ── SUBS EDIT VIEW ────────────────────────────────────────────────────────
+  // ── SUBS EDIT VIEW ──────────────────────────────────────────────────────────
   if (editingSubs && editing) {
     const dims = [...new Set(SUBS_META.map(s=>s.dim))];
     return (
@@ -1171,9 +1175,9 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
           <button onClick={()=>setEditingSubs(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Preguntas · {editing.nombre}</div>
-            <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Deja vacío para usar el texto por defecto del modelo.</div>
+            <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Deja vacío para usar el texto por defecto del modelo (o de la industria {editing.industria}).</div>
           </div>
-          <button onClick={saveSubs} disabled={savingSubs} style={{ padding:"9px 22px", borderRadius:99, background:accentColor, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer", opacity:savingSubs?0.6:1 }}>
+          <button onClick={saveSubs} disabled={savingSubs} style={{ padding:"9px 22px", borderRadius:99, background:editing.color_primary||PURPLE, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer", opacity:savingSubs?0.6:1 }}>
             {savingSubs ? "Guardando..." : "Guardar preguntas"}
           </button>
         </div>
@@ -1188,8 +1192,8 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
                     <div style={{ fontSize:9.5, color:"#AAA", marginBottom:4 }}>{sm.desc}</div>
                     <div style={{ fontSize:9, color:"#CCC", fontFamily:"monospace" }}>{sm.id}</div>
                   </div>
-                  <textarea value={subsData[sm.id]?.q||""} onChange={e=>setSubsData(p=>({...p,[sm.id]:{...p[sm.id],q:e.target.value}}))}
-                    placeholder={"Seleccione el nivel (1-5) en: " + sm.label + "..."}
+                  <textarea value={subsData[sm.id]?.q||""} onChange={e=>setSubsData(p=>(({...p,[sm.id]:{...p[sm.id],q:e.target.value}})))}
+                    placeholder={`Seleccione el nivel (1-5) en: ${sm.label}...`}
                     rows={2}
                     style={{ width:"100%", padding:"8px 11px", borderRadius:8, border:"1.5px solid #E8E4DF", fontSize:11.5, color:"#1A1A18", background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5, boxSizing:"border-box" }}
                   />
@@ -1202,27 +1206,48 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     );
   }
 
-  // ── NEW / EDIT FORM ────────────────────────────────────────────────────────
+  // ── NEW / EDIT FORM ─────────────────────────────────────────────────────────
   if (view === "new" || (view === "edit" && !editingSubs)) return (
     <div style={{ maxWidth:480 }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
         <button onClick={()=>setView("list")} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
-        <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>{editing ? "Editar: " + editing.nombre : "Nueva empresa"}</div>
+        <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>{editing ? "Editar: "+editing.nombre : "Nueva empresa"}</div>
       </div>
       <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px" }}>
         <div style={{ height:8, borderRadius:6, marginBottom:24, background:`linear-gradient(90deg,${form.color_primary},${form.color_dark})` }}/>
         <EmpresaInputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
         <EmpresaInputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
         <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>Solo letras, números y guiones. Ej: CLARO-2025</div>
+
+        {/* Industria selector */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:8 }}>Industria</div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+            {INDUSTRIAS.map(ind => (
+              <button key={ind} onClick={()=>setForm(p=>(({...p,industria:ind})))}
+                style={{ padding:"10px 6px", borderRadius:10, border:`2px solid ${form.industria===ind?form.color_primary||PURPLE:"#E8E4DF"}`,
+                  background:form.industria===ind?(form.color_primary||PURPLE)+"15":"#FAFAFA",
+                  color:form.industria===ind?form.color_primary||PURPLE:"#888",
+                  fontSize:10, fontWeight:700, cursor:"pointer", textAlign:"center", lineHeight:1.4 }}>
+                <div style={{ fontSize:18, marginBottom:4 }}>{INDUSTRIA_ICONS[ind]||"🏢"}</div>
+                <div>{ind}</div>
+              </button>
+            ))}
+          </div>
+          <div style={{ fontSize:10, color:"#9B59D6", marginTop:8, background:"#F0E8FF", borderRadius:8, padding:"6px 10px" }}>
+            💡 Las preguntas del diagnóstico se adaptarán automáticamente a la industria seleccionada.
+          </div>
+        </div>
+
         <EmpresaInputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {[["Color principal","color_primary"],["Color oscuro","color_dark"]].map(([lbl,key])=>(
             <div key={key}>
               <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>{lbl}</div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <input type="color" value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
+                <input type="color" value={form[key]} onChange={e=>setForm(p=>(({...p,[key]:e.target.value})))}
                   style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}/>
-                <input value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
+                <input value={form[key]} onChange={e=>setForm(p=>(({...p,[key]:e.target.value})))}
                   style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF", fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}/>
               </div>
             </div>
@@ -1238,7 +1263,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     </div>
   );
 
-  // ── LIST VIEW ──────────────────────────────────────────────────────────────
+  // ── LIST VIEW ───────────────────────────────────────────────────────────────
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
@@ -1260,10 +1285,10 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
               <div style={{ padding:"20px 22px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
                   <div>
-                    <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:6 }}>{emp.nombre}</div>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:4 }}>{emp.nombre}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
                       <span style={{ fontSize:10, fontWeight:700, color:"#fff", background:emp.color_primary||PURPLE, padding:"3px 10px", borderRadius:99 }}>{emp.codigo}</span>
-                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }} style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA" }}>📋 Copiar</button>
+                      <span style={{ fontSize:10, color:"#888", background:"#F0E8FF", padding:"3px 10px", borderRadius:99 }}>{INDUSTRIA_ICONS[emp.industria]||"🏢"} {emp.industria||"Telco"}</span>
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
@@ -1284,6 +1309,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
                 <div style={{ display:"flex", gap:8 }}>
                   <button onClick={()=>startEdit(emp)} style={{ flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer", border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555" }}>✏️ Editar</button>
                   <button onClick={()=>loadSubs(emp)} style={{ flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer", border:`1.5px solid ${emp.color_primary||PURPLE}40`, background:(emp.color_primary||PURPLE)+"12", color:emp.color_primary||PURPLE }}>💬 Preguntas</button>
+                  <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }} style={{ padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer", border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#AAA" }}>📋</button>
                   <button onClick={()=>deleteEmpresa(emp)} style={{ padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer", border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444" }}>🗑</button>
                 </div>
               </div>
@@ -2273,7 +2299,7 @@ function ReportTab({ evaluaciones, respuestas }) {
             {Object.entries(SECTION_LABELS).map(([k,s])=>(
               <label key={k} style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer",
                 padding:"8px 10px", borderRadius:10,
-                background: sections[k]?"#FAF7FF":"#FAFAF8",
+                background: sections[k]?"#FFF8F7":"#FAFAF8",
                 border:`1px solid ${sections[k]?"#FDDCDA":"#F0EDE9"}`,
                 transition:"all .15s" }}>
                 <input type="checkbox" checked={!!sections[k]} onChange={()=>toggleSection(k)}
@@ -2509,10 +2535,8 @@ export default function ControlApp() {
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
         <div style={{ marginBottom: 32, padding: "0 8px" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMxRTFFMUUiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4=" alt="Kearney" style={{height:18, display:"block", marginBottom:6}}/>
-          <div style={{ fontSize:9, fontWeight:700, color:"#7823DC", letterSpacing:".1em", textTransform:"uppercase" }}>
-            Inventarios · Admin
-          </div>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:17, display:"block", marginBottom:6 }}/>
+          <div style={{ fontSize:9, fontWeight:700, color:"#7823DC", letterSpacing:".1em", textTransform:"uppercase" }}>Inventarios · Admin</div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -2563,7 +2587,7 @@ export default function ControlApp() {
                 {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
                 {tab === "reporte"   && "Genera un reporte PDF personalizado"}
                 {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
-                {tab === "empresas"  && "Gestiona empresas, códigos de acceso y preguntas personalizadas"}
+                {tab === "empresas"  && "Gestiona empresas, industrias y preguntas personalizadas"}
               </div>
             </div>
             {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (

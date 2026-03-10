@@ -301,9 +301,7 @@ function LvBadge({v,sm}) {
 }
 
 function Logo({h=26, inv=false}) {
-  const src = inv
-    ? "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiNGRkZGRkYiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4="
-    : "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMxRTFFMUUiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4=";
+  const src = inv ? "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iI0ZGRkZGRiIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" : "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+";
   return <img src={src} alt="Kearney" style={{height:h, display:"block", objectFit:"contain"}}/>;
 }
 
@@ -342,11 +340,97 @@ const ROLES = [
   "Director","Gerente","Jefe","Ingeniero","Analista",
 ];
 
-// ─── CÓDIGO DE ACCESO ────────────────────────────────────────────────────────
+// ─── INDUSTRY QUESTIONS ──────────────────────────────────────────────────────
+const INDUSTRY_QUESTIONS = {
+  "Telecomunicaciones": {},
+  "Farmacéutica": {
+    "e1":  {q:"¿En qué nivel se encuentran los trade-offs entre nivel de servicio, costo de inventario y capital de trabajo considerando restricciones regulatorias (BPM, serialización)?",label:"Objetivos & trade-offs regulatorios",desc:"Servicio, costo, BPM, cadena de frío"},
+    "e2":  {q:"¿En qué nivel están las políticas de inventario diferenciadas por tipo de producto: medicamentos controlados, OTC, dispositivos médicos y materias primas?",label:"Políticas por categoría farmacéutica",desc:"Controlados, OTC, dispositivos, materias primas"},
+    "e3":  {q:"¿En qué nivel está el diseño de red considerando cadena de frío, bodegas habilitadas y puntos de dispensación (farmacias, hospitales, IPS)?",label:"Red con cadena de frío",desc:"Bodegas frío, hospitales, IPS, farmacias"},
+    "c1":  {q:"¿En qué nivel está la segmentación del portafolio por criticidad clínica, rotación (ABC) y variabilidad de demanda (XYZ) considerando productos de vida corta?",label:"Segmentación por criticidad clínica",desc:"ABC/XYZ, vida útil, controlados"},
+    "c2":  {q:"¿En qué nivel está la trazabilidad de lotes, fechas de vencimiento, número de serie y condiciones de temperatura en toda la cadena?",label:"Trazabilidad y serialización",desc:"Lotes, vencimientos, DSCSA, INVIMA"},
+    "c3":  {q:"¿En qué nivel está la gestión del ciclo de vida considerando productos con fecha de vencimiento corta, recalls y retiro de mercado?",label:"Gestión de vencimientos y recalls",desc:"FEFO, recalls, retiro de mercado"},
+    "c4":  {q:"¿En qué nivel está la visibilidad de inventario en centros de distribución propios, operadores logísticos 3PL y puntos de dispensación hospitalarios?",label:"Inventario en red hospitalaria",desc:"CD propio, 3PL, hospitales, clínicas"},
+    "h3":  {q:"¿En qué nivel está la trazabilidad end-to-end con serialización (DSCSA/INVIMA), control de temperatura IoT y track & trace hasta el punto de dispensación?",label:"Serialización y cold chain IoT",desc:"DSCSA, INVIMA, IoT temperatura"},
+    "p3":  {q:"¿En qué nivel están los procesos de almacenamiento bajo BPM, picking FEFO y control de cadena de frío?",label:"Almacenamiento BPM y FEFO",desc:"BPM, BPD, FEFO, cadena de frío"},
+    "p5":  {q:"¿En qué nivel están los procesos de gestión de devoluciones, destrucción de producto vencido y manejo de recalls con trazabilidad completa?",label:"Devoluciones y destrucción regulatoria",desc:"Recalls, destrucción, INVIMA"},
+    "ab1": {q:"¿En qué nivel está la gestión de inventario de medicamentos de alto costo y biotecnológicos, con control de condiciones especiales y acceso restringido?",label:"Medicamentos alto costo y biotecnológicos",desc:"Alto costo, biológicos, cadena frío"},
+    "ab2": {q:"¿En qué nivel está la gestión de dispositivos médicos, implantes y equipos de diagnóstico incluyendo vida útil, calibración y retiro de mercado?",label:"Dispositivos médicos e implantes",desc:"Dispositivos, implantes, calibración"},
+    "ab3": {q:"¿En qué nivel está la gestión de medicamentos OTC, genéricos y vitaminas con modelo de alta rotación y gestión de vencimientos masiva?",label:"OTC, genéricos y vitaminas",desc:"OTC, genéricos, alta rotación, multicanal"},
+    "ab4": {q:"¿En qué nivel está la gestión de materias primas e insumos de manufactura farmacéutica incluyendo control de proveedores calificados y cuarentena?",label:"Materias primas farmacéuticas",desc:"API, excipientes, proveedores calificados"},
+    "ab5": {q:"¿En qué nivel está la gestión de producto devuelto, vencido y en cuarentena incluyendo procesos de destrucción certificada?",label:"Devoluciones y destrucción certificada",desc:"Cuarentena, destrucción, INVIMA"},
+    "i1":  {q:"¿En qué nivel están los indicadores de disponibilidad de medicamentos críticos, nivel de desabastecimiento y cumplimiento de pedidos hospitalarios?",label:"Disponibilidad y desabastecimiento",desc:"Fill rate, desabasto, hospitales"},
+    "i5":  {q:"¿En qué nivel está el cumplimiento regulatorio (INVIMA, BPD, serialización), auditorías de calidad y gestión de riesgos de la cadena farmacéutica?",label:"Cumplimiento INVIMA y BPD",desc:"INVIMA, BPD, auditorías, recalls"},
+  },
+  "Oil & Gas": {
+    "e1":  {q:"¿En qué nivel están los trade-offs entre disponibilidad de partes críticas para operaciones upstream/downstream, costo de inventario y riesgo operacional?",label:"Disponibilidad vs costo operacional",desc:"Uptime, piezas críticas, OPEX/CAPEX"},
+    "e2":  {q:"¿En qué nivel están las políticas de inventario diferenciadas por criticidad: partes de seguridad, repuestos MRO, consumibles y materiales de proyecto?",label:"Políticas por criticidad operacional",desc:"Seguridad, MRO, consumibles, proyectos"},
+    "e3":  {q:"¿En qué nivel está el diseño de la red considerando ubicación en campos, plantas, offshore y centros de distribución regionales?",label:"Red en campos y plantas",desc:"Campos, offshore, plantas, almacenes regionales"},
+    "e5":  {q:"¿En qué nivel está la gestión de riesgos incluyendo proveedores únicos, materiales peligrosos y contingencias operacionales?",label:"Resiliencia y materiales peligrosos",desc:"HAZMAT, proveedor único, contingencias"},
+    "c1":  {q:"¿En qué nivel está la clasificación de materiales MRO por criticidad operacional (ABCDE), impacto en uptime y lead time de reposición?",label:"Criticidad operacional y uptime",desc:"Criticidad, uptime, lead time MRO"},
+    "c2":  {q:"¿En qué nivel está el control de materiales peligrosos (HAZMAT), materiales con vida útil limitada y equipos con número de serie para trazabilidad de mantenimiento?",label:"HAZMAT, vida útil y trazabilidad",desc:"HAZMAT, SDS, vida útil, mantenimiento"},
+    "c3":  {q:"¿En qué nivel está la gestión de materiales obsoletos por cambios tecnológicos, equipos fuera de soporte y repuestos de activos dados de baja?",label:"Obsolescencia de activos y repuestos",desc:"Obsolescencia, equipos EOL, activos"},
+    "c4":  {q:"¿En qué nivel está la visibilidad de inventario en campos, plantas, almacenes offshore, consignación en proveedores y materiales en tránsito internacional?",label:"Visibilidad en campos y offshore",desc:"Campos, offshore, consignación, tránsito"},
+    "p1":  {q:"¿En qué nivel está la planificación de inventario MRO basada en planes de mantenimiento preventivo (PM), historial de fallas y criticidad de equipos?",label:"Planeación MRO basada en mantenimiento",desc:"PM, CMMS, historial fallas, criticidad"},
+    "p3":  {q:"¿En qué nivel están los procesos de recepción, almacenamiento y despacho de materiales peligrosos, equipos de gran porte y materiales de proyecto en campo?",label:"Operaciones con HAZMAT y gran porte",desc:"HAZMAT, gran porte, materiales proyecto"},
+    "p4":  {q:"¿En qué nivel está el control de inventario físico en ubicaciones remotas, almacenes de campo y reconciliación con activos en mantenimiento?",label:"Control en ubicaciones remotas",desc:"Campos remotos, activos, reconciliación"},
+    "h1":  {q:"¿En qué nivel está la integración entre ERP, CMMS (SAP PM/Maximo) y sistemas de compras para la gestión del ciclo completo de materiales MRO?",label:"ERP-CMMS-Compras integrados",desc:"SAP PM, Maximo, integración MRO"},
+    "ab1": {q:"¿En qué nivel está la gestión de repuestos críticos de producción (bombas, válvulas, compresores) con estrategias de spare parts y acuerdos con OEM?",label:"Repuestos críticos de producción",desc:"Bombas, válvulas, compresores, OEM"},
+    "ab2": {q:"¿En qué nivel está la gestión de materiales e insumos de operación (chemicals, lubricantes, catalizadores) con control de condiciones de almacenamiento?",label:"Chemicals, lubricantes y catalizadores",desc:"Chemicals, lubricantes, catalizadores"},
+    "ab3": {q:"¿En qué nivel está la gestión de consumibles MRO de alto volumen (herramientas, EPP, filtros, empaques) con contratos marco y reposición automática?",label:"MRO consumibles y EPP",desc:"Herramientas, EPP, filtros, contratos marco"},
+    "ab4": {q:"¿En qué nivel está la gestión de materiales de proyectos de capital (CAPEX) incluyendo planificación de largo plazo, importaciones y materiales de entrega larga?",label:"Materiales de proyectos CAPEX",desc:"CAPEX, long-lead, importaciones"},
+    "ab5": {q:"¿En qué nivel está la gestión de materiales reparables, reacondicionados y surplus incluyendo procesos de reparación, disposición y recuperación de valor?",label:"Reparables, surplus y disposición",desc:"Reparables, surplus, disposición HAZMAT"},
+    "i1":  {q:"¿En qué nivel están los indicadores de disponibilidad de materiales críticos, impacto en uptime de producción y costo de paradas no planificadas?",label:"Uptime y costo de paradas",desc:"Uptime, paradas, costo producción perdida"},
+    "i5":  {q:"¿En qué nivel está el cumplimiento de regulaciones HSE (materiales peligrosos, disposición, transporte) y auditorías de seguridad en la cadena?",label:"Cumplimiento HSE y seguridad",desc:"HSE, HAZMAT, transporte, auditorías"},
+  },
+  "Manufactura": {
+    "e1":  {q:"¿En qué nivel están los trade-offs entre nivel de servicio al cliente, costo de inventario de materias primas/WIP/producto terminado y capital de trabajo en el ciclo productivo?",label:"Trade-offs en ciclo productivo",desc:"MP, WIP, PT, capital de trabajo"},
+    "e2":  {q:"¿En qué nivel están las políticas de inventario diferenciadas por etapa productiva (MP, WIP, PT) y canal (B2B, distribuidores, exportación)?",label:"Políticas por etapa y canal",desc:"MP, WIP, PT, B2B, exportación"},
+    "e3":  {q:"¿En qué nivel está el diseño de la red considerando plantas de producción, centros de distribución, almacenes de tránsito y puntos de entrega a clientes industriales?",label:"Red planta-CD-cliente industrial",desc:"Plantas, CD, almacenes, clientes B2B"},
+    "c1":  {q:"¿En qué nivel está la segmentación del portafolio de SKUs por volumen (ABC), variabilidad (XYZ) y etapa productiva para definir estrategias de producción?",label:"Segmentación SKU por etapa productiva",desc:"ABC/XYZ, make-to-stock vs make-to-order"},
+    "c2":  {q:"¿En qué nivel está el control de lotes de producción, materias primas con certificados de calidad y trazabilidad en el proceso productivo?",label:"Trazabilidad productiva y calidad",desc:"Lotes producción, certificados, QC"},
+    "c3":  {q:"¿En qué nivel está la gestión del ciclo de vida del producto considerando lanzamientos, cambios de versión, descontinuaciones y obsolescencia de MP y PT?",label:"Ciclo de vida y obsolescencia",desc:"NPL, descontinuados, MP obsoleta, PT SLOB"},
+    "p1":  {q:"¿En qué nivel está la planificación integrada de producción e inventario (MPS/MRP) sincronizada con la demanda del cliente y los planes de capacidad?",label:"MPS/MRP integrado con demanda",desc:"MPS, MRP, capacidad, demanda"},
+    "p2":  {q:"¿En qué nivel está la gestión de asignación de producción y PT entre múltiples plantas, clientes y canales con visibilidad de capacidad disponible?",label:"Asignación multicanal y multiplanta",desc:"ATP, capacidad, multicanal, exportación"},
+    "p3":  {q:"¿En qué nivel están los procesos de almacenamiento de MP, WIP y PT incluyendo condiciones especiales y FIFO/FEFO?",label:"Almacenamiento MP, WIP y PT",desc:"MP, WIP, PT, condiciones, FIFO/FEFO"},
+    "h1":  {q:"¿En qué nivel está la integración entre ERP, sistemas MES de planta, WMS y plataformas de planificación para visibilidad end-to-end del ciclo productivo?",label:"ERP-MES-WMS integrados",desc:"ERP, MES, WMS, integración productiva"},
+    "ab1": {q:"¿En qué nivel está la gestión de materias primas e insumos directos de producción incluyendo planificación por MRP, proveedores alternativos y lead times?",label:"Materias primas e insumos directos",desc:"MRP, proveedores, lead times, calidad"},
+    "ab2": {q:"¿En qué nivel está la gestión de materiales de empaque y envase (primario, secundario, terciario) sincronizada con los planes de producción?",label:"Materiales de empaque y envase",desc:"Empaque primario, secundario, terciario"},
+    "ab3": {q:"¿En qué nivel está la gestión de MRO industrial (repuestos de planta, herramientas, consumibles) para garantizar continuidad de producción?",label:"MRO industrial y repuestos planta",desc:"Repuestos, herramientas, consumibles planta"},
+    "ab4": {q:"¿En qué nivel está la gestión del portafolio de productos terminados incluyendo gestión de variantes, SKU proliferation y simplificación?",label:"Portafolio PT y gestión de variantes",desc:"SKUs, variantes, proliferación, simplificación"},
+    "ab5": {q:"¿En qué nivel está la gestión de devoluciones de PT, reprocesos, producto no conforme y gestión de merma y scrap productivo?",label:"Devoluciones, reproceso y scrap",desc:"Devoluciones, no conforme, scrap, merma"},
+    "i2":  {q:"¿En qué nivel están los indicadores de eficiencia del ciclo productivo: rotación de MP/WIP/PT, días de inventario en cada etapa y costo de inventario sobre ventas?",label:"Rotación MP, WIP y PT",desc:"DIO por etapa, rotación, costo/ventas"},
+  },
+  "CPG": {
+    "e1":  {q:"¿En qué nivel están los trade-offs entre nivel de servicio al retail/e-commerce, costo de inventario y capital de trabajo considerando alta estacionalidad y promociones?",label:"Trade-offs con estacionalidad y promo",desc:"Servicio retail, estacionalidad, promociones"},
+    "e2":  {q:"¿En qué nivel están las políticas de inventario diferenciadas por canal (supermercados, canal tradicional, e-commerce, exportación) y categoría (perecederos, no perecederos)?",label:"Políticas por canal y categoría",desc:"Retail, tradicional, e-com, perecederos"},
+    "e3":  {q:"¿En qué nivel está el diseño de la red de distribución considerando CEDIS del retail, dark stores y entrega directa a tienda (DSD)?",label:"Red con CEDIS y DSD",desc:"CEDIS, DSD, dark stores, regional"},
+    "e4":  {q:"¿En qué nivel está la colaboración S&OP con los principales clientes retail (ECR/CPFR) para sincronizar pronósticos, promociones y reposición?",label:"S&OP colaborativo con retail",desc:"ECR, CPFR, joint forecast, VMI"},
+    "c1":  {q:"¿En qué nivel está la segmentación del portafolio por velocidad (ABC), variabilidad (XYZ), ciclo de vida y canal para definir estrategias diferenciadas?",label:"Segmentación por velocidad y canal",desc:"ABC/XYZ, estacionalidad, canal, ciclo vida"},
+    "c2":  {q:"¿En qué nivel está el control de lotes, fechas de vencimiento (FEFO), condiciones de almacenamiento y trazabilidad hasta el punto de venta para recall efectivo?",label:"Trazabilidad y gestión FEFO",desc:"Lotes, vencimientos, FEFO, trazabilidad retail"},
+    "c3":  {q:"¿En qué nivel está la gestión del ciclo de vida del SKU considerando lanzamientos, extensiones de línea, descontinuaciones, liquidación e inventario SLOB?",label:"Ciclo de vida SKU y liquidación",desc:"NPL, extensiones, descontinuados, liquidación"},
+    "p1":  {q:"¿En qué nivel está la planificación de demanda considerando estacionalidad, efectos promocionales, nuevos lanzamientos y colaboración con clientes clave?",label:"Demand planning con estacionalidad y promo",desc:"Estacionalidad, promo, colaboración, error"},
+    "p2":  {q:"¿En qué nivel está la asignación de producto entre canales (retail, canal tradicional, e-commerce, exportación) en situaciones de escasez?",label:"Asignación multicanal en escasez",desc:"ATP, priorización canal, escasez"},
+    "p3":  {q:"¿En qué nivel están los procesos de almacenamiento con FEFO, manejo de temperatura controlada, gestión de merma y operaciones de cross-docking para retail?",label:"FEFO, temperatura y cross-docking",desc:"FEFO, temperatura, merma, cross-docking"},
+    "h1":  {q:"¿En qué nivel está la integración entre ERP, sistemas de demand planning (IBP/Kinaxis/o9), WMS y plataformas EDI con clientes retail?",label:"ERP-DPL-WMS-EDI integrados",desc:"ERP, IBP, WMS, EDI retail, e-commerce"},
+    "h4":  {q:"¿En qué nivel están las capacidades analíticas para gestión de demanda (ML forecast), optimización de inventario multiescalón y análisis de rentabilidad por SKU/canal?",label:"Analítica avanzada de demanda e inventario",desc:"ML forecast, optimización, rentabilidad SKU"},
+    "ab1": {q:"¿En qué nivel está la gestión del portafolio de alta rotación con reposición automática, VMI y colaboración con retail?",label:"Productos alta rotación y VMI",desc:"Alta rotación, VMI, reposición automática"},
+    "ab2": {q:"¿En qué nivel está la gestión de productos de temporada (navidad, escolar, verano) con planificación anticipada, precompras y liquidación al cierre?",label:"Gestión de temporadas y precompras",desc:"Temporadas, precompras, liquidación"},
+    "ab3": {q:"¿En qué nivel está la gestión de materiales de empaque y materias primas con consolidación de proveedores y gestión de variantes por mercado?",label:"Materias primas y empaque CPG",desc:"MP, empaque, consolidación, variantes"},
+    "ab4": {q:"¿En qué nivel está la gestión del portafolio de SKUs incluyendo análisis de rentabilidad, racionalización de variantes y gestión de innovación vs core?",label:"Portafolio SKU y racionalización",desc:"Rentabilidad, racionalización, innovación"},
+    "ab5": {q:"¿En qué nivel está la gestión de devoluciones del canal retail, producto vencido, merma en punto de venta y procesos de disposición o donación?",label:"Devoluciones retail y merma PDV",desc:"Devoluciones retail, vencidos, merma, donación"},
+    "i1":  {q:"¿En qué nivel están los indicadores de nivel de servicio al retail: OTIF, fill rate por canal, OOS en punto de venta y efectividad de promociones?",label:"OTIF, fill rate y OOS retail",desc:"OTIF, fill rate canal, OOS, promo"},
+    "i4":  {q:"¿En qué nivel están los indicadores de salud del inventario: días de inventario por canal, % SLOB, merma, vencimientos y costo de liquidación?",label:"Salud inventario y merma canal",desc:"DIO canal, SLOB, merma, vencidos, liquidación"},
+  },
+};
+
+// ─── CÓDIGO DE ACCESO ─────────────────────────────────────────────────────────
+const INDUSTRIAS = ["Telecomunicaciones","Farmacéutica","Oil & Gas","Manufactura","CPG"];
+
 function CodigoAccesoScreen({ onSuccess }) {
-  const [codigo, setCodigo] = React.useState("");
+  const [codigo,  setCodigo]  = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const [error,   setError]  = React.useState("");
+  const [error,   setError]   = React.useState("");
 
   async function handleSubmit() {
     const cod = codigo.trim().toUpperCase();
@@ -359,11 +443,22 @@ function CodigoAccesoScreen({ onSuccess }) {
         setError("Código no encontrado. Verifica e intenta de nuevo.");
         setLoading(false); return;
       }
+      // Load subs_custom, then overlay industry defaults for empty ones
       const { data: subs } = await supabase
         .from("subs_custom").select("*").eq("empresa_id", data.id);
+      const industryDefaults = INDUSTRY_QUESTIONS[data.industria] || {};
       const subsMap = {};
+      // First apply industry defaults
+      Object.entries(industryDefaults).forEach(([sub_id, vals]) => {
+        subsMap[sub_id] = { q: vals.q, label: vals.label, desc: vals.desc };
+      });
+      // Then overlay manual overrides from DB (higher priority)
       (subs||[]).forEach(s => {
-        subsMap[s.sub_id] = { q:s.q, label:s.label, desc:s.descripcion };
+        subsMap[s.sub_id] = {
+          q:     s.q     || subsMap[s.sub_id]?.q     || "",
+          label: s.label || subsMap[s.sub_id]?.label || "",
+          desc:  s.descripcion || subsMap[s.sub_id]?.desc || "",
+        };
       });
       onSuccess(data, subsMap);
     } catch(e) {
@@ -379,48 +474,24 @@ function CodigoAccesoScreen({ onSuccess }) {
       fontFamily:"Outfit, system-ui, sans-serif",
     }}>
       <div style={{
-        width:"100%", maxWidth:420,
-        background:"#fff", borderRadius:24,
+        width:"100%", maxWidth:420, background:"#fff", borderRadius:24,
         border:"1px solid #E8E4DF",
-        boxShadow:"0 24px 64px rgba(120,35,220,0.12)",
-        overflow:"hidden",
+        boxShadow:"0 24px 64px rgba(120,35,220,0.12)", overflow:"hidden",
       }}>
-        {/* Purple header */}
         <div style={{
           background:"linear-gradient(150deg,#3D0D8C 0%,#7823DC 60%,#6B1FC8 100%)",
           padding:"36px 40px 32px", position:"relative", overflow:"hidden",
         }}>
-          <div style={{
-            position:"absolute", inset:0,
-            backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.07) 1px,transparent 1px)",
-            backgroundSize:"18px 18px", pointerEvents:"none",
-          }}/>
+          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.07) 1px,transparent 1px)", backgroundSize:"18px 18px", pointerEvents:"none" }}/>
           <div style={{ position:"relative", zIndex:1 }}>
-            {/* Kearney wordmark */}
-            <div style={{
-              fontFamily:"Georgia,'Times New Roman',serif",
-              fontSize:22, fontWeight:700, color:"#fff",
-              letterSpacing:"-0.02em", marginBottom:20,
-            }}>Kearney</div>
-            <div style={{
-              fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.55)",
-              textTransform:"uppercase", letterSpacing:".14em", marginBottom:8,
-            }}>Modelo de Madurez · Inventarios</div>
-            <div style={{
-              fontSize:22, fontWeight:900, color:"#fff",
-              letterSpacing:"-.02em", lineHeight:1.2,
-            }}>Diagnóstico de<br/>Gestión de Inventarios</div>
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iI0ZGRkZGRiIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:20, display:"block", marginBottom:20 }}/>
+            <div style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:".14em", marginBottom:8 }}>Modelo de Madurez · Inventarios</div>
+            <div style={{ fontSize:22, fontWeight:900, color:"#fff", letterSpacing:"-.02em", lineHeight:1.2 }}>Diagnóstico de<br/>Gestión de Inventarios</div>
           </div>
         </div>
-
-        {/* Input section */}
         <div style={{ padding:"32px 40px 36px" }}>
-          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>
-            Ingresa tu código de acceso
-          </div>
-          <div style={{ fontSize:12, color:"#9C9A95", marginBottom:24, lineHeight:1.5 }}>
-            Tu facilitador te habrá compartido un código único para tu empresa.
-          </div>
+          <div style={{ fontSize:14, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Ingresa tu código de acceso</div>
+          <div style={{ fontSize:12, color:"#9C9A95", marginBottom:24, lineHeight:1.5 }}>Tu facilitador te habrá compartido un código único para tu empresa.</div>
           <input
             value={codigo}
             onChange={e => { setCodigo(e.target.value.toUpperCase()); setError(""); }}
@@ -429,30 +500,19 @@ function CodigoAccesoScreen({ onSuccess }) {
             style={{
               width:"100%", padding:"13px 16px", borderRadius:11,
               border:`2px solid ${error ? "#ef4444" : "#E0D8F7"}`,
-              fontSize:16, fontWeight:700, color:"#1A1A18",
-              background:"#FAFAF8", outline:"none",
-              letterSpacing:".04em", textAlign:"center",
-              marginBottom: error ? 8 : 20,
-              boxSizing:"border-box",
+              fontSize:16, fontWeight:700, color:"#1A1A18", background:"#FAFAF8",
+              outline:"none", letterSpacing:".04em", textAlign:"center",
+              marginBottom: error ? 8 : 20, boxSizing:"border-box",
             }}
           />
-          {error && (
-            <div style={{ fontSize:11, color:"#ef4444", marginBottom:16, textAlign:"center" }}>
-              {error}
-            </div>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{
-              width:"100%", padding:"14px 0", borderRadius:11,
-              background:loading ? "#C8C6C0" : "linear-gradient(135deg,#5A1AA0,#7823DC)",
-              color:"#fff", border:"none", fontSize:14, fontWeight:700,
-              cursor:loading ? "not-allowed" : "pointer",
-              boxShadow:loading ? "none" : "0 4px 18px rgba(120,35,220,0.38)",
-              letterSpacing:"0.01em",
-            }}
-          >
+          {error && <div style={{ fontSize:11, color:"#ef4444", marginBottom:16, textAlign:"center" }}>{error}</div>}
+          <button onClick={handleSubmit} disabled={loading} style={{
+            width:"100%", padding:"14px 0", borderRadius:11,
+            background:loading ? "#C8C6C0" : "linear-gradient(135deg,#5A1AA0,#7823DC)",
+            color:"#fff", border:"none", fontSize:14, fontWeight:700,
+            cursor:loading ? "not-allowed" : "pointer",
+            boxShadow:loading ? "none" : "0 4px 18px rgba(120,35,220,0.38)",
+          }}>
             {loading ? "Verificando..." : "Acceder al diagnóstico →"}
           </button>
         </div>
@@ -545,7 +605,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
   const STEPS=[
-    {n:"01",icon:"📖",c:color,bg:(color+"18"),label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
+    {n:"01",icon:"📖",c:"#E8251F",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
     {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
@@ -558,7 +618,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
       {/* ═══ HERO ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:`linear-gradient(150deg,${${color}Dk} 0%,${color} 50%,#C01010 100%)`,
+        background:"linear-gradient(150deg,#C80F0A 0%,#E8251F 50%,#C01010 100%)",
         boxShadow:"0 32px 80px rgba(0,0,0,0.28)",
       }}>
         <NoiseSVG/>
@@ -653,7 +713,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
         <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:18}}>Qué obtienes al final</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
           {[
-            {icon:"🎯",bg:"#FEF2F1",bdr:"#FDDCDA",tc:"colorDk",t:"Diagnóstico",      d:"Puntaje 1–5 por dimensión y sub-dimensión con radar y barras."},
+            {icon:"🎯",bg:"#FEF2F1",bdr:"#FDDCDA",tc:"#B91A15",t:"Diagnóstico",      d:"Puntaje 1–5 por dimensión y sub-dimensión con radar y barras."},
             {icon:"🚨",bg:"#FFF8ED",bdr:"#FFD89B",tc:"#92400E",t:"Brechas críticas", d:"Sub-dimensiones en niveles 1–2 con análisis de estado actual."},
             {icon:"💡",bg:"#ECFDF5",bdr:"#A7F3D0",tc:"#065F46",t:"Oportunidades",    d:"Impacto cuantificado: % reducción capital, quiebres, fraude."},
             {icon:"🗺️",bg:"#EFF6FF",bdr:"#BFDBFE",tc:"#1E3A8A",t:"Hoja de ruta",    d:"Plan en 3 horizontes: 0–6, 6–12 y 12–24 meses."},
@@ -739,7 +799,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
       {/* ═══ HERO DARK ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:`linear-gradient(150deg,#A00D08 0%,#C81010 45%,${color} 100%)`,
+        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,#E8251F 100%)",
         boxShadow:"0 28px 72px rgba(0,0,0,0.24)",
       }}>
         <NoiseSVG/>
@@ -1421,11 +1481,9 @@ export default function App() {
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
 
-  // Dynamic branding per empresa
   const EC  = empresa?.color_primary || T.red;
   const ECD = empresa?.color_dark    || T.redDk;
 
-  // Dynamic DIMS — overlay subsCustom questions (must be before early return)
   const EDIMS = React.useMemo(() => DIMS.map(d=>({
     ...d,
     subs: d.subs.map(s => {
@@ -1433,12 +1491,6 @@ export default function App() {
       return c ? { ...s, q:c.q||s.q, label:c.label||s.label, desc:c.desc||s.desc } : s;
     }),
   })), [subsCustom]);
-
-  const totalQ2 = EDIMS.reduce((a,d)=>a+d.subs.length,0);
-
-
-
-
 
   const dim=EDIMS[activeDim];
   const sub=dim.subs[activeSub];
@@ -1461,13 +1513,14 @@ export default function App() {
     {id:"summary",   label:"Resumen & Brechas", icon:"📊"},
   ];
 
-  // ── Empresa gate — after ALL hooks ──────────────────────────────────────────
+  // ── Empresa gate — after ALL hooks ─────────────────────────────────────────
   if (!empresa) return (
     <CodigoAccesoScreen onSuccess={(emp, subs) => {
       setEmpresa(emp);
       setSubsCustom(subs);
     }}/>
   );
+
   return (
     <div ref={appRef} style={{background:T.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
 
@@ -1486,7 +1539,7 @@ export default function App() {
           <div style={{width:1,height:28,background:T.borderSm}}/>
           <div>
             <div className="display" style={{fontSize:12,fontWeight:700,color:T.ink,letterSpacing:"-.01em"}}>{empresa?.nombre || "Modelo de Madurez"} · Gestión de Inventarios</div>
-            <div style={{fontSize:9.5,color:T.inkSoft}}>SoE · {empresa?.codigo} · {totalQ} sub-dimensiones</div>
+            <div style={{fontSize:9.5,color:T.inkSoft}}>{empresa?.industria || "SoE"} · {empresa?.codigo} · {totalQ} sub-dimensiones</div>
           </div>
         </div>
 
