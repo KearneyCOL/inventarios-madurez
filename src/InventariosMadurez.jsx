@@ -488,11 +488,11 @@ function PerfilModal({onStart}) {
 }
 
 // ─── INTRO TAB ────────────────────────────────────────────────────────────────
-function IntroTab({onNavigate}) {
+function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
   const STEPS=[
-    {n:"01",icon:"📖",c:"#E8251F",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
+    {n:"01",icon:"📖",c:"color",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
     {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
@@ -505,7 +505,7 @@ function IntroTab({onNavigate}) {
       {/* ═══ HERO ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#C80F0A 0%,#E8251F 50%,#C01010 100%)",
+        background:"linear-gradient(150deg,colorDk 0%,color 50%,#C01010 100%)",
         boxShadow:"0 32px 80px rgba(0,0,0,0.28)",
       }}>
         <NoiseSVG/>
@@ -619,7 +619,7 @@ function IntroTab({onNavigate}) {
         <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:26}}>Cómo completar la evaluación</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,position:"relative"}}>
           {/* connector */}
-          <div style={{position:"absolute",top:24,left:"9%",right:"9%",height:1,background:`linear-gradient(90deg,${T.redSoft},${T.red},${T.redDk},${T.red},${T.redSoft})`,zIndex:0}}/>
+          <div style={{position:"absolute",top:24,left:"9%",right:"9%",height:1,background:`linear-gradient(90deg,${(color+"30")},${color},${colorDk},${color},${(color+"30")})`,zIndex:0}}/>
           {STEPS.map((s,i)=>(
             <div key={s.n} className={`fade-up-${i+1}`} style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 4px"}}>
               <div style={{
@@ -642,7 +642,7 @@ function IntroTab({onNavigate}) {
       {/* ═══ CTA FINAL ═══ */}
       <div className="fade-up-4" style={{
         marginTop:14,borderRadius:20,overflow:"hidden",
-        background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+        background:`linear-gradient(135deg,${color},${colorDk})`,
         padding:"36px 48px",
         display:"flex",alignItems:"center",justifyContent:"space-between",gap:24,
         boxShadow:`0 16px 48px rgba(232,37,31,0.28)`,
@@ -667,7 +667,7 @@ function IntroTab({onNavigate}) {
     </div>
   );
 }
-function ModeloTab() {
+function ModeloTab({color=color, colorDk=colorDk}) {
   const [open,setOpen] = useState(null);
 
   const DESC={
@@ -686,7 +686,7 @@ function ModeloTab() {
       {/* ═══ HERO DARK ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,#E8251F 100%)",
+        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,color 100%)",
         boxShadow:"0 28px 72px rgba(0,0,0,0.24)",
       }}>
         <NoiseSVG/>
@@ -748,7 +748,7 @@ function ModeloTab() {
         </div>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:9,fontWeight:700,color:T.inkSoft,letterSpacing:".12em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Reactivo</span>
-          <div style={{flex:1,height:2,borderRadius:99,background:`linear-gradient(90deg,${T.redSoft},${T.red},${T.redDk})`}}/>
+          <div style={{flex:1,height:2,borderRadius:99,background:`linear-gradient(90deg,${(color+"30")},${color},${colorDk})`}}/>
           <span style={{fontSize:9,fontWeight:700,color:"#059669",letterSpacing:".12em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Líder de mercado</span>
         </div>
       </div>
@@ -762,19 +762,19 @@ function ModeloTab() {
             return (
               <div key={d.key} style={{
                 borderRadius:14,overflow:"hidden",
-                border:`1.5px solid ${isOpen?T.red:T.borderSm}`,
+                border:`1.5px solid ${isOpen?color:T.borderSm}`,
                 transition:"border-color .2s,box-shadow .2s",
                 boxShadow:isOpen?"0 4px 20px rgba(232,37,31,0.1)":"0 1px 3px rgba(0,0,0,0.03)",
               }}>
                 <div className="accordion-hd" onClick={()=>setOpen(isOpen?null:d.key)} style={{
                   display:"grid",gridTemplateColumns:"auto 1fr auto",alignItems:"center",
-                  background:isOpen?T.redXsoft:"#FAFAF8",
+                  background:isOpen?(color+"10"):"#FAFAF8",
                 }}>
                   <div style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
                     <div style={{
                       width:42,height:42,borderRadius:12,
-                      background:isOpen?T.redBg:T.borderSm,
-                      border:`1.5px solid ${isOpen?T.redSoft:T.borderSm}`,
+                      background:isOpen?(color+"18"):T.borderSm,
+                      border:`1.5px solid ${isOpen?(color+"30"):T.borderSm}`,
                       display:"flex",alignItems:"center",justifyContent:"center",
                       transition:"all .2s",flexShrink:0,
                     }}>
@@ -782,8 +782,8 @@ function ModeloTab() {
                     </div>
                     <div>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
-                        <span style={{fontSize:9,fontWeight:700,color:isOpen?T.red:T.inkSoft,letterSpacing:".1em",textTransform:"uppercase"}}>{d.num}</span>
-                        <div className="display" style={{fontSize:13,fontWeight:700,color:isOpen?T.red:T.ink,transition:"color .15s"}}>{d.label}</div>
+                        <span style={{fontSize:9,fontWeight:700,color:isOpen?color:T.inkSoft,letterSpacing:".1em",textTransform:"uppercase"}}>{d.num}</span>
+                        <div className="display" style={{fontSize:13,fontWeight:700,color:isOpen?color:T.ink,transition:"color .15s"}}>{d.label}</div>
                       </div>
                       <div style={{fontSize:10,color:T.inkSoft}}>{d.sub}</div>
                     </div>
@@ -791,25 +791,25 @@ function ModeloTab() {
                   <div/>
                   <div style={{padding:"0 20px",display:"flex",alignItems:"center",gap:14}}>
                     <div style={{textAlign:"center"}}>
-                      <div className="display" style={{fontSize:22,fontWeight:900,color:isOpen?T.red:T.inkMid,lineHeight:1,transition:"color .15s"}}>{d.subs.length}</div>
+                      <div className="display" style={{fontSize:22,fontWeight:900,color:isOpen?color:T.inkMid,lineHeight:1,transition:"color .15s"}}>{d.subs.length}</div>
                       <div style={{fontSize:8.5,color:T.inkSoft}}>sub-dim.</div>
                     </div>
                     <div style={{
                       width:26,height:26,borderRadius:"50%",
-                      background:isOpen?T.redBg:T.borderSm,
+                      background:isOpen?(color+"18"):T.borderSm,
                       display:"flex",alignItems:"center",justifyContent:"center",transition:"all .2s",
                     }}>
-                      <span style={{fontSize:14,color:isOpen?T.red:T.inkSoft,transform:isOpen?"rotate(90deg)":"none",display:"block",transition:"transform .22s",fontWeight:700,lineHeight:1}}>›</span>
+                      <span style={{fontSize:14,color:isOpen?color:T.inkSoft,transform:isOpen?"rotate(90deg)":"none",display:"block",transition:"transform .22s",fontWeight:700,lineHeight:1}}>›</span>
                     </div>
                   </div>
                 </div>
                 {isOpen&&(
-                  <div className="scale-in" style={{padding:"20px 22px",borderTop:`1px solid ${T.redSoft}`,background:T.card}}>
+                  <div className="scale-in" style={{padding:"20px 22px",borderTop:`1px solid ${(color+"30")}`,background:T.card}}>
                     <p style={{fontSize:12.5,color:T.inkMid,lineHeight:1.8,margin:"0 0 18px"}}>{DESC[d.key]}</p>
                     <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
                       {d.subs.map(s=>(
-                        <div key={s.id} style={{background:T.redXsoft,borderRadius:10,padding:"12px 12px",border:`1px solid ${T.redSoft}`}}>
-                          <div style={{fontSize:10,fontWeight:700,color:T.red,marginBottom:4,lineHeight:1.35}}>{s.label}</div>
+                        <div key={s.id} style={{background:(color+"10"),borderRadius:10,padding:"12px 12px",border:`1px solid ${(color+"30")}`}}>
+                          <div style={{fontSize:10,fontWeight:700,color:color,marginBottom:4,lineHeight:1.35}}>{s.label}</div>
                           <div style={{fontSize:9.5,color:T.inkMid,lineHeight:1.55}}>{s.desc}</div>
                         </div>
                       ))}
@@ -845,7 +845,7 @@ function ModeloTab() {
 }
 
 // ─── SUMMARY TAB ──────────────────────────────────────────────────────────────
-function SummaryTab({answers, perfil}) {
+function SummaryTab({answers, perfil, color=color, colorDk=colorDk}) {
   const globalScore=useMemo(()=>{
     const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean);
     return sc.length?parseFloat((sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(2)):null;
@@ -966,7 +966,7 @@ function SummaryTab({answers, perfil}) {
         <button onClick={descargarExcel} className="btn-red" style={{
           display:"flex",alignItems:"center",gap:8,
           padding:"10px 22px",borderRadius:11,border:"none",
-          background:`linear-gradient(135deg,${T.red},${T.redDk})`,
+          background:`linear-gradient(135deg,${color},${colorDk})`,
           color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
           boxShadow:`0 4px 14px rgba(232,37,31,0.3)`,
         }}>⬇ Descargar Excel</button>
@@ -986,7 +986,7 @@ function SummaryTab({answers, perfil}) {
         }}>
           <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:10}}>Madurez Global</div>
           {globalScore?(<>
-            <div className="display" style={{fontSize:58,fontWeight:900,color:T.red,letterSpacing:"-.04em",lineHeight:1,marginBottom:4}}><CountUp to={parseFloat(globalScore)} decimals={1} duration={900}/></div>
+            <div className="display" style={{fontSize:58,fontWeight:900,color:color,letterSpacing:"-.04em",lineHeight:1,marginBottom:4}}><CountUp to={parseFloat(globalScore)} decimals={1} duration={900}/></div>
             <div style={{fontSize:12,color:T.inkSoft,marginBottom:10}}>/5.0</div>
             <LvBadge v={Math.round(globalScore)}/>
           </>):<div style={{fontSize:18,color:T.inkSoft}}>—</div>}
@@ -1053,7 +1053,7 @@ function SummaryTab({answers, perfil}) {
                     <PolarGrid stroke={T.borderSm}/>
                     <PolarAngleAxis dataKey="dim" tick={{fill:T.inkMid,fontSize:8.5,fontWeight:500}}/>
                     <PolarRadiusAxis angle={90} domain={[0,5]} tick={{fontSize:7.5,fill:T.inkSoft}} tickCount={6}/>
-                    <Radar dataKey="value" stroke={T.red} fill={T.red} fillOpacity={0.1} strokeWidth={2.5}/>
+                    <Radar dataKey="value" stroke={color} fill={color} fillOpacity={0.1} strokeWidth={2.5}/>
                     <Tooltip formatter={(v)=>[`${v} / 5`,"Madurez"]} contentStyle={{borderRadius:10,border:`1px solid ${T.border}`,fontSize:12}}/>
                   </RadarChart>
                 </ResponsiveContainer>
@@ -1170,7 +1170,7 @@ function SummaryTab({answers, perfil}) {
       {allGaps.length>0&&(
         <div className="fade-up-4 hover-lift" style={{background:T.card,borderRadius:18,border:`1px solid ${T.borderSm}`,padding:"24px 26px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
-            <div style={{width:38,height:38,borderRadius:11,background:T.redBg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:18}}>🗺️</span></div>
+            <div style={{width:38,height:38,borderRadius:11,background:(color+"18"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:18}}>🗺️</span></div>
             <div>
               <div className="display" style={{fontSize:15,fontWeight:800,color:T.ink}}>Hoja de Ruta Priorizada</div>
               <div style={{fontSize:11,color:T.inkMid,marginTop:2}}>Secuencia recomendada según impacto y urgencia</div>
@@ -1210,7 +1210,7 @@ function SummaryTab({answers, perfil}) {
 }
 
 // ─── SCROLL INDICATOR ─────────────────────────────────────────────────────────
-function ScrollIndicator({ scrollRef }) {
+function ScrollIndicator({ scrollRef, color=color }) {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
@@ -1249,7 +1249,7 @@ function ScrollIndicator({ scrollRef }) {
     >
       <div style={{
         background:"rgba(255,255,255,0.96)",
-        border:`1.5px solid ${T.redSoft}`,
+        border:`1.5px solid ${(color+"30")}`,
         borderRadius:14,
         padding:"12px 10px",
         boxShadow:"0 6px 24px rgba(0,0,0,0.13)",
@@ -1263,7 +1263,7 @@ function ScrollIndicator({ scrollRef }) {
         <span style={{
           fontSize:9,
           fontWeight:700,
-          color:T.red,
+          color:color,
           textTransform:"uppercase",
           letterSpacing:".1em",
           writingMode:"vertical-rl",
@@ -1276,7 +1276,7 @@ function ScrollIndicator({ scrollRef }) {
           className="scroll-arrow"
           width="16" height="22" viewBox="0 0 16 22" fill="none"
         >
-          <path d="M8 1v16M1 11l7 8 7-8" stroke={T.red} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8 1v16M1 11l7 8 7-8" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
     </div>
@@ -1425,7 +1425,7 @@ export default function App() {
         boxShadow:"0 1px 0 rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
       }}>
         <div style={{display:"flex",alignItems:"center",gap:18}}>
-          <Logo h={24}/>
+          {empresa?.logo_url ? <img src={empresa.logo_url} alt={empresa.nombre} style={{height:24,objectFit:"contain"}}/> : <Logo h={24}/>}
           <div style={{width:1,height:28,background:T.borderSm}}/>
           <div>
             <div className="display" style={{fontSize:12,fontWeight:700,color:T.ink,letterSpacing:"-.01em"}}>{empresa?.nombre || "Modelo de Madurez"} · Gestión de Inventarios</div>
@@ -1482,10 +1482,10 @@ export default function App() {
       </header>
 
       {/* ═══ CONTENT ═══ */}
-      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator scrollRef={introScrollRef}/></div>}
+      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color={EC} colorDk={ECD} onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
       {showRegistro&&<RegistroForm color={EC} colorDk={ECD} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
-      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab/><ScrollIndicator scrollRef={modeloScrollRef}/></div>}
-      {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab answers={answers} perfil={perfil}/><ScrollIndicator scrollRef={summaryScrollRef}/></div>}
+      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color={EC} colorDk={ECD}/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
+      {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab color={EC} colorDk={ECD} answers={answers} perfil={perfil}/><ScrollIndicator color={EC} scrollRef={summaryScrollRef}/></div>}
 
       {view==="assessment"&&(
         <div style={{flex:1,display:"flex",overflow:"hidden"}}>
@@ -1731,7 +1731,7 @@ export default function App() {
                 padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
                 background:T.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=EC;e.currentTarget.style.color=EC;}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
               >
                 <span style={{fontSize:14}}>←</span>
@@ -1748,7 +1748,7 @@ export default function App() {
                 <div key={t.id} onClick={()=>setView(t.id)} style={{
                   width: t.id===view ? 20 : 6,
                   height:6, borderRadius:99,
-                  background: t.id===view ? T.red : T.borderSm,
+                  background: t.id===view ? EC : T.borderSm,
                   cursor:"pointer", transition:"all .25s cubic-bezier(.22,1,.36,1)",
                 }}/>
               ))}
@@ -1761,7 +1761,7 @@ export default function App() {
                 padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
                 background:T.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=EC;e.currentTarget.style.color=EC;}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
               >
                 <div style={{textAlign:"right"}}>
