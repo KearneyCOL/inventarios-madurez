@@ -100,14 +100,8 @@ function Login({ onLogin }) {
         boxShadow: "0 40px 100px rgba(0,0,0,0.08)",
       }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
-          <div style={{
-            width: 52, height: 52, borderRadius: 14, margin: "0 auto 16px",
-            background: "linear-gradient(135deg,#7823DC,#5A1AA0)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, boxShadow: "0 8px 24px rgba(120,35,220,0.25)",
-          }}>🛡️</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#1A1A18" }}>Admin Panel</div>
-          <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>Kearney · Inventarios Madurez</div>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMxRTFFMUUiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4=" alt="Kearney" style={{height:30, display:"block", margin:"0 auto 10px"}}/>
+          <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase", marginBottom:0 }}>Inventarios · Admin</div>
         </div>
 
         <input
@@ -959,7 +953,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
             ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas identificadas</div>
             : <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
                 {[
-                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#F5F0FF", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
+                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#FEF2F2", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
                   { t:"Mediano Plazo",sub:"6–12 meses",   c:"#D97706", bg:"#FFFBEB", bdr:"#FDE68A", icon:"⚡", items: [...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
                   { t:"Largo Plazo",  sub:"12–24 meses",  c:"#059669", bg:"#ECFDF5", bdr:"#A7F3D0", icon:"🏆", items: modGaps.slice(3,7) },
                 ].map(ph=>(
@@ -1037,47 +1031,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
 
 // ─── LINKS TAB ────────────────────────────────────────────────────────────────
-// ─── EMPRESAS TAB ─────────────────────────────────────────────────────────────
-
-const SUBS_META = [
-  {id:"e1", dim:"Estrategia",      label:"Objetivos & trade-offs",        desc:"Servicio, costo, capital de trabajo"},
-  {id:"e2", dim:"Estrategia",      label:"Políticas por canal",           desc:"B2B/B2C, SS/ROP"},
-  {id:"e3", dim:"Estrategia",      label:"Diseño de red",                 desc:"CDC, tiendas, hubs"},
-  {id:"e4", dim:"Estrategia",      label:"Gobernanza S&OP",               desc:"S&OP/S&OE, Comercial, Finanzas"},
-  {id:"e5", dim:"Estrategia",      label:"Riesgos y resiliencia",         desc:"Disrupciones, fraude, regulación"},
-  {id:"c1", dim:"Caracterización", label:"Segmentación ABC/XYZ",          desc:"Categoría, criticidad, valor-volumen"},
-  {id:"c2", dim:"Caracterización", label:"Atributos & trazabilidad",      desc:"Serial/IMEI, lotes, caducidad"},
-  {id:"c3", dim:"Caracterización", label:"Ciclo de vida y SLOB",          desc:"SLOB, lanzamientos, fin de vida"},
-  {id:"c4", dim:"Caracterización", label:"Ubicación y propiedad",         desc:"Consignación, 3PL, tiendas, técnicos"},
-  {id:"c5", dim:"Caracterización", label:"Retornos y condición",          desc:"Nuevo, refurb, swap, scrap"},
-  {id:"p1", dim:"Procesos",        label:"Planeación & reposición",       desc:"DRP, min-max, MEIO"},
-  {id:"p2", dim:"Procesos",        label:"Asignación omnicanal",          desc:"ATP/CTP, reservas"},
-  {id:"p3", dim:"Procesos",        label:"Ejecución física",              desc:"Recepción, almacenaje, picking"},
-  {id:"p4", dim:"Procesos",        label:"Control & exactitud",           desc:"Conteos cíclicos, shrinkage"},
-  {id:"p5", dim:"Procesos",        label:"Excepciones y retornos",        desc:"RMA, devoluciones, reparación"},
-  {id:"r1", dim:"Roles",           label:"Modelo operativo & RACI",       desc:"Dueños de proceso E2E"},
-  {id:"r2", dim:"Roles",           label:"Interfaces clave",              desc:"Comercial, Finanzas, Operaciones, TI"},
-  {id:"r3", dim:"Roles",           label:"Gestión de terceros",           desc:"OEM, 3PL, distribuidores, dealers"},
-  {id:"r4", dim:"Roles",           label:"Capacidades y formación",       desc:"Planificación, analítica, operación"},
-  {id:"r5", dim:"Roles",           label:"Incentivos & accountability",   desc:"SLAs, KPIs, consecuencias"},
-  {id:"h1", dim:"Herramientas",    label:"Arquitectura core",             desc:"ERP/OMS/WMS e integración"},
-  {id:"h2", dim:"Herramientas",    label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP"},
-  {id:"h3", dim:"Herramientas",    label:"Visibilidad & trazabilidad",    desc:"Serialización, RFID, track&trace"},
-  {id:"h4", dim:"Herramientas",    label:"Datos & analítica",             desc:"Lakehouse, BI, modelos, calidad"},
-  {id:"h5", dim:"Herramientas",    label:"Automatización",                desc:"RPA, APIs/EDI, alertas, movilidad"},
-  {id:"i1", dim:"Indicadores",     label:"Servicio al cliente",           desc:"Fill rate, OTIF, backorders, NPS"},
-  {id:"i2", dim:"Indicadores",     label:"Eficiencia & capital",          desc:"Rotación, DIO, capital de trabajo"},
-  {id:"i3", dim:"Indicadores",     label:"Exactitud & pérdidas",          desc:"Accuracy, shrinkage, ajustes"},
-  {id:"i4", dim:"Indicadores",     label:"Salud del inventario",          desc:"Aging, SLOB, write-offs, DOH"},
-  {id:"i5", dim:"Indicadores",     label:"Cumplimiento & riesgo",         desc:"Fraude, auditoría, regulatorio"},
-  {id:"ab1",dim:"Abastecimiento",  label:"Dispositivos",                  desc:"Smartphones/tablets: lanzamiento-rampa-EOL"},
-  {id:"ab2",dim:"Abastecimiento",  label:"CPE/routers/STB",              desc:"Proyectos, bundles, reposición de fallas"},
-  {id:"ab3",dim:"Abastecimiento",  label:"SIM/eSIM & kits",              desc:"Alto volumen, bajo valor, control fraude"},
-  {id:"ab4",dim:"Abastecimiento",  label:"Accesorios",                    desc:"Amplia variedad, moda, obsolescencia"},
-  {id:"ab5",dim:"Abastecimiento",  label:"Repuestos/refurb/swap",         desc:"Circularidad, garantías, niveles de servicio"},
-];
-
-// ─── EMPRESA INPUT FIELD (module-level to avoid re-render focus loss) ────────
+// ─── EMPRESA INPUT (module-level avoids re-render focus loss) ────────────────
 function EmpresaInputField({ label, fieldKey, placeholder, type="text", form, setForm, formErr, setFormErr }) {
   const RED = "#7823DC";
   return (
@@ -1089,35 +1043,70 @@ function EmpresaInputField({ label, fieldKey, placeholder, type="text", form, se
       <input
         value={form[fieldKey]}
         onChange={e => { setForm(p=>({...p,[fieldKey]:e.target.value})); setFormErr(p=>({...p,[fieldKey]:undefined})); }}
-        placeholder={placeholder}
-        type={type}
+        placeholder={placeholder} type={type}
         style={{ width:"100%", padding:"9px 12px", borderRadius:9,
           border:`1.5px solid ${formErr[fieldKey]?RED:"#E8E4DF"}`,
-          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
+          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none",
+          boxSizing:"border-box" }}
       />
     </div>
   );
 }
 
+// ─── SUBS META ────────────────────────────────────────────────────────────────
+const SUBS_META = [
+  {id:"e1",  dim:"Estrategia",      label:"Objetivos & trade-offs",        desc:"Servicio, costo, capital de trabajo"},
+  {id:"e2",  dim:"Estrategia",      label:"Políticas por canal",           desc:"B2B/B2C, SS/ROP"},
+  {id:"e3",  dim:"Estrategia",      label:"Diseño de red",                 desc:"CDC, tiendas, hubs"},
+  {id:"e4",  dim:"Estrategia",      label:"Gobernanza S&OP",               desc:"S&OP/S&OE, Comercial, Finanzas"},
+  {id:"e5",  dim:"Estrategia",      label:"Riesgos y resiliencia",         desc:"Disrupciones, fraude, regulación"},
+  {id:"c1",  dim:"Caracterización", label:"Segmentación ABC/XYZ",          desc:"Categoría, criticidad, valor-volumen"},
+  {id:"c2",  dim:"Caracterización", label:"Atributos & trazabilidad",      desc:"Serial/IMEI, lotes, caducidad"},
+  {id:"c3",  dim:"Caracterización", label:"Ciclo de vida y SLOB",          desc:"SLOB, lanzamientos, fin de vida"},
+  {id:"c4",  dim:"Caracterización", label:"Ubicación y propiedad",         desc:"Consignación, 3PL, tiendas, técnicos"},
+  {id:"c5",  dim:"Caracterización", label:"Retornos y condición",          desc:"Nuevo, refurb, swap, scrap"},
+  {id:"p1",  dim:"Procesos",        label:"Planeación & reposición",       desc:"DRP, min-max, MEIO"},
+  {id:"p2",  dim:"Procesos",        label:"Asignación omnicanal",          desc:"ATP/CTP, reservas"},
+  {id:"p3",  dim:"Procesos",        label:"Ejecución física",              desc:"Recepción, almacenaje, picking"},
+  {id:"p4",  dim:"Procesos",        label:"Control & exactitud",           desc:"Conteos cíclicos, shrinkage"},
+  {id:"p5",  dim:"Procesos",        label:"Excepciones y retornos",        desc:"RMA, devoluciones, reparación"},
+  {id:"r1",  dim:"Roles",           label:"Modelo operativo & RACI",       desc:"Dueños de proceso E2E"},
+  {id:"r2",  dim:"Roles",           label:"Interfaces clave",              desc:"Comercial, Finanzas, Operaciones, TI"},
+  {id:"r3",  dim:"Roles",           label:"Gestión de terceros",           desc:"OEM, 3PL, distribuidores, dealers"},
+  {id:"r4",  dim:"Roles",           label:"Capacidades y formación",       desc:"Planificación, analítica, operación"},
+  {id:"r5",  dim:"Roles",           label:"Incentivos & accountability",   desc:"SLAs, KPIs, consecuencias"},
+  {id:"h1",  dim:"Herramientas",    label:"Arquitectura core",             desc:"ERP/OMS/WMS e integración"},
+  {id:"h2",  dim:"Herramientas",    label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP"},
+  {id:"h3",  dim:"Herramientas",    label:"Visibilidad & trazabilidad",    desc:"Serialización, RFID, track&trace"},
+  {id:"h4",  dim:"Herramientas",    label:"Datos & analítica",             desc:"Lakehouse, BI, modelos, calidad"},
+  {id:"h5",  dim:"Herramientas",    label:"Automatización",                desc:"RPA, APIs/EDI, alertas, movilidad"},
+  {id:"i1",  dim:"Indicadores",     label:"Servicio al cliente",           desc:"Fill rate, OTIF, backorders, NPS"},
+  {id:"i2",  dim:"Indicadores",     label:"Eficiencia & capital",          desc:"Rotación, DIO, capital de trabajo"},
+  {id:"i3",  dim:"Indicadores",     label:"Exactitud & pérdidas",          desc:"Accuracy, shrinkage, ajustes"},
+  {id:"i4",  dim:"Indicadores",     label:"Salud del inventario",          desc:"Aging, SLOB, write-offs, DOH"},
+  {id:"i5",  dim:"Indicadores",     label:"Cumplimiento & riesgo",         desc:"Fraude, auditoría, regulatorio"},
+  {id:"ab1", dim:"Abastecimiento",  label:"Dispositivos",                  desc:"Smartphones/tablets: lanzamiento-rampa-EOL"},
+  {id:"ab2", dim:"Abastecimiento",  label:"CPE/routers/STB",               desc:"Proyectos, bundles, reposición de fallas"},
+  {id:"ab3", dim:"Abastecimiento",  label:"SIM/eSIM & kits",               desc:"Alto volumen, bajo valor, control fraude"},
+  {id:"ab4", dim:"Abastecimiento",  label:"Accesorios",                    desc:"Amplia variedad, moda, obsolescencia"},
+  {id:"ab5", dim:"Abastecimiento",  label:"Repuestos/refurb/swap",         desc:"Circularidad, garantías, niveles de servicio"},
+];
+
+// ─── EMPRESAS TAB ─────────────────────────────────────────────────────────────
 function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
-  const [view, setView] = useState("list");
-  const [editing, setEditing] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [editingSubs, setEditingSubs] = useState(false);
-  const [subsData, setSubsData] = useState({});
+  const [view,       setView]       = useState("list");
+  const [editing,    setEditing]    = useState(null);
+  const [saving,     setSaving]     = useState(false);
+  const [editingSubs,setEditingSubs]= useState(false);
+  const [subsData,   setSubsData]   = useState({});
   const [savingSubs, setSavingSubs] = useState(false);
-  const RED = "#7823DC";
+  const [form,       setForm]       = useState({ nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" });
+  const [formErr,    setFormErr]    = useState({});
+  const PURPLE = "#7823DC";
 
-  const emptyForm = { nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" };
-  const [form, setForm] = useState(emptyForm);
-  const [formErr, setFormErr] = useState({});
-
-  function startNew() { setForm(emptyForm); setEditing(null); setView("new"); setEditingSubs(false); }
+  function startNew() { setForm({ nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" }); setEditing(null); setView("new"); setEditingSubs(false); }
   function startEdit(emp) {
-    setForm({ nombre:emp.nombre, codigo:emp.codigo,
-              color_primary:emp.color_primary||"#7823DC",
-              color_dark:emp.color_dark||"#5A1AA0",
-              logo_url:emp.logo_url||"" });
+    setForm({ nombre:emp.nombre, codigo:emp.codigo, color_primary:emp.color_primary||"#7823DC", color_dark:emp.color_dark||"#5A1AA0", logo_url:emp.logo_url||"" });
     setEditing(emp); setView("edit"); setEditingSubs(false);
   }
 
@@ -1126,10 +1115,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     const map = {};
     (data||[]).forEach(s => { map[s.sub_id] = { q:s.q||"", label:s.label||"", desc:s.descripcion||"" }; });
     SUBS_META.forEach(sm => { if (!map[sm.id]) map[sm.id] = { q:"", label:"", desc:"" }; });
-    setSubsData(map);
-    setEditing(emp);
-    setEditingSubs(true);
-    setView("edit");
+    setSubsData(map); setEditing(emp); setEditingSubs(true); setView("edit");
   }
 
   function validateForm() {
@@ -1144,24 +1130,14 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   async function saveEmpresa() {
     if (!validateForm()) return;
     setSaving(true);
-    const payload = {
-      nombre: form.nombre.trim(),
-      codigo: form.codigo.trim().toUpperCase(),
-      color_primary: form.color_primary,
-      color_dark: form.color_dark,
-      logo_url: form.logo_url.trim()||null,
-    };
+    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(), color_primary:form.color_primary, color_dark:form.color_dark, logo_url:form.logo_url.trim()||null };
     let err;
-    if (editing) {
-      ({ error: err } = await supabase.from("empresas").update(payload).eq("id", editing.id));
-    } else {
-      ({ error: err } = await supabase.from("empresas").insert([payload]));
-    }
+    if (editing) { ({ error:err } = await supabase.from("empresas").update(payload).eq("id", editing.id)); }
+    else         { ({ error:err } = await supabase.from("empresas").insert([payload])); }
     setSaving(false);
     if (err) { showToast("Error: " + err.message, "error"); return; }
     showToast(editing ? "Empresa actualizada" : "Empresa creada");
-    await onRefresh();
-    setView("list");
+    await onRefresh(); setView("list");
   }
 
   async function saveSubs() {
@@ -1169,57 +1145,41 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     setSavingSubs(true);
     const rows = SUBS_META
       .filter(sm => subsData[sm.id]?.q || subsData[sm.id]?.label || subsData[sm.id]?.desc)
-      .map(sm => ({
-        empresa_id: editing.id,
-        sub_id: sm.id,
-        q: subsData[sm.id]?.q || null,
-        label: subsData[sm.id]?.label || null,
-        descripcion: subsData[sm.id]?.desc || null,
-      }));
+      .map(sm => ({ empresa_id:editing.id, sub_id:sm.id, q:subsData[sm.id]?.q||null, label:subsData[sm.id]?.label||null, descripcion:subsData[sm.id]?.desc||null }));
     if (rows.length > 0) {
-      const { error: err } = await supabase.from("subs_custom")
-        .upsert(rows, { onConflict: "empresa_id,sub_id" });
+      const { error:err } = await supabase.from("subs_custom").upsert(rows, { onConflict:"empresa_id,sub_id" });
       if (err) { showToast("Error: " + err.message, "error"); setSavingSubs(false); return; }
     }
-    showToast("Preguntas guardadas");
-    setSavingSubs(false);
-    setEditingSubs(false);
+    showToast("Preguntas guardadas"); setSavingSubs(false); setEditingSubs(false);
   }
 
   async function deleteEmpresa(emp) {
     if (!window.confirm("Eliminar " + emp.nombre + "? Se borran sus preguntas custom.")) return;
     await supabase.from("empresas").delete().eq("id", emp.id);
-    showToast("Empresa eliminada");
-    await onRefresh();
+    showToast("Empresa eliminada"); await onRefresh();
   }
 
-  const evalCount = (empId) => evaluaciones.filter(e => e.empresa_id === empId).length;
+  const evalCount = (id) => evaluaciones.filter(e => e.empresa_id === id).length;
+  const accentColor = editing?.color_primary || form.color_primary || PURPLE;
 
-
-
-  // ── EDIT SUBS VIEW ──────────────────────────────────────────────────────────
+  // ── SUBS EDIT VIEW ────────────────────────────────────────────────────────
   if (editingSubs && editing) {
     const dims = [...new Set(SUBS_META.map(s=>s.dim))];
     return (
       <div>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
-          <button onClick={()=>{ setEditingSubs(false); }} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
+          <button onClick={()=>setEditingSubs(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Preguntas · {editing.nombre}</div>
             <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Deja vacío para usar el texto por defecto del modelo.</div>
           </div>
-          <button onClick={saveSubs} disabled={savingSubs} style={{
-            padding:"9px 22px", borderRadius:99, background:editing.color_primary||RED,
-            color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
-            opacity:savingSubs?0.6:1,
-          }}>{savingSubs ? "Guardando..." : "Guardar preguntas"}</button>
+          <button onClick={saveSubs} disabled={savingSubs} style={{ padding:"9px 22px", borderRadius:99, background:accentColor, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer", opacity:savingSubs?0.6:1 }}>
+            {savingSubs ? "Guardando..." : "Guardar preguntas"}
+          </button>
         </div>
         {dims.map(dim => (
           <div key={dim} style={{ background:"#fff", borderRadius:14, border:"1px solid #E8E4DF", marginBottom:16, overflow:"hidden" }}>
-            <div style={{ padding:"12px 20px", background:"#F7F5F2", borderBottom:"1px solid #E8E4DF",
-              fontSize:11, fontWeight:700, color:"#555", textTransform:"uppercase", letterSpacing:".08em" }}>
-              {dim}
-            </div>
+            <div style={{ padding:"12px 20px", background:"#F7F5F2", borderBottom:"1px solid #E8E4DF", fontSize:11, fontWeight:700, color:"#555", textTransform:"uppercase", letterSpacing:".08em" }}>{dim}</div>
             <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", gap:14 }}>
               {SUBS_META.filter(s=>s.dim===dim).map(sm => (
                 <div key={sm.id} style={{ display:"grid", gridTemplateColumns:"160px 1fr", gap:12, alignItems:"flex-start" }}>
@@ -1228,14 +1188,10 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
                     <div style={{ fontSize:9.5, color:"#AAA", marginBottom:4 }}>{sm.desc}</div>
                     <div style={{ fontSize:9, color:"#CCC", fontFamily:"monospace" }}>{sm.id}</div>
                   </div>
-                  <textarea
-                    value={subsData[sm.id]?.q||""}
-                    onChange={e=>setSubsData(p=>({...p,[sm.id]:{...p[sm.id],q:e.target.value}}))}
+                  <textarea value={subsData[sm.id]?.q||""} onChange={e=>setSubsData(p=>({...p,[sm.id]:{...p[sm.id],q:e.target.value}}))}
                     placeholder={"Seleccione el nivel (1-5) en: " + sm.label + "..."}
                     rows={2}
-                    style={{ width:"100%", padding:"8px 11px", borderRadius:8,
-                      border:"1.5px solid #E8E4DF", fontSize:11.5, color:"#1A1A18",
-                      background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5 }}
+                    style={{ width:"100%", padding:"8px 11px", borderRadius:8, border:"1.5px solid #E8E4DF", fontSize:11.5, color:"#1A1A18", background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5, boxSizing:"border-box" }}
                   />
                 </div>
               ))}
@@ -1246,102 +1202,73 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     );
   }
 
-  // ── NEW / EDIT FORM VIEW ────────────────────────────────────────────────────
+  // ── NEW / EDIT FORM ────────────────────────────────────────────────────────
   if (view === "new" || (view === "edit" && !editingSubs)) return (
     <div style={{ maxWidth:480 }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
         <button onClick={()=>setView("list")} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
-        <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>
-          {editing ? "Editar: " + editing.nombre : "Nueva empresa"}
-        </div>
+        <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>{editing ? "Editar: " + editing.nombre : "Nueva empresa"}</div>
       </div>
       <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px" }}>
-        <div style={{ height:8, borderRadius:6, marginBottom:24,
-          background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#5A1AA0"})` }} />
-        <EmpresaInputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
-        <EmpresaInputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
-        <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>
-          Los evaluadores ingresan este código para acceder. Solo letras, números y guiones.
-        </div>
-        <EmpresaInputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
+        <div style={{ height:8, borderRadius:6, marginBottom:24, background:`linear-gradient(90deg,${form.color_primary},${form.color_dark})` }}/>
+        <EmpresaInputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
+        <EmpresaInputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
+        <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>Solo letras, números y guiones. Ej: CLARO-2025</div>
+        <EmpresaInputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {[["Color principal","color_primary"],["Color oscuro","color_dark"]].map(([lbl,key])=>(
             <div key={key}>
               <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>{lbl}</div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <input type="color" value={form[key]}
-                  onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
-                  style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
-                />
+                <input type="color" value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
+                  style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}/>
                 <input value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
-                  style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
-                    fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
-                />
+                  style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF", fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}/>
               </div>
             </div>
           ))}
         </div>
       </div>
       <div style={{ display:"flex", gap:10, marginTop:16 }}>
-        <button onClick={()=>setView("list")} style={{
-          flex:1, padding:"11px 0", borderRadius:10, border:"1.5px solid #E8E4DF",
-          background:"#FAFAFA", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer" }}>
-          Cancelar
-        </button>
-        <button onClick={saveEmpresa} disabled={saving} style={{
-          flex:2, padding:"11px 0", borderRadius:10, background:form.color_primary||RED,
-          border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer",
-          opacity:saving?0.6:1, boxShadow:`0 4px 14px ${form.color_primary||RED}50` }}>
+        <button onClick={()=>setView("list")} style={{ flex:1, padding:"11px 0", borderRadius:10, border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer" }}>Cancelar</button>
+        <button onClick={saveEmpresa} disabled={saving} style={{ flex:2, padding:"11px 0", borderRadius:10, background:form.color_primary||PURPLE, border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", opacity:saving?0.6:1, boxShadow:`0 4px 14px ${form.color_primary||PURPLE}50` }}>
           {saving ? "Guardando..." : editing ? "Guardar cambios" : "Crear empresa"}
         </button>
       </div>
     </div>
   );
 
-  // ── LIST VIEW ───────────────────────────────────────────────────────────────
+  // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div style={{ fontSize:12, color:"#AAA" }}>{empresas.length} empresa{empresas.length!==1?"s":""} registrada{empresas.length!==1?"s":""}</div>
-        <button onClick={startNew} style={{
-          padding:"9px 20px", borderRadius:99, background:RED, color:"#fff",
-          border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
-          boxShadow:"0 3px 10px rgba(120,35,220,0.3)" }}>
-          + Nueva empresa
-        </button>
+        <button onClick={startNew} style={{ padding:"9px 20px", borderRadius:99, background:PURPLE, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer", boxShadow:"0 3px 10px rgba(120,35,220,0.3)" }}>+ Nueva empresa</button>
       </div>
       {empresas.length === 0 ? (
         <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"60px 40px", textAlign:"center" }}>
           <div style={{ fontSize:36, marginBottom:16 }}>🏢</div>
           <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Sin empresas registradas</div>
           <div style={{ fontSize:12, color:"#AAA", marginBottom:24 }}>Crea la primera empresa para habilitar el acceso multi-cliente</div>
-          <button onClick={startNew} style={{ padding:"10px 24px", borderRadius:99, background:RED, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer" }}>
-            + Crear empresa
-          </button>
+          <button onClick={startNew} style={{ padding:"10px 24px", borderRadius:99, background:PURPLE, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer" }}>+ Crear empresa</button>
         </div>
       ) : (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
           {empresas.map(emp => (
             <div key={emp.id} style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", overflow:"hidden" }}>
-              <div style={{ height:5, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#5A1AA0"})` }} />
+              <div style={{ height:5, background:`linear-gradient(90deg,${emp.color_primary||PURPLE},${emp.color_dark||"#5A1AA0"})` }}/>
               <div style={{ padding:"20px 22px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
                   <div>
                     <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:6 }}>{emp.nombre}</div>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontSize:10, fontWeight:700, color:"#fff",
-                        background:emp.color_primary||RED, padding:"3px 10px", borderRadius:99 }}>
-                        {emp.codigo}
-                      </span>
-                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }}
-                        style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA" }}>
-                        📋 Copiar
-                      </button>
+                      <span style={{ fontSize:10, fontWeight:700, color:"#fff", background:emp.color_primary||PURPLE, padding:"3px 10px", borderRadius:99 }}>{emp.codigo}</span>
+                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }} style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA" }}>📋 Copiar</button>
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
-                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||RED }} />
-                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#5A1AA0" }} />
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||PURPLE }}/>
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#5A1AA0" }}/>
                   </div>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
@@ -1351,28 +1278,13 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
                   </div>
                   <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
                     <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Creada</div>
-                    <div style={{ fontSize:11, fontWeight:600, color:"#555" }}>
-                      {new Date(emp.created_at).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"})}
-                    </div>
+                    <div style={{ fontSize:11, fontWeight:600, color:"#555" }}>{new Date(emp.created_at).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"})}</div>
                   </div>
                 </div>
                 <div style={{ display:"flex", gap:8 }}>
-                  <button onClick={()=>startEdit(emp)} style={{
-                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
-                    border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555" }}>
-                    ✏️ Editar
-                  </button>
-                  <button onClick={()=>loadSubs(emp)} style={{
-                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
-                    border:`1.5px solid ${emp.color_primary||RED}40`,
-                    background:(emp.color_primary||RED)+"12", color:emp.color_primary||RED }}>
-                    💬 Preguntas
-                  </button>
-                  <button onClick={()=>deleteEmpresa(emp)} style={{
-                    padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer",
-                    border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444" }}>
-                    🗑
-                  </button>
+                  <button onClick={()=>startEdit(emp)} style={{ flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer", border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555" }}>✏️ Editar</button>
+                  <button onClick={()=>loadSubs(emp)} style={{ flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer", border:`1.5px solid ${emp.color_primary||PURPLE}40`, background:(emp.color_primary||PURPLE)+"12", color:emp.color_primary||PURPLE }}>💬 Preguntas</button>
+                  <button onClick={()=>deleteEmpresa(emp)} style={{ padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer", border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444" }}>🗑</button>
                 </div>
               </div>
             </div>
@@ -1382,6 +1294,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     </div>
   );
 }
+
 
 function LinksTab() {
   const [links, setLinks] = useState([]);
@@ -2510,7 +2423,7 @@ export default function ControlApp() {
   const [tab, setTab] = useState("monitor");
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [respuestas, setRespuestas] = useState([]);
-  const [empresas, setEmpresas] = useState([]);
+  const [empresas, setEmpresas]           = useState([]);
   const [empresaFiltro, setEmpresaFiltro] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -2596,8 +2509,10 @@ export default function ControlApp() {
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
         <div style={{ marginBottom: 32, padding: "0 8px" }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#7823DC" }}>⚡ Admin Panel</div>
-          <div style={{ fontSize: 10, color: "#BBB", marginTop: 2 }}>Kearney · Inventarios</div>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPgogIDx0ZXh0IHg9IjEiIHk9IjI0IiAKICAgIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiAKICAgIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI1MDAiIGZpbGw9IiMxRTFFMUUiIGxldHRlci1zcGFjaW5nPSI0Ij5LRUFSTkVZPC90ZXh0Pgo8L3N2Zz4=" alt="Kearney" style={{height:18, display:"block", marginBottom:6}}/>
+          <div style={{ fontSize:9, fontWeight:700, color:"#7823DC", letterSpacing:".1em", textTransform:"uppercase" }}>
+            Inventarios · Admin
+          </div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -2636,7 +2551,7 @@ export default function ControlApp() {
 
       {/* Content */}
       <div style={{ flex: 1, overflow: "auto", padding: "32px 36px" }}>
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 28 }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#7823DC", letterSpacing: "-.02em" }}>
@@ -2646,7 +2561,7 @@ export default function ControlApp() {
                 {tab === "monitor"   && "Vista general de todas las evaluaciones registradas"}
                 {tab === "links"     && "Genera y gestiona links de acceso al diagnóstico"}
                 {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
-                {tab === "reporte"   && "Genera un reporte PDF personalizado con portada y secciones seleccionables"}
+                {tab === "reporte"   && "Genera un reporte PDF personalizado"}
                 {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
                 {tab === "empresas"  && "Gestiona empresas, códigos de acceso y preguntas personalizadas"}
               </div>
@@ -2654,19 +2569,9 @@ export default function ControlApp() {
             {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (
               <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                 <span style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em" }}>Empresa</span>
-                <button onClick={()=>setEmpresaFiltro(null)} style={{
-                  padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
-                  border:`1.5px solid ${!empresaFiltro?"#7823DC":"#E8E4DF"}`,
-                  background:!empresaFiltro?"#7823DC18":"#FAFAFA",
-                  color:!empresaFiltro?"#7823DC":"#999",
-                }}>Todas</button>
+                <button onClick={()=>setEmpresaFiltro(null)} style={{ padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer", border:`1.5px solid ${!empresaFiltro?"#7823DC":"#E8E4DF"}`, background:!empresaFiltro?"#7823DC18":"#FAFAFA", color:!empresaFiltro?"#7823DC":"#999" }}>Todas</button>
                 {empresas.map(emp=>(
-                  <button key={emp.id} onClick={()=>setEmpresaFiltro(emp.id)} style={{
-                    padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
-                    border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#7823DC":"#E8E4DF"}`,
-                    background:empresaFiltro===emp.id?(emp.color_primary||"#7823DC")+"18":"#FAFAFA",
-                    color:empresaFiltro===emp.id?(emp.color_primary||"#7823DC"):"#999",
-                  }}>{emp.nombre}</button>
+                  <button key={emp.id} onClick={()=>setEmpresaFiltro(emp.id)} style={{ padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer", border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#7823DC":"#E8E4DF"}`, background:empresaFiltro===emp.id?(emp.color_primary||"#7823DC")+"18":"#FAFAFA", color:empresaFiltro===emp.id?(emp.color_primary||"#7823DC"):"#999" }}>{emp.nombre}</button>
                 ))}
               </div>
             )}
