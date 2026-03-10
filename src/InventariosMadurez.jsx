@@ -605,7 +605,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
   const STEPS=[
-    {n:"01",icon:"📖",c:"#E8251F",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
+    {n:"01",icon:"📖",c:"color",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
     {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
@@ -618,7 +618,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
       {/* ═══ HERO ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#C80F0A 0%,#E8251F 50%,#C01010 100%)",
+        background:"linear-gradient(150deg,#C80F0A 0%,color 50%,#C01010 100%)",
         boxShadow:"0 32px 80px rgba(0,0,0,0.28)",
       }}>
         <NoiseSVG/>
@@ -713,7 +713,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
         <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:18}}>Qué obtienes al final</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
           {[
-            {icon:"🎯",bg:"#FEF2F1",bdr:"#FDDCDA",tc:"#B91A15",t:"Diagnóstico",      d:"Puntaje 1–5 por dimensión y sub-dimensión con radar y barras."},
+            {icon:"🎯",bg:"#FEF2F1",bdr:"#FDDCDA",tc:"colorDk",t:"Diagnóstico",      d:"Puntaje 1–5 por dimensión y sub-dimensión con radar y barras."},
             {icon:"🚨",bg:"#FFF8ED",bdr:"#FFD89B",tc:"#92400E",t:"Brechas críticas", d:"Sub-dimensiones en niveles 1–2 con análisis de estado actual."},
             {icon:"💡",bg:"#ECFDF5",bdr:"#A7F3D0",tc:"#065F46",t:"Oportunidades",    d:"Impacto cuantificado: % reducción capital, quiebres, fraude."},
             {icon:"🗺️",bg:"#EFF6FF",bdr:"#BFDBFE",tc:"#1E3A8A",t:"Hoja de ruta",    d:"Plan en 3 horizontes: 0–6, 6–12 y 12–24 meses."},
@@ -799,7 +799,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
       {/* ═══ HERO DARK ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,#E8251F 100%)",
+        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,color 100%)",
         boxShadow:"0 28px 72px rgba(0,0,0,0.24)",
       }}>
         <NoiseSVG/>
@@ -1592,9 +1592,9 @@ export default function App() {
       </header>
 
       {/* ═══ CONTENT ═══ */}
-      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color="#7823DC" colorDk="#5A1AA0" onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
+      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color={EC} colorDk={ECD} industria={empresa?.industria||"Telecomunicaciones"} onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
       {showRegistro&&<RegistroForm color={EC} colorDk={ECD} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
-      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color="#7823DC" colorDk="#5A1AA0"/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
+      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color={EC} colorDk={ECD}/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
       {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab color={EC} colorDk={ECD} answers={answers} perfil={perfil}/><ScrollIndicator color={EC} scrollRef={summaryScrollRef}/></div>}
 
       {view==="assessment"&&(
