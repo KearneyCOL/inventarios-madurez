@@ -333,12 +333,11 @@ function CountUp({to,decimals=0,duration=800}) {
 }
 
 // ─── REGISTRO FORM (modal de inicio) ─────────────────────────────────────────
-const DIRECCIONES = [
-  "Supply Chain","Ingeniería","Implementación","OyM","UMM","UMC",
-];
-const ROLES = [
-  "Director","Gerente","Jefe","Ingeniero","Analista",
-];
+const DEFAULT_DIRECCIONES = {'Telecomunicaciones': ['Supply Chain', 'Ingeniería', 'Implementación', 'OyM', 'UMM', 'UMC'], 'Farmacéutica': ['Supply Chain', 'Manufactura', 'Calidad y Regulatorio', 'Comercial', 'Distribución'], 'Oil & Gas': ['Supply Chain', 'Operaciones', 'Mantenimiento', 'Proyectos CAPEX', 'HSEQ', 'Procura'], 'Manufactura': ['Supply Chain', 'Producción', 'Mantenimiento', 'Calidad', 'Comercial', 'Logística'], 'CPG': ['Supply Chain', 'Manufactura', 'Comercial / Trade', 'Logística', 'Marketing', 'Finanzas']};
+const DEFAULT_ROLES = {'Telecomunicaciones': ['Director', 'Gerente', 'Jefe', 'Ingeniero', 'Analista'], 'Farmacéutica': ['Director', 'Gerente', 'Jefe / Coordinador', 'Especialista', 'Analista'], 'Oil & Gas': ['Superintendente', 'Gerente', 'Supervisor', 'Ingeniero Senior', 'Ingeniero', 'Analista'], 'Manufactura': ['Gerente de Planta', 'Gerente', 'Jefe / Supervisor', 'Ingeniero', 'Técnico', 'Analista'], 'CPG': ['Director', 'Gerente', 'Jefe / Coordinador', 'Analista Senior', 'Analista']};
+// Resolved dynamically in App based on empresa
+const DIRECCIONES_FALLBACK = ["Supply Chain","Ingeniería","Implementación","OyM","UMM","UMC"];
+const ROLES_FALLBACK = ["Director","Gerente","Jefe","Ingeniero","Analista"];
 
 // ─── INDUSTRY QUESTIONS ──────────────────────────────────────────────────────
 const INDUSTRY_QUESTIONS = {
@@ -460,7 +459,10 @@ function CodigoAccesoScreen({ onSuccess }) {
           desc:  s.descripcion || subsMap[s.sub_id]?.desc || "",
         };
       });
-      onSuccess(data, subsMap);
+      // Direcciones y roles: DB overrides → industry defaults → fallback
+      const dirs  = data.direcciones  || DEFAULT_DIRECCIONES[data.industria]  || DIRECCIONES_FALLBACK;
+      const roles = data.roles        || DEFAULT_ROLES[data.industria]        || ROLES_FALLBACK;
+      onSuccess(data, subsMap, dirs, roles);
     } catch(e) {
       setError("Error al conectar. Intenta de nuevo.");
       setLoading(false);
@@ -521,7 +523,7 @@ function CodigoAccesoScreen({ onSuccess }) {
   );
 }
 
-function RegistroForm({onStart, color=T.red, colorDk=T.redDk}) {
+function RegistroForm({onStart, color=T.red, colorDk=T.redDk, direcciones=DIRECCIONES_FALLBACK, roles=ROLES_FALLBACK}) {
   const [dir,setDir]   = useState("");
   const [rol,setRol]   = useState("");
   const [err,setErr]   = useState(false);
@@ -569,13 +571,13 @@ function RegistroForm({onStart, color=T.red, colorDk=T.redDk}) {
         <div style={{marginBottom:22}}>
           <div style={{fontSize:11,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",
             letterSpacing:".1em",marginBottom:10}}>Dirección</div>
-          {sel(dir,setDir,DIRECCIONES)}
+          {sel(dir,setDir,direcciones)}
         </div>
 
         <div style={{marginBottom:28}}>
           <div style={{fontSize:11,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",
             letterSpacing:".1em",marginBottom:10}}>Rol</div>
-          {sel(rol,setRol,ROLES)}
+          {sel(rol,setRol,roles)}
         </div>
 
         {err && (
@@ -644,7 +646,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
               lineHeight:1.12,letterSpacing:"-.03em",marginBottom:8,
             }}>
               Modelo de Madurez<br/>
-              <em style={{color:"#FF6B6B",fontStyle:"italic"}}>Gestión de Inventarios</em>
+              <em style={{color:"rgba(255,255,255,0.90)",fontStyle:"italic"}}>Gestión de Inventarios</em>
             </div>
             <div style={{fontSize:13.5,color:"rgba(255,255,255,0.52)",lineHeight:1.8,maxWidth:500,marginBottom:36}}>
               Estado de Excelencia (SoE) — Diagnóstico integral de 7 dimensiones para operaciones Telco Retail B2B/B2C. Desde la estrategia hasta la ejecución operativa.
@@ -811,7 +813,7 @@ function ModeloTab({color=T.red, colorDk=T.redDk}) {
           <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.3)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:12}}>Estructura del Modelo · Estado de Excelencia (SoE)</div>
           <div className="display" style={{
             fontSize:36,fontWeight:900,color:"#fff",letterSpacing:"-.025em",lineHeight:1.18,marginBottom:14,
-          }}>Las 7 Dimensiones y la<br/><em style={{color:"#FF9999",fontStyle:"italic"}}>Escala de Madurez</em></div>
+          }}>Las 7 Dimensiones y la<br/><em style={{color:"rgba(255,255,255,0.90)",fontStyle:"italic"}}>Escala de Madurez</em></div>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.46)",lineHeight:1.8,maxWidth:600,marginBottom:24}}>
             Cada dimensión incluye <strong style={{color:"rgba(255,255,255,0.7)"}}>5 sub-dimensiones</strong> evaluadas en escala 1–5, generando un diagnóstico granular de <strong style={{color:"rgba(255,255,255,0.7)"}}>35 puntos de evaluación</strong>.
           </div>
@@ -1420,8 +1422,10 @@ export default function App() {
   const [perfil,setPerfil] = useState(()=>loadLS(LS_PERFIL,null));
   const [showPerfil,setShowPerfil] = useState(false);
   const [showRegistro,setShowRegistro] = useState(()=>!loadLS(LS_PERFIL,null));
-  const [empresa, setEmpresa]       = useState(null);
+  const [empresa,    setEmpresa]       = useState(null);
   const [subsCustom, setSubsCustom]   = useState({});
+  const [eDirecciones, setEDirecciones] = useState(DIRECCIONES_FALLBACK);
+  const [eRoles,       setERoles]       = useState(ROLES_FALLBACK);
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
@@ -1515,9 +1519,11 @@ export default function App() {
 
   // ── Empresa gate — after ALL hooks ─────────────────────────────────────────
   if (!empresa) return (
-    <CodigoAccesoScreen onSuccess={(emp, subs) => {
+    <CodigoAccesoScreen onSuccess={(emp, subs, dirs, roles) => {
       setEmpresa(emp);
       setSubsCustom(subs);
+      setEDirecciones(dirs);
+      setERoles(roles);
     }}/>
   );
 
@@ -1594,7 +1600,7 @@ export default function App() {
 
       {/* ═══ CONTENT ═══ */}
       {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color={EC} colorDk={ECD} industria={empresa?.industria||"Telecomunicaciones"} onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
-      {showRegistro&&<RegistroForm color={EC} colorDk={ECD} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
+      {showRegistro&&<RegistroForm color={EC} colorDk={ECD} direcciones={eDirecciones} roles={eRoles} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
       {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color={EC} colorDk={ECD}/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
       {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab color={EC} colorDk={ECD} answers={answers} perfil={perfil}/><ScrollIndicator color={EC} scrollRef={summaryScrollRef}/></div>}
 

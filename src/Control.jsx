@@ -1033,6 +1033,80 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 // ─── LINKS TAB ────────────────────────────────────────────────────────────────
 // ─── INDUSTRIAS ───────────────────────────────────────────────────────────────
 const INDUSTRIAS = ["Telecomunicaciones","Farmacéutica","Oil & Gas","Manufactura","CPG"];
+const DEFAULT_DIRS  = {"Telecomunicaciones": ["Supply Chain", "Ingeniería", "Implementación", "OyM", "UMM", "UMC"], "Farmacéutica": ["Supply Chain", "Manufactura", "Calidad y Regulatorio", "Comercial", "Distribución"], "Oil & Gas": ["Supply Chain", "Operaciones", "Mantenimiento", "Proyectos CAPEX", "HSEQ", "Procura"], "Manufactura": ["Supply Chain", "Producción", "Mantenimiento", "Calidad", "Comercial", "Logística"], "CPG": ["Supply Chain", "Manufactura", "Comercial / Trade", "Logística", "Marketing", "Finanzas"]};
+const DEFAULT_ROLES_CC = {"Telecomunicaciones": ["Director", "Gerente", "Jefe", "Ingeniero", "Analista"], "Farmacéutica": ["Director", "Gerente", "Jefe / Coordinador", "Especialista", "Analista"], "Oil & Gas": ["Superintendente", "Gerente", "Supervisor", "Ingeniero Senior", "Ingeniero", "Analista"], "Manufactura": ["Gerente de Planta", "Gerente", "Jefe / Supervisor", "Ingeniero", "Técnico", "Analista"], "CPG": ["Director", "Gerente", "Jefe / Coordinador", "Analista Senior", "Analista"]};
+
+// ─── TAG EDITOR (reusable pill-based list editor) ────────────────────────────
+function TagEditor({ tags, onChange, color="#7823DC", placeholder="+ Agregar" }) {
+  const [input, setInput] = useState("");
+  const [editing, setEditing] = useState(null); // index being edited
+  const [editVal, setEditVal] = useState("");
+
+  function addTag() {
+    const v = input.trim();
+    if (!v || tags.includes(v)) { setInput(""); return; }
+    onChange([...tags, v]);
+    setInput("");
+  }
+
+  function removeTag(i) { onChange(tags.filter((_,j)=>j!==i)); }
+
+  function startEdit(i) { setEditing(i); setEditVal(tags[i]); }
+  function saveEdit(i) {
+    const v = editVal.trim();
+    if (!v) { removeTag(i); } else { const t=[...tags]; t[i]=v; onChange(t); }
+    setEditing(null);
+  }
+
+  function moveTag(i, dir) {
+    const t = [...tags];
+    const j = i + dir;
+    if (j < 0 || j >= t.length) return;
+    [t[i], t[j]] = [t[j], t[i]];
+    onChange(t);
+  }
+
+  return (
+    <div style={{ display:"flex", flexWrap:"wrap", gap:7, alignItems:"center" }}>
+      {tags.map((tag,i) => (
+        editing === i ? (
+          <input key={i} autoFocus value={editVal}
+            onChange={e=>setEditVal(e.target.value)}
+            onBlur={()=>saveEdit(i)}
+            onKeyDown={e=>{ if(e.key==="Enter") saveEdit(i); if(e.key==="Escape") setEditing(null); }}
+            style={{ padding:"5px 10px", borderRadius:99, border:`2px solid ${color}`, fontSize:11.5, fontWeight:600,
+              color:"#1A1A18", background:"#fff", outline:"none", width:140 }}
+          />
+        ) : (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:4, padding:"5px 10px",
+            borderRadius:99, background:(color+"15"), border:`1.5px solid ${color+"40"}`,
+            fontSize:11.5, fontWeight:600, color:"#1A1A18" }}>
+            <button onClick={()=>moveTag(i,-1)} style={{ background:"none",border:"none",cursor:"pointer",fontSize:10,color:"#BBB",padding:"0 1px",lineHeight:1 }} title="Subir">↑</button>
+            <button onClick={()=>moveTag(i,+1)} style={{ background:"none",border:"none",cursor:"pointer",fontSize:10,color:"#BBB",padding:"0 1px",lineHeight:1 }} title="Bajar">↓</button>
+            <span onClick={()=>startEdit(i)} style={{ cursor:"text" }}>{tag}</span>
+            <button onClick={()=>removeTag(i)}
+              style={{ background:"none",border:"none",cursor:"pointer",fontSize:12,color:"#BBB",padding:"0 0 0 2px",lineHeight:1 }}>×</button>
+          </div>
+        )
+      ))}
+      <div style={{ display:"flex", alignItems:"center", gap:0 }}>
+        <input value={input} onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key===",") { e.preventDefault(); addTag(); }}}
+          placeholder={placeholder}
+          style={{ padding:"5px 12px", borderRadius:"99px 0 0 99px", border:`1.5px solid ${color+"40"}`,
+            borderRight:"none", fontSize:11, color:"#555", background:"#FAFAF8",
+            outline:"none", width:140 }}
+        />
+        <button onClick={addTag}
+          style={{ padding:"5px 12px", borderRadius:"0 99px 99px 0", border:`1.5px solid ${color}`,
+            background:color, color:"#fff", fontSize:11, fontWeight:700, cursor:"pointer", lineHeight:1.5 }}>
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 // ─── EMPRESA INPUT FIELD (module-level to prevent focus loss) ─────────────────
 function EmpresaInputField({ label, fieldKey, placeholder, type="text", form, setForm, formErr, setFormErr }) {
@@ -1101,7 +1175,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   const [editingSubs, setEditingSubs]= useState(false);
   const [subsData,    setSubsData]   = useState({});
   const [savingSubs,  setSavingSubs] = useState(false);
-  const [form,        setForm]       = useState({ nombre:"", codigo:"", industria:"Telecomunicaciones", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" });
+  const [form,        setForm]       = useState({ nombre:"", codigo:"", industria:"Telecomunicaciones", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"", direcciones: DEFAULT_DIRS["Telecomunicaciones"], roles: DEFAULT_ROLES_CC["Telecomunicaciones"] });
   const [formErr,     setFormErr]    = useState({});
   const PURPLE = "#7823DC";
 
@@ -1110,7 +1184,11 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
     setEditing(null); setView("new"); setEditingSubs(false);
   }
   function startEdit(emp) {
-    setForm({ nombre:emp.nombre, codigo:emp.codigo, industria:emp.industria||"Telecomunicaciones", color_primary:emp.color_primary||"#7823DC", color_dark:emp.color_dark||"#5A1AA0", logo_url:emp.logo_url||"" });
+    const ind = emp.industria||"Telecomunicaciones";
+    setForm({ nombre:emp.nombre, codigo:emp.codigo, industria:ind, color_primary:emp.color_primary||"#7823DC", color_dark:emp.color_dark||"#5A1AA0", logo_url:emp.logo_url||"",
+      direcciones: emp.direcciones || DEFAULT_DIRS[ind]  || [],
+      roles:       emp.roles       || DEFAULT_ROLES_CC[ind] || [],
+    });
     setEditing(emp); setView("edit"); setEditingSubs(false);
   }
 
@@ -1134,7 +1212,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   async function saveEmpresa() {
     if (!validateForm()) return;
     setSaving(true);
-    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(), industria:form.industria, color_primary:form.color_primary, color_dark:form.color_dark, logo_url:form.logo_url.trim()||null };
+    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(), industria:form.industria, color_primary:form.color_primary, color_dark:form.color_dark, logo_url:form.logo_url.trim()||null, direcciones:form.direcciones||null, roles:form.roles||null };
     let err;
     if (editing) { ({ error:err } = await supabase.from("empresas").update(payload).eq("id", editing.id)); }
     else         { ({ error:err } = await supabase.from("empresas").insert([payload])); }
@@ -1224,7 +1302,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
           <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:8 }}>Industria</div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
             {INDUSTRIAS.map(ind => (
-              <button key={ind} onClick={()=>setForm(p=>(({...p,industria:ind})))}
+              <button key={ind} onClick={()=>setForm(p=>(({...p, industria:ind, direcciones: p.direcciones?.length ? p.direcciones : DEFAULT_DIRS[ind]||[], roles: p.roles?.length ? p.roles : DEFAULT_ROLES_CC[ind]||[] })))}
                 style={{ padding:"10px 6px", borderRadius:10, border:`2px solid ${form.industria===ind?form.color_primary||PURPLE:"#E8E4DF"}`,
                   background:form.industria===ind?(form.color_primary||PURPLE)+"15":"#FAFAFA",
                   color:form.industria===ind?form.color_primary||PURPLE:"#888",
@@ -1240,6 +1318,39 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
         </div>
 
         <EmpresaInputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr}/>
+        {/* ── Direcciones & Roles editor ─────────────────────────────────── */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <div style={{ fontSize:10.5, fontWeight:700, color:"#555" }}>Direcciones</div>
+            <button onClick={()=>setForm(p=>({...p, direcciones: DEFAULT_DIRS[p.industria]||[]}))}
+              style={{ fontSize:9.5, color:"#9B59D6", background:"none", border:"none", cursor:"pointer", fontWeight:600 }}>
+              ↺ Restablecer por industria
+            </button>
+          </div>
+          <TagEditor
+            tags={form.direcciones||[]}
+            onChange={tags=>setForm(p=>({...p, direcciones:tags}))}
+            color={form.color_primary||"#7823DC"}
+            placeholder="+ Agregar dirección"
+          />
+        </div>
+
+        <div style={{ marginBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <div style={{ fontSize:10.5, fontWeight:700, color:"#555" }}>Roles</div>
+            <button onClick={()=>setForm(p=>({...p, roles: DEFAULT_ROLES_CC[p.industria]||[]}))}
+              style={{ fontSize:9.5, color:"#9B59D6", background:"none", border:"none", cursor:"pointer", fontWeight:600 }}>
+              ↺ Restablecer por industria
+            </button>
+          </div>
+          <TagEditor
+            tags={form.roles||[]}
+            onChange={tags=>setForm(p=>({...p, roles:tags}))}
+            color={form.color_primary||"#7823DC"}
+            placeholder="+ Agregar rol"
+          />
+        </div>
+
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {[["Color principal","color_primary"],["Color oscuro","color_dark"]].map(([lbl,key])=>(
             <div key={key}>
