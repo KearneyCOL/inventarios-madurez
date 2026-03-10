@@ -341,11 +341,10 @@ const ROLES = [
 ];
 
 // ─── CÓDIGO DE ACCESO ─────────────────────────────────────────────────────────
-
 function CodigoAccesoScreen({ onSuccess }) {
-  const [codigo, setCodigo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [codigo, setCodigo] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError]  = React.useState("");
 
   async function handleSubmit() {
     const cod = codigo.trim().toUpperCase();
@@ -354,50 +353,23 @@ function CodigoAccesoScreen({ onSuccess }) {
     try {
       const { data, error: err } = await supabase
         .from("empresas").select("*").eq("codigo", cod).single();
-      if (err || !data) {
-        setError("Código no encontrado. Verifica e intenta de nuevo.");
-        setLoading(false); return;
-      }
-      // Load custom subs
-      const { data: subs } = await supabase
-        .from("subs_custom").select("*").eq("empresa_id", data.id);
+      if (err || !data) { setError("Código no encontrado. Verifica e intenta de nuevo."); setLoading(false); return; }
+      const { data: subs } = await supabase.from("subs_custom").select("*").eq("empresa_id", data.id);
       const subsMap = {};
       (subs||[]).forEach(s => { subsMap[s.sub_id] = { q:s.q, label:s.label, desc:s.descripcion }; });
       onSuccess(data, subsMap);
-    } catch(e) {
-      setError("Error al conectar. Intenta de nuevo.");
-      setLoading(false);
-    }
+    } catch(e) { setError("Error al conectar. Intenta de nuevo."); setLoading(false); }
   }
 
+  const red = "#E8251F";
   return (
-    <div style={{
-      minHeight:"100vh", background:"#FFF8F8",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      padding:24,
-    }}>
-      <div style={{
-        width:"100%", maxWidth:420,
-        background:"#fff", borderRadius:22,
-        border:"1px solid #F0EEE9",
-        boxShadow:"0 24px 64px rgba(0,0,0,0.1)",
-        overflow:"hidden",
-      }}>
-        {/* Red header strip */}
-        <div style={{
-          background:"linear-gradient(135deg,#C80F0A,#E8251F)",
-          padding:"36px 40px 32px",
-          position:"relative", overflow:"hidden",
-        }}>
-          <div style={{
-            position:"absolute", inset:0,
-            backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)",
-            backgroundSize:"18px 18px",
-          }}/>
+    <div style={{ minHeight:"100vh", background:"#FFF8F8", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+      <div style={{ width:"100%", maxWidth:420, background:"#fff", borderRadius:22, border:"1px solid #F0EEE9", boxShadow:"0 24px 64px rgba(0,0,0,0.1)", overflow:"hidden" }}>
+        <div style={{ background:"linear-gradient(135deg,#C80F0A,#E8251F)", padding:"36px 40px 32px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)", backgroundSize:"18px 18px" }}/>
           <div style={{ position:"relative", zIndex:1 }}>
             <Logo h={28}/>
-            <div style={{ marginTop:20, fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.55)",
-              textTransform:"uppercase", letterSpacing:".14em", marginBottom:8 }}>
+            <div style={{ marginTop:20, fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:".14em", marginBottom:8 }}>
               Modelo de Madurez · Inventarios
             </div>
             <div style={{ fontSize:20, fontWeight:900, color:"#fff", letterSpacing:"-.02em", lineHeight:1.2 }}>
@@ -405,47 +377,29 @@ function CodigoAccesoScreen({ onSuccess }) {
             </div>
           </div>
         </div>
-
         <div style={{ padding:"32px 40px 36px" }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>
-            Ingresa tu código de acceso
-          </div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Ingresa tu código de acceso</div>
           <div style={{ fontSize:11.5, color:"#9C9A95", marginBottom:24, lineHeight:1.5 }}>
-            Tu facilitador Kearney te habrá compartido un código único para tu empresa.
+            Tu facilitador te habrá compartido un código único para tu empresa.
           </div>
-
           <input
             value={codigo}
             onChange={e=>{ setCodigo(e.target.value.toUpperCase()); setError(""); }}
             onKeyDown={e=>e.key==="Enter"&&handleSubmit()}
             placeholder="Ej: CLARO-2025"
-            style={{
-              width:"100%", padding:"13px 16px", borderRadius:11,
+            style={{ width:"100%", padding:"13px 16px", borderRadius:11,
               border:`2px solid ${error?"#ef4444":"#E8E4DF"}`,
-              fontSize:15, fontWeight:700, color:"#1A1A18",
-              background:"#FAFAF8", outline:"none",
-              letterSpacing:".04em", textAlign:"center",
-              marginBottom: error ? 8 : 16,
-              transition:"border-color .15s",
-            }}
+              fontSize:15, fontWeight:700, color:"#1A1A18", background:"#FAFAF8",
+              outline:"none", letterSpacing:".04em", textAlign:"center",
+              marginBottom: error ? 8 : 16 }}
           />
-          {error && (
-            <div style={{ fontSize:11, color:"#ef4444", marginBottom:16, textAlign:"center" }}>
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{
-              width:"100%", padding:"13px 0", borderRadius:11,
-              background:loading?"#ccc":"linear-gradient(135deg,#C80F0A,#E8251F)",
-              color:"#fff", border:"none", fontSize:13.5, fontWeight:700,
-              cursor:loading?"not-allowed":"pointer",
-              boxShadow:loading?"none":"0 4px 16px rgba(232,37,31,0.35)",
-              transition:"all .15s",
-            }}>
+          {error && <div style={{ fontSize:11, color:"#ef4444", marginBottom:16, textAlign:"center" }}>{error}</div>}
+          <button onClick={handleSubmit} disabled={loading} style={{
+            width:"100%", padding:"13px 0", borderRadius:11,
+            background:loading?"#ccc":"linear-gradient(135deg,#C80F0A,#E8251F)",
+            color:"#fff", border:"none", fontSize:13.5, fontWeight:700,
+            cursor:loading?"not-allowed":"pointer",
+            boxShadow:loading?"none":"0 4px 16px rgba(232,37,31,0.35)" }}>
             {loading ? "Verificando..." : "Acceder al diagnóstico →"}
           </button>
         </div>
@@ -454,12 +408,10 @@ function CodigoAccesoScreen({ onSuccess }) {
   );
 }
 
-function RegistroForm({onStart, empresa}) {
+function RegistroForm({onStart, color="#E8251F", colorDk="#C80F0A"}) {
   const [dir,setDir]   = useState("");
   const [rol,setRol]   = useState("");
   const [err,setErr]   = useState(false);
-  const color = empresa?.color_primary || "#E8251F";
-  const colorDk = empresa?.color_dark || "#C80F0A";
 
   function start() {
     if (!dir || !rol) { setErr(true); return; }
@@ -1355,8 +1307,8 @@ export default function App() {
   const [perfil,setPerfil] = useState(()=>loadLS(LS_PERFIL,null));
   const [showPerfil,setShowPerfil] = useState(false);
   const [showRegistro,setShowRegistro] = useState(()=>!loadLS(LS_PERFIL,null));
-  const [empresa, setEmpresa] = useState(null);       // loaded from Supabase by code
-  const [subsCustom, setSubsCustom] = useState({});   // sub_id -> {q,label,desc}
+  const [empresa, setEmpresa]     = useState(null);
+  const [subsCustom, setSubsCustom] = useState({});
   const [activeDim,setActiveDim] = useState(0);
   const [activeSub,setActiveSub] = useState(0);
   const [view,setView] = useState("intro");
@@ -1416,38 +1368,32 @@ export default function App() {
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
 
-  // Dynamic theme — override red colors with empresa branding if loaded
-  const ET = empresa ? {
-    ...T,
-    red:    empresa.color_primary || T.red,
-    redDk:  empresa.color_dark    || T.redDk,
-    redBg:  (empresa.color_primary||T.red)+"18",
-    redSoft:(empresa.color_primary||T.red)+"30",
-    redXsoft:(empresa.color_primary||T.red)+"10",
-    surface: "#FFF8F8",
-  } : T;
+  // Dynamic branding per empresa
+  const EC = empresa?.color_primary || T.red;
+  const ECD = empresa?.color_dark    || T.redDk;
 
-  // Dynamic DIMS — merge subsCustom into subs
-  const EDIMS = empresa ? DIMS.map(d=>({
+  // Dynamic DIMS — overlay subsCustom questions
+  const EDIMS = React.useMemo(() => DIMS.map(d=>({
     ...d,
     subs: d.subs.map(s => {
       const c = subsCustom[s.id];
-      if (!c) return s;
-      return { ...s, q: c.q||s.q, label: c.label||s.label, desc: c.desc||s.desc };
+      return c ? { ...s, q: c.q||s.q, label: c.label||s.label, desc: c.desc||s.desc } : s;
     }),
-  })) : DIMS;
+  })), [subsCustom]);
 
-  const dim=EEDIMS[activeDim];
+  const dim=EDIMS[activeDim];
   const sub=dim.subs[activeSub];
+
+
   const setVal=(id,v)=>setAnswers(p=>({...p,[id]:v}));
 
-  const totalQ=EDIMS.reduce((a,d)=>a+d.subs.length,0);
+  const totalQ=DIMS.reduce((a,d)=>a+d.subs.length,0);
   const answered=Object.values(answers).filter(v=>v>0).length;
   const pct=Math.round(answered/totalQ*100);
-  const completedDims=EDIMS.filter(d=>d.subs.every(s=>answers[s.id]>0)).length;
+  const completedDims=DIMS.filter(d=>d.subs.every(s=>answers[s.id]>0)).length;
 
   const totalScore=useMemo(()=>{
-    const sc=EDIMS.map(d=>getDimScore(d,answers)).filter(Boolean).map(Number);
+    const sc=DIMS.map(d=>getDimScore(d,answers)).filter(Boolean).map(Number);
     return sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):null;
   },[answers]);
 
@@ -1458,21 +1404,21 @@ export default function App() {
     {id:"summary",   label:"Resumen & Brechas", icon:"📊"},
   ];
 
+  // ── Empresa gate — after all hooks ──
   if (!empresa) return (
     <CodigoAccesoScreen onSuccess={(emp, subs) => {
       setEmpresa(emp);
       setSubsCustom(subs);
     }}/>
   );
-
   return (
-    <div ref={appRef} style={{background:ET.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
+    <div ref={appRef} style={{background:T.surface,minHeight:"100vh",display:"flex",flexDirection:"column",fontSize:"106%"}}>
 
       {/* ═══ TOPBAR ═══ */}
       <header style={{
         background:"rgba(255,255,255,0.88)",
         backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
-        borderBottom:`1px solid ${ET.borderSm}`,
+        borderBottom:`1px solid ${T.borderSm}`,
         padding:"0 28px",height:60,
         display:"flex",alignItems:"center",justifyContent:"space-between",
         flexShrink:0,position:"sticky",top:0,zIndex:200,
@@ -1480,12 +1426,10 @@ export default function App() {
       }}>
         <div style={{display:"flex",alignItems:"center",gap:18}}>
           <Logo h={24}/>
-          <div style={{width:1,height:28,background:ET.borderSm}}/>
+          <div style={{width:1,height:28,background:T.borderSm}}/>
           <div>
-            <div className="display" style={{fontSize:12,fontWeight:700,color:ET.ink,letterSpacing:"-.01em"}}>
-                {empresa?.nombre || "Modelo de Madurez"} · Gestión de Inventarios
-              </div>
-              <div style={{fontSize:9.5,color:ET.inkSoft}}>SoE · {empresa?.codigo} · {totalQ} sub-dimensiones</div>
+            <div className="display" style={{fontSize:12,fontWeight:700,color:T.ink,letterSpacing:"-.01em"}}>{empresa?.nombre || "Modelo de Madurez"} · Gestión de Inventarios</div>
+            <div style={{fontSize:9.5,color:T.inkSoft}}>SoE · {empresa?.codigo} · {totalQ} sub-dimensiones</div>
           </div>
         </div>
 
@@ -1493,25 +1437,25 @@ export default function App() {
           {totalScore&&(
             <div style={{
               display:"flex",alignItems:"center",gap:8,
-              padding:"5px 14px",background:ET.redXsoft,
-              borderRadius:99,border:`1px solid ${ET.redSoft}`,
+              padding:"5px 14px",background:(EC+"10"),
+              borderRadius:99,border:`1px solid ${(EC+"30")}`,
             }}>
-              <span style={{fontSize:10,color:ET.inkMid,fontWeight:500}}>Global</span>
-              <span className="display" style={{fontSize:18,fontWeight:900,color:ET.red}}>{totalScore}</span>
-              <span style={{fontSize:10,color:ET.inkSoft}}>/5</span>
+              <span style={{fontSize:10,color:T.inkMid,fontWeight:500}}>Global</span>
+              <span className="display" style={{fontSize:18,fontWeight:900,color:EC}}>{totalScore}</span>
+              <span style={{fontSize:10,color:T.inkSoft}}>/5</span>
               <LvBadge v={Math.round(Number(totalScore))} sm/>
             </div>
           )}
           <div style={{
             display:"flex",gap:2,
-            background:ET.surface,borderRadius:12,padding:"3px",
-            border:`1px solid ${ET.borderSm}`,
+            background:T.surface,borderRadius:12,padding:"3px",
+            border:`1px solid ${T.borderSm}`,
           }}>
             {TABS.map(t=>(
               <button key={t.id} className="tab-pill" onClick={()=>setView(t.id)} style={{
                 padding:"6px 14px",borderRadius:10,border:"none",
-                background:view===t.id?ET.card:"transparent",
-                color:view===t.id?ET.ink:ET.inkMid,
+                background:view===t.id?T.card:"transparent",
+                color:view===t.id?T.ink:T.inkMid,
                 fontWeight:view===t.id?700:500,
                 fontSize:11,cursor:"pointer",
                 boxShadow:view===t.id?"0 2px 6px rgba(0,0,0,0.09)":"none",
@@ -1520,16 +1464,16 @@ export default function App() {
             ))}
           </div>
           <button onClick={toggleFullscreen} title={isFullscreen?"Salir de pantalla completa":"Pantalla completa"} style={{
-            width:34,height:34,borderRadius:9,border:`1px solid ${ET.borderSm}`,
-            background:isFullscreen?ET.redXsoft:ET.card,
-            color:isFullscreen?ET.red:ET.inkMid,
+            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
+            background:isFullscreen?(EC+"10"):T.card,
+            color:isFullscreen?EC:T.inkMid,
             display:"flex",alignItems:"center",justifyContent:"center",
             cursor:"pointer",fontSize:14,flexShrink:0,
             transition:"all .15s",
           }}>{isFullscreen?"⊠":"⛶"}</button>
           <button onClick={()=>setConfirmReset(true)} title="Reiniciar evaluación" style={{
-            width:34,height:34,borderRadius:9,border:`1px solid ${ET.borderSm}`,
-            background:ET.card,color:ET.inkMid,
+            width:34,height:34,borderRadius:9,border:`1px solid ${T.borderSm}`,
+            background:T.card,color:T.inkMid,
             display:"flex",alignItems:"center",justifyContent:"center",
             cursor:"pointer",fontSize:14,flexShrink:0,
             transition:"all .15s",
@@ -1539,10 +1483,7 @@ export default function App() {
 
       {/* ═══ CONTENT ═══ */}
       {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator scrollRef={introScrollRef}/></div>}
-      {showRegistro&&<RegistroForm
-        empresa={empresa}
-        onStart={(p)=>{setPerfil({...p, empresa_id: empresa?.id});setShowRegistro(false);}}
-      />}
+      {showRegistro&&<RegistroForm color={EC} colorDk={ECD} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
       {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab/><ScrollIndicator scrollRef={modeloScrollRef}/></div>}
       {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab answers={answers} perfil={perfil}/><ScrollIndicator scrollRef={summaryScrollRef}/></div>}
 
@@ -1551,19 +1492,19 @@ export default function App() {
 
           {/* SIDEBAR */}
           <aside style={{
-            width:224,background:ET.card,
-            borderRight:`1px solid ${ET.borderSm}`,
+            width:224,background:T.card,
+            borderRight:`1px solid ${T.borderSm}`,
             overflow:"auto",flexShrink:0,
           }}>
-            <div style={{padding:"14px 16px",borderBottom:`1px solid ${ET.borderSm}`,background:ET.surface}}>
+            <div style={{padding:"14px 16px",borderBottom:`1px solid ${T.borderSm}`,background:T.surface}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <span style={{fontSize:9,fontWeight:700,color:ET.inkSoft,textTransform:"uppercase",letterSpacing:".12em"}}>Progreso</span>
-                <span className="display" style={{fontSize:14,fontWeight:900,color:ET.red}}>{pct}%</span>
+                <span style={{fontSize:9,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".12em"}}>Progreso</span>
+                <span className="display" style={{fontSize:14,fontWeight:900,color:EC}}>{pct}%</span>
               </div>
-              <div style={{height:5,background:ET.borderSm,borderRadius:99,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${ET.red},#FF6B6B)`,borderRadius:99,transition:"width .5s cubic-bezier(.22,1,.36,1)"}}/>
+              <div style={{height:5,background:T.borderSm,borderRadius:99,overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,${EC},#FF6B6B)`,borderRadius:99,transition:"width .5s cubic-bezier(.22,1,.36,1)"}}/>
               </div>
-              <div style={{fontSize:9,color:ET.inkSoft,marginTop:5}}>{answered}/{totalQ} resp. · {completedDims}/7 dims</div>
+              <div style={{fontSize:9,color:T.inkSoft,marginTop:5}}>{answered}/{totalQ} resp. · {completedDims}/7 dims</div>
             </div>
 
             {EDIMS.map((d,i)=>{
@@ -1574,20 +1515,20 @@ export default function App() {
                   <button className="sidebar-item" onClick={()=>{setActiveDim(i);setActiveSub(0);}} style={{
                     width:"100%",textAlign:"left",padding:"10px 14px",
                     background:active?"#FFF8F7":"transparent",
-                    borderLeft:`3px solid ${active?ET.red:"transparent"}`,
-                    border:"none",borderBottom:`1px solid ${ET.borderSm}`,
+                    borderLeft:`3px solid ${active?EC:"transparent"}`,
+                    border:"none",borderBottom:`1px solid ${T.borderSm}`,
                     cursor:"pointer",
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:9}}>
                       <span style={{fontSize:15}}>{d.icon}</span>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:10.5,fontWeight:active?700:500,color:active?ET.red:ET.ink,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.num} {d.label}</div>
-                        <div style={{fontSize:8.5,color:ET.inkSoft,marginTop:1}}>{d.subs.filter(s=>answers[s.id]>0).length}/{d.subs.length} evaluadas</div>
+                        <div style={{fontSize:10.5,fontWeight:active?700:500,color:active?EC:T.ink,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{d.num} {d.label}</div>
+                        <div style={{fontSize:8.5,color:T.inkSoft,marginTop:1}}>{d.subs.filter(s=>answers[s.id]>0).length}/{d.subs.length} evaluadas</div>
                       </div>
                       {sc&&<span className="display" style={{fontSize:12,fontWeight:900,color:getLv(Math.round(sc)).c,flexShrink:0}}>{sc}</span>}
                     </div>
                     {sc&&(
-                      <div style={{marginTop:4,height:3,background:ET.borderSm,borderRadius:99,overflow:"hidden"}}>
+                      <div style={{marginTop:4,height:3,background:T.borderSm,borderRadius:99,overflow:"hidden"}}>
                         <div style={{height:"100%",width:`${(sc/5)*100}%`,background:getLv(Math.round(sc)).c,borderRadius:99,transition:"width .4s"}}/>
                       </div>
                     )}
@@ -1600,7 +1541,7 @@ export default function App() {
                           padding:"4px 10px",borderRadius:7,border:"none",
                           background:j===activeSub?"#FFF1F0":"transparent",cursor:"pointer",marginBottom:1,
                         }}>
-                          <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).text:ET.inkSoft}}>
+                          <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?EC:answers[s.id]?getLv(answers[s.id]).text:T.inkSoft}}>
                             {answers[s.id]?"●":"○"} {s.label}
                           </span>
                         </button>
@@ -1619,14 +1560,14 @@ export default function App() {
             <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20}}>
               <div style={{
                 width:48,height:48,borderRadius:14,
-                background:ET.redBg,border:`1.5px solid ${ET.redSoft}`,
+                background:(EC+"18"),border:`1.5px solid ${(EC+"30")}`,
                 display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
               }}>
                 <span style={{fontSize:23}}>{dim.icon}</span>
               </div>
               <div style={{flex:1}}>
-                <div className="display" style={{fontSize:18,fontWeight:900,color:ET.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
-                <div style={{fontSize:11,color:ET.inkSoft,marginTop:2}}>{dim.sub}</div>
+                <div className="display" style={{fontSize:18,fontWeight:900,color:T.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
+                <div style={{fontSize:11,color:T.inkSoft,marginTop:2}}>{dim.sub}</div>
               </div>
               {getDimScore(dim,answers)&&(
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
@@ -1641,9 +1582,9 @@ export default function App() {
               {dim.subs.map((s,j)=>(
                 <button key={s.id} className="sub-pill" onClick={()=>setActiveSub(j)} style={{
                   padding:"5px 13px",borderRadius:99,
-                  border:`1.5px solid ${j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).border:ET.borderSm}`,
-                  background:j===activeSub?ET.red:answers[s.id]?getLv(answers[s.id]).bg:ET.card,
-                  color:j===activeSub?"#fff":answers[s.id]?getLv(answers[s.id]).text:ET.inkMid,
+                  border:`1.5px solid ${j===activeSub?EC:answers[s.id]?getLv(answers[s.id]).border:T.borderSm}`,
+                  background:j===activeSub?EC:answers[s.id]?getLv(answers[s.id]).bg:T.card,
+                  color:j===activeSub?"#fff":answers[s.id]?getLv(answers[s.id]).text:T.inkMid,
                   fontSize:10.5,fontWeight:j===activeSub?700:500,
                   whiteSpace:"nowrap",cursor:"pointer",
                   boxShadow:j===activeSub?`0 3px 10px rgba(232,37,31,0.3)`:"none",
@@ -1655,27 +1596,27 @@ export default function App() {
 
             {/* sub card */}
             <div key={sub.id} className="scale-in" style={{
-              background:ET.card,borderRadius:18,
-              border:`1px solid ${ET.borderSm}`,
+              background:T.card,borderRadius:18,
+              border:`1px solid ${T.borderSm}`,
               padding:"26px",marginBottom:20,
               boxShadow:"0 4px 16px rgba(0,0,0,0.06)",
             }}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:20,gap:14}}>
                 <div>
-                  <div className="display" style={{fontSize:16,fontWeight:800,color:ET.ink,letterSpacing:"-.015em",marginBottom:5}}>{sub.label}</div>
-                  <div style={{fontSize:12,color:ET.inkMid}}>{sub.desc}</div>
+                  <div className="display" style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-.015em",marginBottom:5}}>{sub.label}</div>
+                  <div style={{fontSize:12,color:T.inkMid}}>{sub.desc}</div>
                 </div>
                 {answers[sub.id]>0&&<LvBadge v={answers[sub.id]}/>}
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:18}}>
-                {ET.L.map((l,i)=>{
+                {T.L.map((l,i)=>{
                   const v=i+1;
                   const sel=answers[sub.id]===v;
                   return (
                     <div key={v} className={`lv-card${sel?" selected":""}`} onClick={()=>setVal(sub.id,v)} style={{
                       borderRadius:14,border:`2px solid ${sel?l.c:l.border}`,
-                      background:sel?l.bg:ET.card,overflow:"hidden",
+                      background:sel?l.bg:T.card,overflow:"hidden",
                       boxShadow:sel?`0 6px 20px ${l.c}40`:"0 1px 4px rgba(0,0,0,0.04)",
                     }}>
                       <div style={{background:l.c,padding:"9px 11px",display:"flex",alignItems:"center",gap:7}}>
@@ -1686,19 +1627,19 @@ export default function App() {
                         {sel&&<span style={{fontSize:11,color:"#fff"}}>✓</span>}
                       </div>
                       <div style={{padding:"11px 11px 7px"}}>
-                        <p style={{fontSize:10,color:sel?l.text:ET.inkMid,margin:0,lineHeight:1.65}}>{sub.ndesc[i]}</p>
+                        <p style={{fontSize:10,color:sel?l.text:T.inkMid,margin:0,lineHeight:1.65}}>{sub.ndesc[i]}</p>
                       </div>
                       <div style={{padding:"0 11px 10px",display:"flex",gap:3}}>
-                        {[0,1,2,3,4].map(j=><div key={j} style={{flex:1,height:3,borderRadius:99,background:j<=i?l.c:ET.borderSm}}/>)}
+                        {[0,1,2,3,4].map(j=><div key={j} style={{flex:1,height:3,borderRadius:99,background:j<=i?l.c:T.borderSm}}/>)}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div style={{background:ET.surface,borderRadius:10,padding:"10px 14px",border:`1px solid ${ET.borderSm}`}}>
-                <span style={{fontSize:9.5,fontWeight:700,color:ET.inkSoft,textTransform:"uppercase",letterSpacing:".1em"}}>Oportunidad: </span>
-                <span style={{fontSize:11.5,color:ET.inkMid,lineHeight:1.65}}>{sub.opp}</span>
+              <div style={{background:T.surface,borderRadius:10,padding:"10px 14px",border:`1px solid ${T.borderSm}`}}>
+                <span style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".1em"}}>Oportunidad: </span>
+                <span style={{fontSize:11.5,color:T.inkMid,lineHeight:1.65}}>{sub.opp}</span>
               </div>
             </div>
 
@@ -1706,21 +1647,21 @@ export default function App() {
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={()=>{
                 if(activeSub>0)setActiveSub(activeSub-1);
-                else if(activeDim>0){setActiveDim(activeDim-1);setActiveSub(EDIMS[activeDim-1].subs.length-1);}
+                else if(activeDim>0){setActiveDim(activeDim-1);setActiveSub(DIMS[activeDim-1].subs.length-1);}
               }} disabled={activeDim===0&&activeSub===0} style={{
                 padding:"10px 22px",borderRadius:12,
-                border:`1.5px solid ${ET.borderSm}`,background:ET.card,
-                color:ET.inkMid,fontWeight:600,fontSize:12,cursor:"pointer",
+                border:`1.5px solid ${T.borderSm}`,background:T.card,
+                color:T.inkMid,fontWeight:600,fontSize:12,cursor:"pointer",
                 opacity:(activeDim===0&&activeSub===0)?.4:1,transition:"all .15s",
               }}>← Anterior</button>
-              <div style={{fontSize:10.5,color:ET.inkSoft}}>{dim.num} · {activeSub+1}/{dim.subs.length}</div>
+              <div style={{fontSize:10.5,color:T.inkSoft}}>{dim.num} · {activeSub+1}/{dim.subs.length}</div>
               <button className="btn-red" onClick={()=>{
                 if(activeSub<dim.subs.length-1)setActiveSub(activeSub+1);
                 else if(activeDim<EDIMS.length-1){setActiveDim(activeDim+1);setActiveSub(0);}
                 else setView("summary");
               }} style={{
                 padding:"10px 24px",borderRadius:12,border:"none",
-                background:`linear-gradient(135deg,${ET.red},${ET.redDk})`,
+                background:`linear-gradient(135deg,${EC},${ECD})`,
                 color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",
                 boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
               }}>{activeDim===EDIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
@@ -1740,24 +1681,24 @@ export default function App() {
           zIndex:500,backdropFilter:"blur(4px)",
         }}>
           <div className="scale-in" style={{
-            width:360,background:ET.card,borderRadius:20,
-            border:`1px solid ${ET.borderSm}`,padding:"36px 32px",
+            width:360,background:T.card,borderRadius:20,
+            border:`1px solid ${T.borderSm}`,padding:"36px 32px",
             boxShadow:"0 40px 80px rgba(0,0,0,0.15)",textAlign:"center",
           }}>
             <div style={{fontSize:36,marginBottom:14}}>↺</div>
-            <div style={{fontSize:16,fontWeight:800,color:ET.ink,marginBottom:8}}>¿Reiniciar evaluación?</div>
-            <div style={{fontSize:12,color:ET.inkMid,lineHeight:1.7,marginBottom:28}}>
+            <div style={{fontSize:16,fontWeight:800,color:T.ink,marginBottom:8}}>¿Reiniciar evaluación?</div>
+            <div style={{fontSize:12,color:T.inkMid,lineHeight:1.7,marginBottom:28}}>
               Se borrarán todas las respuestas actuales y volverás al inicio. Esta acción no se puede deshacer.
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setConfirmReset(false)} style={{
                 flex:1,padding:"11px",borderRadius:10,
-                border:`1px solid ${ET.borderSm}`,background:ET.surface,
-                color:ET.inkMid,fontWeight:600,fontSize:13,cursor:"pointer",
+                border:`1px solid ${T.borderSm}`,background:T.surface,
+                color:T.inkMid,fontWeight:600,fontSize:13,cursor:"pointer",
               }}>Cancelar</button>
               <button onClick={doReset} style={{
                 flex:1,padding:"11px",borderRadius:10,border:"none",
-                background:`linear-gradient(135deg,${ET.red},${ET.redDk})`,
+                background:`linear-gradient(135deg,${EC},${ECD})`,
                 color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
                 boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
               }}>Reiniciar</button>
@@ -1779,7 +1720,7 @@ export default function App() {
         const next = currentIdx < NAV_TABS.length-1 ? NAV_TABS[currentIdx+1] : null;
         return (
           <footer style={{
-            background:ET.card, borderTop:`1px solid ${ET.borderSm}`,
+            background:T.card, borderTop:`1px solid ${T.borderSm}`,
             height:52, display:"flex", alignItems:"center",
             justifyContent:"space-between", padding:"0 24px", flexShrink:0,
           }}>
@@ -1787,15 +1728,15 @@ export default function App() {
             {prev ? (
               <button onClick={()=>setView(prev.id)} style={{
                 display:"flex",alignItems:"center",gap:8,
-                padding:"7px 16px",borderRadius:10,border:`1px solid ${ET.borderSm}`,
-                background:ET.surface,cursor:"pointer",transition:"all .15s",
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
+                background:T.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=ET.red;e.currentTarget.style.color=ET.red;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=ET.borderSm;e.currentTarget.style.color=ET.ink;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
               >
                 <span style={{fontSize:14}}>←</span>
                 <div style={{textAlign:"left"}}>
-                  <div style={{fontSize:8.5,color:ET.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Anterior</div>
+                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Anterior</div>
                   <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{prev.icon} {prev.label}</div>
                 </div>
               </button>
@@ -1807,7 +1748,7 @@ export default function App() {
                 <div key={t.id} onClick={()=>setView(t.id)} style={{
                   width: t.id===view ? 20 : 6,
                   height:6, borderRadius:99,
-                  background: t.id===view ? ET.red : ET.borderSm,
+                  background: t.id===view ? T.red : T.borderSm,
                   cursor:"pointer", transition:"all .25s cubic-bezier(.22,1,.36,1)",
                 }}/>
               ))}
@@ -1817,14 +1758,14 @@ export default function App() {
             {next ? (
               <button onClick={()=>setView(next.id)} style={{
                 display:"flex",alignItems:"center",gap:8,
-                padding:"7px 16px",borderRadius:10,border:`1px solid ${ET.borderSm}`,
-                background:ET.surface,cursor:"pointer",transition:"all .15s",
+                padding:"7px 16px",borderRadius:10,border:`1px solid ${T.borderSm}`,
+                background:T.surface,cursor:"pointer",transition:"all .15s",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=ET.red;e.currentTarget.style.color=ET.red;}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=ET.borderSm;e.currentTarget.style.color=ET.ink;}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.borderSm;e.currentTarget.style.color=T.ink;}}
               >
                 <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:8.5,color:ET.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Siguiente</div>
+                  <div style={{fontSize:8.5,color:T.inkSoft,fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",lineHeight:1}}>Siguiente</div>
                   <div style={{fontSize:12,fontWeight:700,color:"inherit",lineHeight:1.4}}>{next.icon} {next.label}</div>
                 </div>
                 <span style={{fontSize:14}}>→</span>

@@ -1040,45 +1040,45 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 // ─── EMPRESAS TAB ─────────────────────────────────────────────────────────────
 
 const SUBS_META = [
-  {id:"e1", dim:"Estrategia",      label:"Objetivos & trade-offs",          desc:"Servicio, costo, capital de trabajo"},
-  {id:"e2", dim:"Estrategia",      label:"Políticas por canal",             desc:"B2B/B2C, SS/ROP"},
-  {id:"e3", dim:"Estrategia",      label:"Diseño de red",                   desc:"CDC, tiendas, hubs"},
-  {id:"e4", dim:"Estrategia",      label:"Gobernanza S&OP",                 desc:"S&OP/S&OE, Comercial, Finanzas"},
-  {id:"e5", dim:"Estrategia",      label:"Riesgos y resiliencia",           desc:"Disrupciones, fraude, regulación"},
-  {id:"c1", dim:"Caracterización", label:"Segmentación ABC/XYZ",            desc:"Categoría, criticidad, valor-volumen"},
-  {id:"c2", dim:"Caracterización", label:"Atributos & trazabilidad",        desc:"Serial/IMEI, lotes, caducidad"},
-  {id:"c3", dim:"Caracterización", label:"Ciclo de vida y SLOB",            desc:"SLOB, lanzamientos, fin de vida"},
-  {id:"c4", dim:"Caracterización", label:"Ubicación y propiedad",           desc:"Consignación, 3PL, tiendas, técnicos"},
-  {id:"c5", dim:"Caracterización", label:"Retornos y condición",            desc:"Nuevo, refurb, swap, scrap"},
-  {id:"p1", dim:"Procesos",        label:"Planeación & reposición",         desc:"DRP, min-max, MEIO"},
-  {id:"p2", dim:"Procesos",        label:"Asignación omnicanal",            desc:"ATP/CTP, reservas, disponibilidad"},
-  {id:"p3", dim:"Procesos",        label:"Ejecución física",                desc:"Recepción, almacenaje, picking"},
-  {id:"p4", dim:"Procesos",        label:"Control & exactitud",             desc:"Conteos cíclicos, shrinkage"},
-  {id:"p5", dim:"Procesos",        label:"Excepciones y retornos",          desc:"RMA, devoluciones, reparación"},
-  {id:"r1", dim:"Roles",           label:"Modelo operativo & RACI",         desc:"Dueños de proceso E2E"},
-  {id:"r2", dim:"Roles",           label:"Interfaces clave",                desc:"Comercial, Finanzas, Operaciones, TI"},
-  {id:"r3", dim:"Roles",           label:"Gestión de terceros",             desc:"OEM, 3PL, distribuidores, dealers"},
-  {id:"r4", dim:"Roles",           label:"Capacidades y formación",         desc:"Planificación, analítica, operación"},
-  {id:"r5", dim:"Roles",           label:"Incentivos & accountability",     desc:"SLAs, KPIs, consecuencias"},
-  {id:"h1", dim:"Herramientas",    label:"Arquitectura core",               desc:"ERP/OMS/WMS e integración"},
-  {id:"h2", dim:"Herramientas",    label:"Herramientas de planificación",   desc:"APS/DRP, pronóstico, S&OP"},
-  {id:"h3", dim:"Herramientas",    label:"Visibilidad & trazabilidad",      desc:"Serialización, RFID, track&trace"},
-  {id:"h4", dim:"Herramientas",    label:"Datos & analítica",               desc:"Lakehouse, BI, modelos, calidad"},
-  {id:"h5", dim:"Herramientas",    label:"Automatización",                  desc:"RPA, APIs/EDI, alertas, movilidad"},
-  {id:"i1", dim:"Indicadores",     label:"Servicio al cliente",             desc:"Fill rate, OTIF, backorders, NPS"},
-  {id:"i2", dim:"Indicadores",     label:"Eficiencia & capital",            desc:"Rotación, DIO, capital de trabajo"},
-  {id:"i3", dim:"Indicadores",     label:"Exactitud & pérdidas",            desc:"Accuracy, shrinkage, ajustes"},
-  {id:"i4", dim:"Indicadores",     label:"Salud del inventario",            desc:"Aging, SLOB, write-offs, DOH"},
-  {id:"i5", dim:"Indicadores",     label:"Cumplimiento & riesgo",           desc:"Fraude, auditoría, regulatorio"},
-  {id:"ab1",dim:"Abastecimiento",  label:"Dispositivos",                    desc:"Smartphones/tablets: lanzamiento-rampa-EOL"},
-  {id:"ab2",dim:"Abastecimiento",  label:"CPE/routers/STB",                 desc:"Proyectos, bundles, reposición de fallas"},
-  {id:"ab3",dim:"Abastecimiento",  label:"SIM/eSIM & kits",                 desc:"Alto volumen, bajo valor, control fraude"},
-  {id:"ab4",dim:"Abastecimiento",  label:"Accesorios",                      desc:"Amplia variedad, moda, obsolescencia"},
-  {id:"ab5",dim:"Abastecimiento",  label:"Repuestos/refurb/swap",           desc:"Circularidad, garantías, niveles de servicio"},
+  {id:"e1", dim:"Estrategia",      label:"Objetivos & trade-offs",        desc:"Servicio, costo, capital de trabajo"},
+  {id:"e2", dim:"Estrategia",      label:"Políticas por canal",           desc:"B2B/B2C, SS/ROP"},
+  {id:"e3", dim:"Estrategia",      label:"Diseño de red",                 desc:"CDC, tiendas, hubs"},
+  {id:"e4", dim:"Estrategia",      label:"Gobernanza S&OP",               desc:"S&OP/S&OE, Comercial, Finanzas"},
+  {id:"e5", dim:"Estrategia",      label:"Riesgos y resiliencia",         desc:"Disrupciones, fraude, regulación"},
+  {id:"c1", dim:"Caracterización", label:"Segmentación ABC/XYZ",          desc:"Categoría, criticidad, valor-volumen"},
+  {id:"c2", dim:"Caracterización", label:"Atributos & trazabilidad",      desc:"Serial/IMEI, lotes, caducidad"},
+  {id:"c3", dim:"Caracterización", label:"Ciclo de vida y SLOB",          desc:"SLOB, lanzamientos, fin de vida"},
+  {id:"c4", dim:"Caracterización", label:"Ubicación y propiedad",         desc:"Consignación, 3PL, tiendas, técnicos"},
+  {id:"c5", dim:"Caracterización", label:"Retornos y condición",          desc:"Nuevo, refurb, swap, scrap"},
+  {id:"p1", dim:"Procesos",        label:"Planeación & reposición",       desc:"DRP, min-max, MEIO"},
+  {id:"p2", dim:"Procesos",        label:"Asignación omnicanal",          desc:"ATP/CTP, reservas"},
+  {id:"p3", dim:"Procesos",        label:"Ejecución física",              desc:"Recepción, almacenaje, picking"},
+  {id:"p4", dim:"Procesos",        label:"Control & exactitud",           desc:"Conteos cíclicos, shrinkage"},
+  {id:"p5", dim:"Procesos",        label:"Excepciones y retornos",        desc:"RMA, devoluciones, reparación"},
+  {id:"r1", dim:"Roles",           label:"Modelo operativo & RACI",       desc:"Dueños de proceso E2E"},
+  {id:"r2", dim:"Roles",           label:"Interfaces clave",              desc:"Comercial, Finanzas, Operaciones, TI"},
+  {id:"r3", dim:"Roles",           label:"Gestión de terceros",           desc:"OEM, 3PL, distribuidores, dealers"},
+  {id:"r4", dim:"Roles",           label:"Capacidades y formación",       desc:"Planificación, analítica, operación"},
+  {id:"r5", dim:"Roles",           label:"Incentivos & accountability",   desc:"SLAs, KPIs, consecuencias"},
+  {id:"h1", dim:"Herramientas",    label:"Arquitectura core",             desc:"ERP/OMS/WMS e integración"},
+  {id:"h2", dim:"Herramientas",    label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP"},
+  {id:"h3", dim:"Herramientas",    label:"Visibilidad & trazabilidad",    desc:"Serialización, RFID, track&trace"},
+  {id:"h4", dim:"Herramientas",    label:"Datos & analítica",             desc:"Lakehouse, BI, modelos, calidad"},
+  {id:"h5", dim:"Herramientas",    label:"Automatización",                desc:"RPA, APIs/EDI, alertas, movilidad"},
+  {id:"i1", dim:"Indicadores",     label:"Servicio al cliente",           desc:"Fill rate, OTIF, backorders, NPS"},
+  {id:"i2", dim:"Indicadores",     label:"Eficiencia & capital",          desc:"Rotación, DIO, capital de trabajo"},
+  {id:"i3", dim:"Indicadores",     label:"Exactitud & pérdidas",          desc:"Accuracy, shrinkage, ajustes"},
+  {id:"i4", dim:"Indicadores",     label:"Salud del inventario",          desc:"Aging, SLOB, write-offs, DOH"},
+  {id:"i5", dim:"Indicadores",     label:"Cumplimiento & riesgo",         desc:"Fraude, auditoría, regulatorio"},
+  {id:"ab1",dim:"Abastecimiento",  label:"Dispositivos",                  desc:"Smartphones/tablets: lanzamiento-rampa-EOL"},
+  {id:"ab2",dim:"Abastecimiento",  label:"CPE/routers/STB",              desc:"Proyectos, bundles, reposición de fallas"},
+  {id:"ab3",dim:"Abastecimiento",  label:"SIM/eSIM & kits",              desc:"Alto volumen, bajo valor, control fraude"},
+  {id:"ab4",dim:"Abastecimiento",  label:"Accesorios",                    desc:"Amplia variedad, moda, obsolescencia"},
+  {id:"ab5",dim:"Abastecimiento",  label:"Repuestos/refurb/swap",         desc:"Circularidad, garantías, niveles de servicio"},
 ];
 
-function EmpresasTab({ empresas, onRefresh, showToast }) {
-  const [view, setView] = useState("list"); // "list" | "new" | "edit"
+function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
+  const [view, setView] = useState("list");
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [editingSubs, setEditingSubs] = useState(false);
@@ -1086,37 +1086,35 @@ function EmpresasTab({ empresas, onRefresh, showToast }) {
   const [savingSubs, setSavingSubs] = useState(false);
   const RED = "#E8251F";
 
-  // ── Form state ──
   const emptyForm = { nombre:"", codigo:"", color_primary:"#E8251F", color_dark:"#C80F0A", logo_url:"" };
   const [form, setForm] = useState(emptyForm);
   const [formErr, setFormErr] = useState({});
 
   function startNew() { setForm(emptyForm); setEditing(null); setView("new"); setEditingSubs(false); }
   function startEdit(emp) {
-    setForm({ nombre:emp.nombre, codigo:emp.codigo, color_primary:emp.color_primary||"#E8251F",
-              color_dark:emp.color_dark||"#C80F0A", logo_url:emp.logo_url||"" });
-    setEditing(emp);
-    setView("edit");
-    setEditingSubs(false);
+    setForm({ nombre:emp.nombre, codigo:emp.codigo,
+              color_primary:emp.color_primary||"#E8251F",
+              color_dark:emp.color_dark||"#C80F0A",
+              logo_url:emp.logo_url||"" });
+    setEditing(emp); setView("edit"); setEditingSubs(false);
   }
 
   async function loadSubs(emp) {
     const { data } = await supabase.from("subs_custom").select("*").eq("empresa_id", emp.id);
     const map = {};
-    (data||[]).forEach(s => { map[s.sub_id] = { q: s.q||"", label: s.label||"", desc: s.desc||"" }; });
-    // Fill in defaults from SUBS_META for missing ones
-    SUBS_META.forEach(sm => {
-      if (!map[sm.id]) map[sm.id] = { q:"", label:"", desc:"" };
-    });
+    (data||[]).forEach(s => { map[s.sub_id] = { q:s.q||"", label:s.label||"", desc:s.descripcion||"" }; });
+    SUBS_META.forEach(sm => { if (!map[sm.id]) map[sm.id] = { q:"", label:"", desc:"" }; });
     setSubsData(map);
+    setEditing(emp);
     setEditingSubs(true);
+    setView("edit");
   }
 
   function validateForm() {
     const errs = {};
     if (!form.nombre.trim()) errs.nombre = "Requerido";
     if (!form.codigo.trim()) errs.codigo = "Requerido";
-    if (!/^[A-Z0-9-_]{2,20}$/i.test(form.codigo.trim())) errs.codigo = "Solo letras, números y guiones (2-20 chars)";
+    if (!/^[A-Z0-9\-_]{2,20}$/i.test(form.codigo.trim())) errs.codigo = "Solo letras, números y guiones (2-20 chars)";
     setFormErr(errs);
     return Object.keys(errs).length === 0;
   }
@@ -1124,9 +1122,13 @@ function EmpresasTab({ empresas, onRefresh, showToast }) {
   async function saveEmpresa() {
     if (!validateForm()) return;
     setSaving(true);
-    const payload = { nombre:form.nombre.trim(), codigo:form.codigo.trim().toUpperCase(),
-                      color_primary:form.color_primary, color_dark:form.color_dark,
-                      logo_url:form.logo_url.trim()||null };
+    const payload = {
+      nombre: form.nombre.trim(),
+      codigo: form.codigo.trim().toUpperCase(),
+      color_primary: form.color_primary,
+      color_dark: form.color_dark,
+      logo_url: form.logo_url.trim()||null,
+    };
     let err;
     if (editing) {
       ({ error: err } = await supabase.from("empresas").update(payload).eq("id", editing.id));
@@ -1143,14 +1145,14 @@ function EmpresasTab({ empresas, onRefresh, showToast }) {
   async function saveSubs() {
     if (!editing) return;
     setSavingSubs(true);
-    // Upsert all subs that have at least q, label or desc filled
     const rows = SUBS_META
       .filter(sm => subsData[sm.id]?.q || subsData[sm.id]?.label || subsData[sm.id]?.desc)
       .map(sm => ({
-        empresa_id: editing.id, sub_id: sm.id,
-        q:     subsData[sm.id]?.q     || null,
+        empresa_id: editing.id,
+        sub_id: sm.id,
+        q: subsData[sm.id]?.q || null,
         label: subsData[sm.id]?.label || null,
-        descripcion: subsData[sm.id]?.desc  || null,
+        descripcion: subsData[sm.id]?.desc || null,
       }));
     if (rows.length > 0) {
       const { error: err } = await supabase.from("subs_custom")
@@ -1163,167 +1165,69 @@ function EmpresasTab({ empresas, onRefresh, showToast }) {
   }
 
   async function deleteEmpresa(emp) {
-    if (!window.confirm(`¿Eliminar "${emp.nombre}"? Se borrarán también sus preguntas custom.`)) return;
+    if (!window.confirm("Eliminar " + emp.nombre + "? Se borran sus preguntas custom.")) return;
     await supabase.from("empresas").delete().eq("id", emp.id);
     showToast("Empresa eliminada");
     await onRefresh();
   }
 
-  const inp = (label, key, placeholder, opts={}) => (
+  const evalCount = (empId) => evaluaciones.filter(e => e.empresa_id === empId).length;
+
+  const InputField = ({ label, fieldKey, placeholder, type="text" }) => (
     <div style={{ marginBottom:16 }}>
       <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5, display:"flex", justifyContent:"space-between" }}>
         <span>{label}</span>
-        {formErr[key] && <span style={{ color:RED, fontWeight:600, fontSize:10 }}>{formErr[key]}</span>}
+        {formErr[fieldKey] && <span style={{ color:RED, fontSize:10 }}>{formErr[fieldKey]}</span>}
       </div>
-      <input
-        value={form[key]} onChange={e => { setForm(p=>({...p,[key]:e.target.value})); setFormErr(p=>({...p,[key]:undefined})); }}
-        placeholder={placeholder}
-        type={opts.type||"text"}
+      <input value={form[fieldKey]}
+        onChange={e => { setForm(p=>({...p,[fieldKey]:e.target.value})); setFormErr(p=>({...p,[fieldKey]:undefined})); }}
+        placeholder={placeholder} type={type}
         style={{ width:"100%", padding:"9px 12px", borderRadius:9,
-          border:`1.5px solid ${formErr[key]?RED:"#E8E4DF"}`, fontSize:12.5,
-          color:"#1A1A18", background:"#FAFAF8", outline:"none",
-        }}
+          border:`1.5px solid ${formErr[fieldKey]?RED:"#E8E4DF"}`,
+          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
       />
     </div>
   );
 
-  // ── LIST VIEW ──
-  if (view === "list") return (
-    <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-        <div style={{ fontSize:12, color:"#AAA" }}>{empresas.length} empresa{empresas.length!==1?"s":""} registrada{empresas.length!==1?"s":""}</div>
-        <button onClick={startNew} style={{
-          padding:"9px 20px", borderRadius:99, background:RED, color:"#fff",
-          border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
-          boxShadow:"0 3px 10px rgba(232,37,31,0.3)",
-        }}>+ Nueva empresa</button>
-      </div>
-
-      {empresas.length === 0 ? (
-        <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"60px 40px", textAlign:"center" }}>
-          <div style={{ fontSize:36, marginBottom:16 }}>🏢</div>
-          <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Sin empresas registradas</div>
-          <div style={{ fontSize:12, color:"#AAA", marginBottom:24 }}>Crea la primera empresa para habilitar el acceso multi-cliente</div>
-          <button onClick={startNew} style={{
-            padding:"10px 24px", borderRadius:99, background:RED, color:"#fff",
-            border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
-          }}>+ Crear empresa</button>
-        </div>
-      ) : (
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))", gap:16 }}>
-          {empresas.map(emp => (
-            <div key={emp.id} style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF",
-              overflow:"hidden", boxShadow:"0 2px 8px rgba(0,0,0,0.04)" }}>
-              {/* Color header strip */}
-              <div style={{ height:6, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#C80F0A"})` }} />
-              <div style={{ padding:"20px 22px" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-                  <div>
-                    <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:4 }}>{emp.nombre}</div>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontSize:10, fontWeight:700, color:"#fff", background:emp.color_primary||RED,
-                        padding:"3px 10px", borderRadius:99, letterSpacing:".06em" }}>
-                        {emp.codigo}
-                      </span>
-                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }}
-                        style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA", padding:"2px 6px",
-                          borderRadius:6 }}>
-                        📋 Copiar
-                      </button>
-                    </div>
-                  </div>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||RED, border:"2px solid rgba(0,0,0,0.1)" }} />
-                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#C80F0A", border:"2px solid rgba(0,0,0,0.1)" }} />
-                  </div>
-                </div>
-
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
-                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
-                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Evaluaciones</div>
-                    <div style={{ fontSize:18, fontWeight:900, color:"#1A1A18", letterSpacing:"-.02em" }}>
-                      {/* will be passed in future — placeholder */}—
-                    </div>
-                  </div>
-                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
-                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Creada</div>
-                    <div style={{ fontSize:11, fontWeight:600, color:"#555" }}>
-                      {new Date(emp.created_at).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"})}
-                    </div>
-                  </div>
-                </div>
-
-                {emp.logo_url && (
-                  <div style={{ marginBottom:14, padding:"8px 12px", background:"#F7F5F2", borderRadius:9,
-                    fontSize:10, color:"#AAA", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    🖼 {emp.logo_url}
-                  </div>
-                )}
-
-                <div style={{ display:"flex", gap:8 }}>
-                  <button onClick={()=>startEdit(emp)} style={{
-                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
-                    border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555",
-                  }}>✏️ Editar</button>
-                  <button onClick={()=>{ startEdit(emp); loadSubs(emp); }} style={{
-                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
-                    border:`1.5px solid ${emp.color_primary||RED}40`,
-                    background:(emp.color_primary||RED)+"12", color:emp.color_primary||RED,
-                  }}>💬 Preguntas</button>
-                  <button onClick={()=>deleteEmpresa(emp)} style={{
-                    padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer",
-                    border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444",
-                  }}>🗑</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  // ── EDIT SUBS VIEW ──
+  // ── EDIT SUBS VIEW ──────────────────────────────────────────────────────────
   if (editingSubs && editing) {
     const dims = [...new Set(SUBS_META.map(s=>s.dim))];
     return (
       <div>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
-          <button onClick={()=>setEditingSubs(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
-          <div>
+          <button onClick={()=>{ setEditingSubs(false); }} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
+          <div style={{ flex:1 }}>
             <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>Preguntas · {editing.nombre}</div>
-            <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Personaliza el texto de cada sub-dimensión. Dejar vacío usa el texto por defecto.</div>
+            <div style={{ fontSize:11, color:"#AAA", marginTop:2 }}>Deja vacío para usar el texto por defecto del modelo.</div>
           </div>
           <button onClick={saveSubs} disabled={savingSubs} style={{
-            marginLeft:"auto", padding:"9px 22px", borderRadius:99, background:editing.color_primary||RED,
+            padding:"9px 22px", borderRadius:99, background:editing.color_primary||RED,
             color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
             opacity:savingSubs?0.6:1,
-          }}>{savingSubs?"Guardando...":"Guardar preguntas"}</button>
+          }}>{savingSubs ? "Guardando..." : "Guardar preguntas"}</button>
         </div>
-
         {dims.map(dim => (
           <div key={dim} style={{ background:"#fff", borderRadius:14, border:"1px solid #E8E4DF", marginBottom:16, overflow:"hidden" }}>
-            <div style={{ padding:"14px 20px", background:"#F7F5F2", borderBottom:"1px solid #E8E4DF",
+            <div style={{ padding:"12px 20px", background:"#F7F5F2", borderBottom:"1px solid #E8E4DF",
               fontSize:11, fontWeight:700, color:"#555", textTransform:"uppercase", letterSpacing:".08em" }}>
               {dim}
             </div>
             <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", gap:14 }}>
               {SUBS_META.filter(s=>s.dim===dim).map(sm => (
-                <div key={sm.id} style={{ display:"grid", gridTemplateColumns:"140px 1fr", gap:12, alignItems:"flex-start" }}>
+                <div key={sm.id} style={{ display:"grid", gridTemplateColumns:"160px 1fr", gap:12, alignItems:"flex-start" }}>
                   <div>
                     <div style={{ fontSize:11, fontWeight:700, color:"#1A1A18", marginBottom:3 }}>{sm.label}</div>
-                    <div style={{ fontSize:9.5, color:"#AAA" }}>{sm.desc}</div>
-                    <div style={{ fontSize:9, color:"#BBB", marginTop:4, fontFamily:"monospace" }}>{sm.id}</div>
+                    <div style={{ fontSize:9.5, color:"#AAA", marginBottom:4 }}>{sm.desc}</div>
+                    <div style={{ fontSize:9, color:"#CCC", fontFamily:"monospace" }}>{sm.id}</div>
                   </div>
                   <textarea
                     value={subsData[sm.id]?.q||""}
                     onChange={e=>setSubsData(p=>({...p,[sm.id]:{...p[sm.id],q:e.target.value}}))}
-                    placeholder={`Seleccione el nivel (1-5) que mejor describe la situación actual en: ${sm.label}...`}
+                    placeholder={"Seleccione el nivel (1-5) en: " + sm.label + "..."}
                     rows={2}
                     style={{ width:"100%", padding:"8px 11px", borderRadius:8,
                       border:"1.5px solid #E8E4DF", fontSize:11.5, color:"#1A1A18",
-                      background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5,
-                    }}
+                      background:"#FAFAF8", outline:"none", resize:"vertical", lineHeight:1.5 }}
                   />
                 </div>
               ))}
@@ -1334,69 +1238,139 @@ function EmpresasTab({ empresas, onRefresh, showToast }) {
     );
   }
 
-  // ── NEW / EDIT FORM VIEW ──
-  return (
+  // ── NEW / EDIT FORM VIEW ────────────────────────────────────────────────────
+  if (view === "new" || (view === "edit" && !editingSubs)) return (
     <div style={{ maxWidth:480 }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
         <button onClick={()=>setView("list")} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#AAA", padding:4 }}>←</button>
         <div style={{ fontSize:16, fontWeight:800, color:"#1A1A18" }}>
-          {editing ? `Editar: ${editing.nombre}` : "Nueva empresa"}
+          {editing ? "Editar: " + editing.nombre : "Nueva empresa"}
         </div>
       </div>
-
-      <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px 28px" }}>
-        {/* Preview strip */}
-        <div style={{ height:8, borderRadius:6, background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#C80F0A"})`,
-          marginBottom:24 }} />
-
-        {inp("Nombre de la empresa", "nombre", "Ej: Claro Colombia")}
-        {inp("Código de acceso", "codigo", "Ej: CLARO-2025")}
+      <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px" }}>
+        <div style={{ height:8, borderRadius:6, marginBottom:24,
+          background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#C80F0A"})` }} />
+        <InputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" />
+        <InputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" />
         <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>
-          Los evaluadores ingresan este código para acceder al diagnóstico. Solo letras, números y guiones.
+          Los evaluadores ingresan este código para acceder. Solo letras, números y guiones.
         </div>
-        {inp("URL del logo (opcional)", "logo_url", "https://...")}
-
+        <InputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." />
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-          <div>
-            <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>Color principal</div>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <input type="color" value={form.color_primary}
-                onChange={e=>setForm(p=>({...p,color_primary:e.target.value}))}
-                style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
-              />
-              <input value={form.color_primary} onChange={e=>setForm(p=>({...p,color_primary:e.target.value}))}
-                style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
-                  fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
-              />
+          {[["Color principal","color_primary"],["Color oscuro","color_dark"]].map(([lbl,key])=>(
+            <div key={key}>
+              <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>{lbl}</div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <input type="color" value={form[key]}
+                  onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
+                  style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
+                />
+                <input value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}
+                  style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
+                    fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5 }}>Color oscuro</div>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <input type="color" value={form.color_dark}
-                onChange={e=>setForm(p=>({...p,color_dark:e.target.value}))}
-                style={{ width:36, height:36, borderRadius:8, border:"1.5px solid #E8E4DF", cursor:"pointer", padding:2 }}
-              />
-              <input value={form.color_dark} onChange={e=>setForm(p=>({...p,color_dark:e.target.value}))}
-                style={{ flex:1, padding:"9px 12px", borderRadius:9, border:"1.5px solid #E8E4DF",
-                  fontSize:12, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
-              />
-            </div>
-          </div>
+          ))}
         </div>
       </div>
-
       <div style={{ display:"flex", gap:10, marginTop:16 }}>
         <button onClick={()=>setView("list")} style={{
           flex:1, padding:"11px 0", borderRadius:10, border:"1.5px solid #E8E4DF",
-          background:"#FAFAFA", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer",
-        }}>Cancelar</button>
+          background:"#FAFAFA", color:"#555", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+          Cancelar
+        </button>
         <button onClick={saveEmpresa} disabled={saving} style={{
           flex:2, padding:"11px 0", borderRadius:10, background:form.color_primary||RED,
           border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer",
-          opacity:saving?0.6:1, boxShadow:`0 4px 14px ${form.color_primary||RED}50`,
-        }}>{saving?"Guardando...":editing?"Guardar cambios":"Crear empresa"}</button>
+          opacity:saving?0.6:1, boxShadow:`0 4px 14px ${form.color_primary||RED}50` }}>
+          {saving ? "Guardando..." : editing ? "Guardar cambios" : "Crear empresa"}
+        </button>
       </div>
+    </div>
+  );
+
+  // ── LIST VIEW ───────────────────────────────────────────────────────────────
+  return (
+    <div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div style={{ fontSize:12, color:"#AAA" }}>{empresas.length} empresa{empresas.length!==1?"s":""} registrada{empresas.length!==1?"s":""}</div>
+        <button onClick={startNew} style={{
+          padding:"9px 20px", borderRadius:99, background:RED, color:"#fff",
+          border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
+          boxShadow:"0 3px 10px rgba(232,37,31,0.3)" }}>
+          + Nueva empresa
+        </button>
+      </div>
+      {empresas.length === 0 ? (
+        <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"60px 40px", textAlign:"center" }}>
+          <div style={{ fontSize:36, marginBottom:16 }}>🏢</div>
+          <div style={{ fontSize:15, fontWeight:700, color:"#1A1A18", marginBottom:6 }}>Sin empresas registradas</div>
+          <div style={{ fontSize:12, color:"#AAA", marginBottom:24 }}>Crea la primera empresa para habilitar el acceso multi-cliente</div>
+          <button onClick={startNew} style={{ padding:"10px 24px", borderRadius:99, background:RED, color:"#fff", border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer" }}>
+            + Crear empresa
+          </button>
+        </div>
+      ) : (
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
+          {empresas.map(emp => (
+            <div key={emp.id} style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", overflow:"hidden" }}>
+              <div style={{ height:5, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#C80F0A"})` }} />
+              <div style={{ padding:"20px 22px" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:800, color:"#1A1A18", marginBottom:6 }}>{emp.nombre}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ fontSize:10, fontWeight:700, color:"#fff",
+                        background:emp.color_primary||RED, padding:"3px 10px", borderRadius:99 }}>
+                        {emp.codigo}
+                      </span>
+                      <button onClick={()=>{ navigator.clipboard.writeText(emp.codigo); showToast("Código copiado"); }}
+                        style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"#AAA" }}>
+                        📋 Copiar
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:6 }}>
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||RED }} />
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#C80F0A" }} />
+                  </div>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
+                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Evaluaciones</div>
+                    <div style={{ fontSize:20, fontWeight:900, color:"#1A1A18", letterSpacing:"-.02em" }}>{evalCount(emp.id)}</div>
+                  </div>
+                  <div style={{ background:"#F7F5F2", borderRadius:9, padding:"9px 12px" }}>
+                    <div style={{ fontSize:9, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Creada</div>
+                    <div style={{ fontSize:11, fontWeight:600, color:"#555" }}>
+                      {new Date(emp.created_at).toLocaleDateString("es-CO",{day:"2-digit",month:"short",year:"numeric"})}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <button onClick={()=>startEdit(emp)} style={{
+                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
+                    border:"1.5px solid #E8E4DF", background:"#FAFAFA", color:"#555" }}>
+                    ✏️ Editar
+                  </button>
+                  <button onClick={()=>loadSubs(emp)} style={{
+                    flex:1, padding:"8px 0", borderRadius:9, fontSize:11.5, fontWeight:700, cursor:"pointer",
+                    border:`1.5px solid ${emp.color_primary||RED}40`,
+                    background:(emp.color_primary||RED)+"12", color:emp.color_primary||RED }}>
+                    💬 Preguntas
+                  </button>
+                  <button onClick={()=>deleteEmpresa(emp)} style={{
+                    padding:"8px 12px", borderRadius:9, fontSize:11.5, cursor:"pointer",
+                    border:"1.5px solid #fee2e2", background:"#fff5f5", color:"#ef4444" }}>
+                    🗑
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2529,7 +2503,7 @@ export default function ControlApp() {
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [respuestas, setRespuestas] = useState([]);
   const [empresas, setEmpresas] = useState([]);
-  const [empresaFiltro, setEmpresaFiltro] = useState(null); // null = todas
+  const [empresaFiltro, setEmpresaFiltro] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -2666,7 +2640,7 @@ export default function ControlApp() {
                 {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
                 {tab === "reporte"   && "Genera un reporte PDF personalizado con portada y secciones seleccionables"}
                 {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
-                {tab === "empresas"  && "Gestiona empresas cliente, códigos de acceso y preguntas personalizadas"}
+                {tab === "empresas"  && "Gestiona empresas, códigos de acceso y preguntas personalizadas"}
               </div>
             </div>
             {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (
@@ -2693,16 +2667,15 @@ export default function ControlApp() {
 
         {tab === "monitor" && (
           <MonitorTab
-            evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones}
-            respuestas={respuestas}
+            evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas}
             selected={selected} setSelected={setSelected}
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "reporte" && <ReportTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
-        {tab === "empresas" && <EmpresasTab empresas={empresas} onRefresh={fetchData} showToast={showToast} />}
+        {tab === "empresas" && <EmpresasTab empresas={empresas} evaluaciones={evaluaciones} onRefresh={fetchData} showToast={showToast} />}
         {tab === "downloads" && <DownloadsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
       </div>
 
