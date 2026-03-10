@@ -84,7 +84,7 @@ body{margin:0;background:#F7F6F3;}
 @keyframes slideRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
 @keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmerMove{0%{background-position:-400px 0}100%{background-position:400px 0}}
-@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(243,36,36,0)}50%{box-shadow:0 0 0 8px rgba(243,36,36,0.08)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(120,35,220,0)}50%{box-shadow:0 0 0 8px rgba(120,35,220,0.08)}}
 @keyframes barGrow{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
 @keyframes bounceDown{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 .scroll-arrow{animation:bounceDown 1.4s ease-in-out infinite;}
@@ -103,7 +103,7 @@ body{margin:0;background:#F7F6F3;}
 .hover-lift{transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease;}
 .hover-lift:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.09)!important;}
 .btn-red{transition:all .18s cubic-bezier(.22,1,.36,1);}
-.btn-red:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(243,36,36,0.38)!important;}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(120,35,220,0.38)!important;}
 .btn-ghost{transition:all .15s;}
 .btn-ghost:hover{background:rgba(255,255,255,0.12)!important;}
 .tab-pill{transition:all .2s cubic-bezier(.4,0,.2,1);}
@@ -117,10 +117,10 @@ body{margin:0;background:#F7F6F3;}
 
 // ─── TOKENS ───────────────────────────────────────────────────────────────────
 const T = {
-  red:"#E8251F", redDk:"#B91A15", redMid:"#F04040",
-  redBg:"#FEF2F1", redSoft:"#FDDCDA", redXsoft:"#FFF6F5",
+  red:"#7823DC", redDk:"#5A1AA0", redMid:"#9B59D6",
+  redBg:"#F0E8FF", redSoft:"#DDD0F7", redXsoft:"#F7F3FF",
   ink:"#111110", inkMid:"#6B6860", inkSoft:"#9C9A95", inkXsoft:"#C8C6C0",
-  surface:"#FFF8F8", card:"#FFFFFF",
+  surface:"#FAF7FF", card:"#FFFFFF",
   border:"#E8E6E0", borderSm:"#F0EEE9",
   L:[
     {label:"Básico",     c:"#78716C",bg:"#FAFAF8",text:"#44403C",border:"#E7E5E4",desc:"Ejecución transaccional y reactiva; procesos rudimentarios; alta dependencia manual."},
@@ -365,7 +365,7 @@ function CodigoAccesoScreen({ onSuccess }) {
   return (
     <div style={{ minHeight:"100vh", background:"#FFF8F8", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div style={{ width:"100%", maxWidth:420, background:"#fff", borderRadius:22, border:"1px solid #F0EEE9", boxShadow:"0 24px 64px rgba(0,0,0,0.1)", overflow:"hidden" }}>
-        <div style={{ background:"linear-gradient(135deg,#C80F0A,#E8251F)", padding:"36px 40px 32px", position:"relative", overflow:"hidden" }}>
+        <div style={{ background:"linear-gradient(135deg,#5A1AA0,#7823DC)", padding:"36px 40px 32px", position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)", backgroundSize:"18px 18px" }}/>
           <div style={{ position:"relative", zIndex:1 }}>
             <Logo h={28}/>
@@ -388,7 +388,7 @@ function CodigoAccesoScreen({ onSuccess }) {
             onKeyDown={e=>e.key==="Enter"&&handleSubmit()}
             placeholder="Ej: CLARO-2025"
             style={{ width:"100%", padding:"13px 16px", borderRadius:11,
-              border:`2px solid ${error?"#ef4444":"#E8E4DF"}`,
+              border:`2px solid ${error?"#ef4444":"#E0D8F7"}`,
               fontSize:15, fontWeight:700, color:"#1A1A18", background:"#FAFAF8",
               outline:"none", letterSpacing:".04em", textAlign:"center",
               marginBottom: error ? 8 : 16 }}
@@ -399,7 +399,7 @@ function CodigoAccesoScreen({ onSuccess }) {
             background:loading?"#ccc":"linear-gradient(135deg,#C80F0A,#E8251F)",
             color:"#fff", border:"none", fontSize:13.5, fontWeight:700,
             cursor:loading?"not-allowed":"pointer",
-            boxShadow:loading?"none":"0 4px 16px rgba(232,37,31,0.35)" }}>
+            boxShadow:loading?"none":"0 4px 16px rgba(120,35,220,0.35)" }}>
             {loading ? "Verificando..." : "Acceder al diagnóstico →"}
           </button>
         </div>
@@ -408,7 +408,7 @@ function CodigoAccesoScreen({ onSuccess }) {
   );
 }
 
-function RegistroForm({onStart, color="#E8251F", colorDk="#C80F0A"}) {
+function RegistroForm({onStart, color="#7823DC", colorDk="#5A1AA0"}) {
   const [dir,setDir]   = useState("");
   const [rol,setRol]   = useState("");
   const [err,setErr]   = useState(false);
@@ -475,7 +475,7 @@ function RegistroForm({onStart, color="#E8251F", colorDk="#C80F0A"}) {
           width:"100%",padding:"13px",borderRadius:12,border:"none",
           background:`linear-gradient(135deg,${color},${colorDk})`,
           color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer",
-          boxShadow:`0 4px 16px rgba(232,37,31,0.3)`,
+          boxShadow:`0 4px 16px rgba(120,35,220,0.3)`,
         }}>Iniciar diagnóstico →</button>
       </div>
     </div>
@@ -488,11 +488,11 @@ function PerfilModal({onStart}) {
 }
 
 // ─── INTRO TAB ────────────────────────────────────────────────────────────────
-function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
+function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
   const STEPS=[
-    {n:"01",icon:"📖",c:"color",bg:"#FEF2F1",label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
+    {n:"01",icon:"📖",c:color,bg:(color+"18"),label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
     {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
@@ -505,7 +505,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
       {/* ═══ HERO ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,colorDk 0%,color 50%,#C01010 100%)",
+        background:`linear-gradient(150deg,${colorDk} 0%,${color} 50%,#C01010 100%)`,
         boxShadow:"0 32px 80px rgba(0,0,0,0.28)",
       }}>
         <NoiseSVG/>
@@ -645,7 +645,7 @@ function IntroTab({onNavigate, color=color, colorDk=colorDk}) {
         background:`linear-gradient(135deg,${color},${colorDk})`,
         padding:"36px 48px",
         display:"flex",alignItems:"center",justifyContent:"space-between",gap:24,
-        boxShadow:`0 16px 48px rgba(232,37,31,0.28)`,
+        boxShadow:`0 16px 48px rgba(120,35,220,0.28)`,
       }}>
         <div>
           <div className="display" style={{fontSize:22,fontWeight:900,color:"#fff",letterSpacing:"-.02em",marginBottom:6}}>
@@ -686,7 +686,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
       {/* ═══ HERO DARK ═══ */}
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
-        background:"linear-gradient(150deg,#A00D08 0%,#C81010 45%,color 100%)",
+        background:`linear-gradient(150deg,#A00D08 0%,#C81010 45%,${color} 100%)`,
         boxShadow:"0 28px 72px rgba(0,0,0,0.24)",
       }}>
         <NoiseSVG/>
@@ -764,7 +764,7 @@ function ModeloTab({color=color, colorDk=colorDk}) {
                 borderRadius:14,overflow:"hidden",
                 border:`1.5px solid ${isOpen?color:T.borderSm}`,
                 transition:"border-color .2s,box-shadow .2s",
-                boxShadow:isOpen?"0 4px 20px rgba(232,37,31,0.1)":"0 1px 3px rgba(0,0,0,0.03)",
+                boxShadow:isOpen?"0 4px 20px rgba(120,35,220,0.1)":"0 1px 3px rgba(0,0,0,0.03)",
               }}>
                 <div className="accordion-hd" onClick={()=>setOpen(isOpen?null:d.key)} style={{
                   display:"grid",gridTemplateColumns:"auto 1fr auto",alignItems:"center",
@@ -968,7 +968,7 @@ function SummaryTab({answers, perfil, color=color, colorDk=colorDk}) {
           padding:"10px 22px",borderRadius:11,border:"none",
           background:`linear-gradient(135deg,${color},${colorDk})`,
           color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
-          boxShadow:`0 4px 14px rgba(232,37,31,0.3)`,
+          boxShadow:`0 4px 14px rgba(120,35,220,0.3)`,
         }}>⬇ Descargar Excel</button>
       </div>
 
@@ -1482,9 +1482,9 @@ export default function App() {
       </header>
 
       {/* ═══ CONTENT ═══ */}
-      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color={EC} colorDk={ECD} onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
+      {view==="intro"    &&<div ref={introScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><IntroTab color="#7823DC" colorDk="#5A1AA0" onNavigate={(v)=>{if(v==="registro"){setShowRegistro(true);}else{setView(v);}}}/><ScrollIndicator color={EC} scrollRef={introScrollRef}/></div>}
       {showRegistro&&<RegistroForm color={EC} colorDk={ECD} onStart={(p)=>{setPerfil({...p,empresa_id:empresa?.id});setShowRegistro(false);}}/>}
-      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color={EC} colorDk={ECD}/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
+      {view==="modelo"   &&<div ref={modeloScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><ModeloTab color="#7823DC" colorDk="#5A1AA0"/><ScrollIndicator color={EC} scrollRef={modeloScrollRef}/></div>}
       {view==="summary"  &&<div ref={summaryScrollRef} style={{flex:1,overflow:"auto",position:"relative"}}><SummaryTab color={EC} colorDk={ECD} answers={answers} perfil={perfil}/><ScrollIndicator color={EC} scrollRef={summaryScrollRef}/></div>}
 
       {view==="assessment"&&(
@@ -1587,7 +1587,7 @@ export default function App() {
                   color:j===activeSub?"#fff":answers[s.id]?getLv(answers[s.id]).text:T.inkMid,
                   fontSize:10.5,fontWeight:j===activeSub?700:500,
                   whiteSpace:"nowrap",cursor:"pointer",
-                  boxShadow:j===activeSub?`0 3px 10px rgba(232,37,31,0.3)`:"none",
+                  boxShadow:j===activeSub?`0 3px 10px rgba(120,35,220,0.3)`:"none",
                 }}>
                   {answers[s.id]?`${answers[s.id]} · `:""}{s.label}
                 </button>
@@ -1663,7 +1663,7 @@ export default function App() {
                 padding:"10px 24px",borderRadius:12,border:"none",
                 background:`linear-gradient(135deg,${EC},${ECD})`,
                 color:"#fff",fontWeight:700,fontSize:12,cursor:"pointer",
-                boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
+                boxShadow:`0 4px 14px rgba(120,35,220,0.35)`,
               }}>{activeDim===EDIMS.length-1&&activeSub===dim.subs.length-1?"Ver Resumen →":"Siguiente →"}</button>
             </div>
 
@@ -1700,7 +1700,7 @@ export default function App() {
                 flex:1,padding:"11px",borderRadius:10,border:"none",
                 background:`linear-gradient(135deg,${EC},${ECD})`,
                 color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",
-                boxShadow:`0 4px 14px rgba(232,37,31,0.35)`,
+                boxShadow:`0 4px 14px rgba(120,35,220,0.35)`,
               }}>Reiniciar</button>
             </div>
           </div>

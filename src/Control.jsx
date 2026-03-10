@@ -42,12 +42,12 @@ body{margin:0;background:#F7F5F2;color:#1A1A18;}
 .fade-up-4{animation:fadeUp .4s .24s cubic-bezier(.22,1,.36,1) both;}
 .spin{animation:spin .8s linear infinite;}
 .row-hover{transition:background .12s;cursor:pointer;}
-.row-hover:hover{background:rgba(232,37,31,0.04)!important;}
+.row-hover:hover{background:rgba(120,35,220,0.04)!important;}
 .btn-action{transition:all .15s cubic-bezier(.22,1,.36,1);}
 .btn-action:hover{transform:translateY(-1px);opacity:.88;}
 .nav-item{transition:all .15s;cursor:pointer;border-radius:10px;}
-.nav-item:hover{background:rgba(232,37,31,0.07)!important;}
-.nav-item.active{background:rgba(232,37,31,0.12)!important;}
+.nav-item:hover{background:rgba(120,35,220,0.07)!important;}
+.nav-item.active{background:rgba(120,35,220,0.12)!important;}
 `;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -102,9 +102,9 @@ function Login({ onLogin }) {
         <div style={{ marginBottom: 32, textAlign: "center" }}>
           <div style={{
             width: 52, height: 52, borderRadius: 14, margin: "0 auto 16px",
-            background: "linear-gradient(135deg,#E8251F,#B91A15)",
+            background: "linear-gradient(135deg,#7823DC,#5A1AA0)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, boxShadow: "0 8px 24px rgba(232,37,31,0.25)",
+            fontSize: 22, boxShadow: "0 8px 24px rgba(120,35,220,0.25)",
           }}>🛡️</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#1A1A18" }}>Admin Panel</div>
           <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>Kearney · Inventarios Madurez</div>
@@ -117,17 +117,17 @@ function Login({ onLogin }) {
           onKeyDown={e => e.key === "Enter" && attempt()}
           style={{
             width: "100%", padding: "12px 16px", borderRadius: 10, marginBottom: 8,
-            background: "#F7F5F2", border: `1.5px solid ${err ? "#E8251F" : "#E8E4DF"}`,
+            background: "#F7F5F2", border: `1.5px solid ${err ? "#7823DC" : "#E8E4DF"}`,
             color: "#1A1A18", fontSize: 14, outline: "none",
           }}
         />
-        {err && <div style={{ fontSize: 11, color: "#E8251F", marginBottom: 12 }}>Contraseña incorrecta</div>}
+        {err && <div style={{ fontSize: 11, color: "#7823DC", marginBottom: 12 }}>Contraseña incorrecta</div>}
 
         <button onClick={attempt} className="btn-action" style={{
           width: "100%", padding: "12px", borderRadius: 10, border: "none",
-          background: "linear-gradient(135deg,#E8251F,#B91A15)",
+          background: "linear-gradient(135deg,#7823DC,#5A1AA0)",
           color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer",
-          boxShadow: "0 4px 14px rgba(232,37,31,0.25)",
+          boxShadow: "0 4px 14px rgba(120,35,220,0.25)",
         }}>Entrar →</button>
       </div>
     </div>
@@ -148,7 +148,7 @@ function StatCard({ icon, label, value, color, delay }) {
         </div>
         <div style={{
           width: 40, height: 40, borderRadius: 10, fontSize: 18,
-          background: (color || "#E8251F") + "18",
+          background: (color || "#7823DC") + "18",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>{icon}</div>
       </div>
@@ -224,7 +224,7 @@ function DetailModal({ evaluacion, respuestas, onClose }) {
             return (
               <div key={d.key}>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: "#E8251F",
+                  fontSize: 11, fontWeight: 700, color: "#7823DC",
                   textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8,
                   display: "flex", alignItems: "center", gap: 8,
                 }}>
@@ -339,8 +339,8 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
         />
         {selected.length > 0 && (
           <button onClick={() => onDelete(selected)} className="btn-action" style={{
-            padding: "10px 18px", borderRadius: 10, border: "1px solid #E8251F40",
-            background: "#E8251F18", color: "#E8251F",
+            padding: "10px 18px", borderRadius: 10, border: "1px solid #7823DC40",
+            background: "#7823DC18", color: "#7823DC",
             fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
           }}>🗑 Eliminar ({selected.length})</button>
         )}
@@ -378,7 +378,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
         {loading ? (
           <div style={{ padding: "48px", textAlign: "center" }}>
             <div className="spin" style={{ display: "inline-block", width: 22, height: 22,
-              border: "2px solid #333", borderTopColor: "#E8251F", borderRadius: "50%" }} />
+              border: "2px solid #333", borderTopColor: "#7823DC", borderRadius: "50%" }} />
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center", color: "#555", fontSize: 13 }}>
@@ -390,7 +390,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               display: "grid", gridTemplateColumns: COL,
               padding: "13px 20px", gap: 8, alignItems: "center",
               borderBottom: i < filtered.length - 1 ? "1px solid #F0EDE9" : "none",
-              background: selected.includes(e.id) ? "rgba(232,37,31,0.04)" : "transparent",
+              background: selected.includes(e.id) ? "rgba(120,35,220,0.04)" : "transparent",
               cursor: "default",
             }}>
             <input type="checkbox" checked={selected.includes(e.id)}
@@ -411,8 +411,8 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
               onClick={() => onDelete([e.id])}
               className="btn-action"
               style={{
-                width: 32, height: 32, borderRadius: 8, border: "1px solid #E8251F30",
-                background: "#E8251F10", color: "#E8251F", fontSize: 14,
+                width: 32, height: 32, borderRadius: 8, border: "1px solid #7823DC30",
+                background: "#7823DC10", color: "#7823DC", fontSize: 14,
                 cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}
@@ -493,7 +493,7 @@ function AnalyticsLabel({ children }) {
   return <div style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase",
     letterSpacing:".14em", marginBottom:14 }}>{children}</div>;
 }
-function MiniBar({ value, max=5, color="#E8251F" }) {
+function MiniBar({ value, max=5, color="#7823DC" }) {
   return (
     <div style={{ height:5, background:"#F0EDE9", borderRadius:99, overflow:"hidden", flex:1 }}>
       <div style={{ height:"100%", width:`${Math.min(100,(value/max)*100)}%`,
@@ -524,7 +524,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
   }), [evaluaciones, filterDir, filterRol, filterLvl]);
 
   const hasFilters = filterDir.length || filterRol.length || filterLvl.length;
-  const RED = "#E8251F";
+  const RED = "#7823DC";
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
   const globalAvg = avgArr(filtered.map(e=>e.score_global));
@@ -959,7 +959,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
             ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas identificadas</div>
             : <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
                 {[
-                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#FEF2F2", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
+                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#F5F0FF", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
                   { t:"Mediano Plazo",sub:"6–12 meses",   c:"#D97706", bg:"#FFFBEB", bdr:"#FDE68A", icon:"⚡", items: [...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
                   { t:"Largo Plazo",  sub:"12–24 meses",  c:"#059669", bg:"#ECFDF5", bdr:"#A7F3D0", icon:"🏆", items: modGaps.slice(3,7) },
                 ].map(ph=>(
@@ -1010,7 +1010,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
             const l = e.score_global?lvMeta(e.score_global):null;
             return (
               <div key={e.id} style={{ display:"grid", gridTemplateColumns:"22px 1fr 100px 80px", alignItems:"center", gap:12,
-                padding:"8px 12px", borderRadius:10, background:i===0?"#FFF8F7":"#FAFAF8",
+                padding:"8px 12px", borderRadius:10, background:i===0?"#FAF7FF":"#FAFAF8",
                 border:`1px solid ${i===0?"#FDDCDA":"#F0EDE9"}` }}>
                 <div style={{ fontSize:11, fontWeight:800, color:i===0?RED:"#CCC" }}>#{i+1}</div>
                 <div>
@@ -1077,6 +1077,28 @@ const SUBS_META = [
   {id:"ab5",dim:"Abastecimiento",  label:"Repuestos/refurb/swap",         desc:"Circularidad, garantías, niveles de servicio"},
 ];
 
+// ─── EMPRESA INPUT FIELD (module-level to avoid re-render focus loss) ────────
+function EmpresaInputField({ label, fieldKey, placeholder, type="text", form, setForm, formErr, setFormErr }) {
+  const RED = "#7823DC";
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5, display:"flex", justifyContent:"space-between" }}>
+        <span>{label}</span>
+        {formErr[fieldKey] && <span style={{ color:RED, fontSize:10 }}>{formErr[fieldKey]}</span>}
+      </div>
+      <input
+        value={form[fieldKey]}
+        onChange={e => { setForm(p=>({...p,[fieldKey]:e.target.value})); setFormErr(p=>({...p,[fieldKey]:undefined})); }}
+        placeholder={placeholder}
+        type={type}
+        style={{ width:"100%", padding:"9px 12px", borderRadius:9,
+          border:`1.5px solid ${formErr[fieldKey]?RED:"#E8E4DF"}`,
+          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
+      />
+    </div>
+  );
+}
+
 function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   const [view, setView] = useState("list");
   const [editing, setEditing] = useState(null);
@@ -1084,17 +1106,17 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
   const [editingSubs, setEditingSubs] = useState(false);
   const [subsData, setSubsData] = useState({});
   const [savingSubs, setSavingSubs] = useState(false);
-  const RED = "#E8251F";
+  const RED = "#7823DC";
 
-  const emptyForm = { nombre:"", codigo:"", color_primary:"#E8251F", color_dark:"#C80F0A", logo_url:"" };
+  const emptyForm = { nombre:"", codigo:"", color_primary:"#7823DC", color_dark:"#5A1AA0", logo_url:"" };
   const [form, setForm] = useState(emptyForm);
   const [formErr, setFormErr] = useState({});
 
   function startNew() { setForm(emptyForm); setEditing(null); setView("new"); setEditingSubs(false); }
   function startEdit(emp) {
     setForm({ nombre:emp.nombre, codigo:emp.codigo,
-              color_primary:emp.color_primary||"#E8251F",
-              color_dark:emp.color_dark||"#C80F0A",
+              color_primary:emp.color_primary||"#7823DC",
+              color_dark:emp.color_dark||"#5A1AA0",
               logo_url:emp.logo_url||"" });
     setEditing(emp); setView("edit"); setEditingSubs(false);
   }
@@ -1173,21 +1195,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
 
   const evalCount = (empId) => evaluaciones.filter(e => e.empresa_id === empId).length;
 
-  const InputField = ({ label, fieldKey, placeholder, type="text" }) => (
-    <div style={{ marginBottom:16 }}>
-      <div style={{ fontSize:10.5, fontWeight:700, color:"#555", marginBottom:5, display:"flex", justifyContent:"space-between" }}>
-        <span>{label}</span>
-        {formErr[fieldKey] && <span style={{ color:RED, fontSize:10 }}>{formErr[fieldKey]}</span>}
-      </div>
-      <input value={form[fieldKey]}
-        onChange={e => { setForm(p=>({...p,[fieldKey]:e.target.value})); setFormErr(p=>({...p,[fieldKey]:undefined})); }}
-        placeholder={placeholder} type={type}
-        style={{ width:"100%", padding:"9px 12px", borderRadius:9,
-          border:`1.5px solid ${formErr[fieldKey]?RED:"#E8E4DF"}`,
-          fontSize:12.5, color:"#1A1A18", background:"#FAFAF8", outline:"none" }}
-      />
-    </div>
-  );
+
 
   // ── EDIT SUBS VIEW ──────────────────────────────────────────────────────────
   if (editingSubs && editing) {
@@ -1249,13 +1257,13 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
       </div>
       <div style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", padding:"28px" }}>
         <div style={{ height:8, borderRadius:6, marginBottom:24,
-          background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#C80F0A"})` }} />
-        <InputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" />
-        <InputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" />
+          background:`linear-gradient(90deg,${form.color_primary||RED},${form.color_dark||"#5A1AA0"})` }} />
+        <EmpresaInputField label="Nombre de la empresa" fieldKey="nombre" placeholder="Ej: Claro Colombia" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
+        <EmpresaInputField label="Código de acceso" fieldKey="codigo" placeholder="Ej: CLARO-2025" form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
         <div style={{ fontSize:10, color:"#AAA", marginTop:-10, marginBottom:16 }}>
           Los evaluadores ingresan este código para acceder. Solo letras, números y guiones.
         </div>
-        <InputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." />
+        <EmpresaInputField label="URL del logo (opcional)" fieldKey="logo_url" placeholder="https://..." form={form} setForm={setForm} formErr={formErr} setFormErr={setFormErr} />
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {[["Color principal","color_primary"],["Color oscuro","color_dark"]].map(([lbl,key])=>(
             <div key={key}>
@@ -1298,7 +1306,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
         <button onClick={startNew} style={{
           padding:"9px 20px", borderRadius:99, background:RED, color:"#fff",
           border:"none", fontSize:12.5, fontWeight:700, cursor:"pointer",
-          boxShadow:"0 3px 10px rgba(232,37,31,0.3)" }}>
+          boxShadow:"0 3px 10px rgba(120,35,220,0.3)" }}>
           + Nueva empresa
         </button>
       </div>
@@ -1315,7 +1323,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
           {empresas.map(emp => (
             <div key={emp.id} style={{ background:"#fff", borderRadius:16, border:"1px solid #E8E4DF", overflow:"hidden" }}>
-              <div style={{ height:5, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#C80F0A"})` }} />
+              <div style={{ height:5, background:`linear-gradient(90deg,${emp.color_primary||RED},${emp.color_dark||"#5A1AA0"})` }} />
               <div style={{ padding:"20px 22px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
                   <div>
@@ -1333,7 +1341,7 @@ function EmpresasTab({ empresas, evaluaciones, onRefresh, showToast }) {
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     <div style={{ width:18, height:18, borderRadius:4, background:emp.color_primary||RED }} />
-                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#C80F0A" }} />
+                    <div style={{ width:18, height:18, borderRadius:4, background:emp.color_dark||"#5A1AA0" }} />
                   </div>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:14 }}>
@@ -1410,14 +1418,14 @@ function LinksTab() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#E8251F" }}>Links de acceso</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#7823DC" }}>Links de acceso</div>
           <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>Genera links únicos para compartir la evaluación</div>
         </div>
         <button onClick={generate} className="btn-action" style={{
           padding: "11px 22px", borderRadius: 11, border: "none",
-          background: "linear-gradient(135deg,#E8251F,#B91A15)",
+          background: "linear-gradient(135deg,#7823DC,#5A1AA0)",
           color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer",
-          boxShadow: "0 4px 14px rgba(232,37,31,0.35)",
+          boxShadow: "0 4px 14px rgba(120,35,220,0.35)",
         }}>+ Generar link</button>
       </div>
 
@@ -1446,12 +1454,12 @@ function LinksTab() {
               display: "flex", alignItems: "center", gap: 16,
             }}>
               <div style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-                background: "#E8251F18", border: "1px solid #E8251F30",
+                background: "#7823DC18", border: "1px solid #7823DC30",
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔗</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 4, alignItems: "center" }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#E8251F",
-                    background: "#E8251F18", padding: "2px 8px", borderRadius: 99 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#7823DC",
+                    background: "#7823DC18", padding: "2px 8px", borderRadius: 99 }}>
                     REF: {link.id}
                   </span>
                   <span style={{ fontSize: 10, color: "#BBB" }}>{formatDate(link.created_at || link.created)}</span>
@@ -1468,8 +1476,8 @@ function LinksTab() {
                 }}>{copied === link.id ? "✓ Copiado" : "📋 Copiar"}</button>
                 <button onClick={() => deleteLink(link.id)}
                   className="btn-action" style={{
-                    padding: "8px 12px", borderRadius: 9, border: "1px solid #E8251F30",
-                    background: "#E8251F10", color: "#E8251F", fontSize: 12, cursor: "pointer",
+                    padding: "8px 12px", borderRadius: 9, border: "1px solid #7823DC30",
+                    background: "#7823DC10", color: "#7823DC", fontSize: 12, cursor: "pointer",
                   }}>🗑</button>
               </div>
             </div>
@@ -1566,7 +1574,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
           {ROLES.map(r => <option key={r}>{r}</option>)}
         </select>
         {(filterDir !== "Todas" || filterRol !== "Todos") && (
-          <span style={{ fontSize: 11, color: "#E8251F", fontWeight: 600 }}>{filtered.length} evaluaciones filtradas</span>
+          <span style={{ fontSize: 11, color: "#7823DC", fontWeight: 600 }}>{filtered.length} evaluaciones filtradas</span>
         )}
       </div>
 
@@ -1577,7 +1585,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
       }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#E8251F", marginBottom: 6 }}>📦 Descarga agregada</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#7823DC", marginBottom: 6 }}>📦 Descarga agregada</div>
           <div style={{ fontSize: 12, color: "#AAA", lineHeight: 1.7 }}>
             Todas las evaluaciones en un Excel con dos hojas:<br/>
             <span style={{ color: "#888" }}>Evaluaciones (resumen) + Respuestas Detalle</span>
@@ -2275,7 +2283,7 @@ function ReportTab({ evaluaciones, respuestas }) {
     setGenerating(false);
   }
 
-  const RED  = "#E8251F";
+  const RED  = "#7823DC";
   const secCount = Object.values(sections).filter(Boolean).length;
 
   return (
@@ -2352,7 +2360,7 @@ function ReportTab({ evaluaciones, respuestas }) {
             {Object.entries(SECTION_LABELS).map(([k,s])=>(
               <label key={k} style={{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer",
                 padding:"8px 10px", borderRadius:10,
-                background: sections[k]?"#FFF8F7":"#FAFAF8",
+                background: sections[k]?"#FAF7FF":"#FAFAF8",
                 border:`1px solid ${sections[k]?"#FDDCDA":"#F0EDE9"}`,
                 transition:"all .15s" }}>
                 <input type="checkbox" checked={!!sections[k]} onChange={()=>toggleSection(k)}
@@ -2385,7 +2393,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         <div style={{ background:"#FFFFFF", borderRadius:16, border:"1px solid #E8E4DF",
           overflow:"hidden", boxShadow:"0 8px 32px rgba(0,0,0,0.06)" }}>
           {/* Cover preview */}
-          <div style={{ background:"linear-gradient(150deg,#C80F0A 0%,#E8251F 55%,#C01010 100%)",
+          <div style={{ background:"linear-gradient(150deg,#5A1AA0 0%,#7823DC 55%,#C01010 100%)",
             padding:"32px 28px 28px", position:"relative", overflow:"hidden" }}>
             {/* dot grid */}
             <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px)",
@@ -2435,10 +2443,10 @@ function ReportTab({ evaluaciones, respuestas }) {
             padding:"18px", borderRadius:14, border:"none", width:"100%",
             background: (generating||filtered.length===0||secCount===0)
               ? "#E8E4DF"
-              : "linear-gradient(135deg,#E8251F,#B91A15)",
+              : "linear-gradient(135deg,#7823DC,#5A1AA0)",
             color: (generating||filtered.length===0||secCount===0)?"#AAA":"#FFFFFF",
             fontWeight:800, fontSize:15, cursor: generating||filtered.length===0||secCount===0?"not-allowed":"pointer",
-            boxShadow: generating?"none":"0 8px 24px rgba(232,37,31,0.35)",
+            boxShadow: generating?"none":"0 8px 24px rgba(120,35,220,0.35)",
             transition:"all .2s", letterSpacing:"-.01em",
           }}>
           {generating ? "⏳ Generando PDF..." : "⬇ Generar y Descargar PDF"}
@@ -2487,7 +2495,7 @@ function ConfirmModal({ count, onConfirm, onCancel }) {
           }}>Cancelar</button>
           <button onClick={onConfirm} className="btn-action" style={{
             flex: 1, padding: "11px", borderRadius: 10, border: "none",
-            background: "linear-gradient(135deg,#E8251F,#B91A15)",
+            background: "linear-gradient(135deg,#7823DC,#5A1AA0)",
             color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer",
           }}>Eliminar</button>
         </div>
@@ -2588,7 +2596,7 @@ export default function ControlApp() {
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
         <div style={{ marginBottom: 32, padding: "0 8px" }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#E8251F" }}>⚡ Admin Panel</div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#7823DC" }}>⚡ Admin Panel</div>
           <div style={{ fontSize: 10, color: "#BBB", marginTop: 2 }}>Kearney · Inventarios</div>
         </div>
 
@@ -2599,7 +2607,7 @@ export default function ControlApp() {
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px",
-                color: tab === t.id ? "#E8251F" : "#999",
+                color: tab === t.id ? "#7823DC" : "#999",
                 fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
               }}>
               <span style={{ fontSize: 16 }}>{t.icon}</span>{t.label}
@@ -2609,11 +2617,11 @@ export default function ControlApp() {
 
         <button onClick={fetchData} className="btn-action" style={{
           padding: "12px 12px", borderRadius: 10, border: "none",
-          background: loading ? "#D1D0CB" : "linear-gradient(135deg,#E8251F,#B91A15)",
+          background: loading ? "#D1D0CB" : "linear-gradient(135deg,#7823DC,#5A1AA0)",
           color: "#fff", fontSize: 13,
           fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-          boxShadow: loading ? "none" : "0 4px 14px rgba(232,37,31,0.35)",
+          boxShadow: loading ? "none" : "0 4px 14px rgba(120,35,220,0.35)",
         }}>
           <span className={loading ? "spin" : ""} style={{ display: "inline-block", fontSize: 15 }}>🔄</span>
           {loading ? "Cargando..." : "Actualizar datos"}
@@ -2631,7 +2639,7 @@ export default function ControlApp() {
         <div style={{ marginBottom: 24 }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#E8251F", letterSpacing: "-.02em" }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#7823DC", letterSpacing: "-.02em" }}>
                 {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
               </div>
               <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
@@ -2648,16 +2656,16 @@ export default function ControlApp() {
                 <span style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em" }}>Empresa</span>
                 <button onClick={()=>setEmpresaFiltro(null)} style={{
                   padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
-                  border:`1.5px solid ${!empresaFiltro?"#E8251F":"#E8E4DF"}`,
-                  background:!empresaFiltro?"#E8251F18":"#FAFAFA",
-                  color:!empresaFiltro?"#E8251F":"#999",
+                  border:`1.5px solid ${!empresaFiltro?"#7823DC":"#E8E4DF"}`,
+                  background:!empresaFiltro?"#7823DC18":"#FAFAFA",
+                  color:!empresaFiltro?"#7823DC":"#999",
                 }}>Todas</button>
                 {empresas.map(emp=>(
                   <button key={emp.id} onClick={()=>setEmpresaFiltro(emp.id)} style={{
                     padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
-                    border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#E8251F":"#E8E4DF"}`,
-                    background:empresaFiltro===emp.id?(emp.color_primary||"#E8251F")+"18":"#FAFAFA",
-                    color:empresaFiltro===emp.id?(emp.color_primary||"#E8251F"):"#999",
+                    border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#7823DC":"#E8E4DF"}`,
+                    background:empresaFiltro===emp.id?(emp.color_primary||"#7823DC")+"18":"#FAFAFA",
+                    color:empresaFiltro===emp.id?(emp.color_primary||"#7823DC"):"#999",
                   }}>{emp.nombre}</button>
                 ))}
               </div>
@@ -2687,7 +2695,7 @@ export default function ControlApp() {
         <div style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 2000,
           padding: "12px 20px", borderRadius: 12,
-          background: toast.type === "error" ? "#E8251F" : "#059669",
+          background: toast.type === "error" ? "#7823DC" : "#059669",
           color: "#fff", fontWeight: 600, fontSize: 13,
           boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
           animation: "fadeIn .3s ease",
