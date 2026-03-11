@@ -2634,7 +2634,7 @@ export default function ControlApp() {
     return () => s.remove();
   }, []);
 
-  async async function fetchDataSilent() {
+  async function fetchDataSilent() {
     try {
       const [r1, r2, r3] = await Promise.all([
         supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
