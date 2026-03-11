@@ -272,7 +272,7 @@ function DetailModal({ evaluacion, respuestas, onClose }) {
 }
 
 // ─── MONITOR TAB ──────────────────────────────────────────────────────────────
-function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete, loading }) {
+function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelected, onDelete, loading }) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("created_at");
   const [sortDir, setSortDir] = useState("desc");
@@ -310,7 +310,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
     </span>
   );
 
-  const COL = "36px 1fr 1fr 80px 55px 55px 55px 55px 55px 55px 110px 36px 36px";
+  const COL = "36px 120px 1fr 1fr 80px 55px 55px 55px 55px 55px 55px 110px 36px 36px";
 
   return (
     <div>
@@ -349,6 +349,7 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             onChange={() => selected.length === filtered.length ? setSelected([]) : setSelected(filtered.map(e => e.id))}
             style={{ cursor: "pointer" }}
           />
+          <div style={{ fontSize:9.5, fontWeight:700, color:"#CCC", padding:"4px 8px" }}>Empresa</div>
           {[{l:"Dirección",c:"direccion"},{l:"Rol",c:"rol"},{l:"Global",c:"score_global"}].map(h => (
             <div key={h.c} onClick={() => toggleSort(h.c)}
               style={{ fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase",
@@ -390,6 +391,11 @@ function MonitorTab({ evaluaciones, respuestas, selected, setSelected, onDelete,
             <input type="checkbox" checked={selected.includes(e.id)}
               onChange={() => setSelected(s => s.includes(e.id) ? s.filter(x => x !== e.id) : [...s, e.id])}
               style={{ cursor: "pointer" }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#7823DC",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              background: "#F0E8FF", borderRadius: 6, padding: "3px 7px" }}>
+              {empresas.find(emp=>emp.id===e.empresa_id)?.nombre || <span style={{color:"#CCC"}}>—</span>}
+            </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {e.direccion || <span style={{ color: "#CCC" }}>Sin dirección</span>}
@@ -2739,6 +2745,7 @@ export default function ControlApp() {
         {tab === "monitor" && (
           <MonitorTab
             evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas}
+            empresas={empresas}
             selected={selected} setSelected={setSelected}
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />

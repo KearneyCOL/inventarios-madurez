@@ -365,7 +365,7 @@ function CodigoAccesoScreen({ onSuccess }) {
       const subsMap = {};
       // First apply industry defaults
       Object.entries(industryDefaults).forEach(([sub_id, vals]) => {
-        subsMap[sub_id] = { q: vals.q, label: vals.label, desc: vals.desc };
+        subsMap[sub_id] = { q: vals.q, label: vals.label, desc: vals.desc, ndesc: vals.ndesc, opp: vals.opp };
       });
       // Then overlay manual overrides from DB (higher priority)
       (subs||[]).forEach(s => {
@@ -373,6 +373,8 @@ function CodigoAccesoScreen({ onSuccess }) {
           q:     s.q     || subsMap[s.sub_id]?.q     || "",
           label: s.label || subsMap[s.sub_id]?.label || "",
           desc:  s.descripcion || subsMap[s.sub_id]?.desc || "",
+          ndesc: subsMap[s.sub_id]?.ndesc || null,
+          opp:   subsMap[s.sub_id]?.opp   || null,
         };
       });
       // Direcciones y roles: DB overrides → industry defaults → fallback
@@ -1408,7 +1410,15 @@ export default function App() {
     ...d,
     subs: d.subs.map(s => {
       const c = subsCustom[s.id];
-      return c ? { ...s, q:c.q||s.q, label:c.label||s.label, desc:c.desc||s.desc } : s;
+      if (!c) return s;
+      return {
+        ...s,
+        q:     c.q     || s.q,
+        label: c.label || s.label,
+        desc:  c.desc  || s.desc,
+        ndesc: c.ndesc || s.ndesc,
+        opp:   c.opp   || s.opp,
+      };
     }),
   })), [subsCustom]);
 
@@ -1440,6 +1450,14 @@ export default function App() {
       setSubsCustom(subs);
       setEDirecciones(dirs);
       setERoles(roles);
+      // Mostrar registro solo si no hay perfil guardado para esta empresa
+      const savedPerfil = loadLS("madurez_perfil", null);
+      const perfilEsDeEstaEmpresa = savedPerfil?.empresa_id === emp.id;
+      if (!perfilEsDeEstaEmpresa) {
+        setPerfil(null);
+        localStorage.removeItem("madurez_perfil");
+        setShowRegistro(true);
+      }
     }}/>
   );
 
