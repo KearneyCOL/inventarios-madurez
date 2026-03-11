@@ -1452,27 +1452,9 @@ export default function App() {
 
   // ─── GUARDAR EN SUPABASE AL LLEGAR AL RESUMEN ────────────────────────────
   const guardadoRef = useRef(false);
-  const evalIdRef   = useRef(null);   // ID de evaluación en progreso
-
-  // Crear fila de evaluación en Supabase en cuanto el perfil queda definido
-  useEffect(() => {
-    if (!perfil || evalIdRef.current) return;
-    (async () => {
-      try {
-        const { data } = await supabase.from("evaluaciones").insert([{
-          direccion:  perfil.direccion  || null,
-          rol:        perfil.rol        || null,
-          empresa_id: perfil.empresa_id || null,
-        }]).select();
-        if (data?.[0]) { evalIdRef.current = data[0].id; }
-      } catch(e) { console.error("Error creando evaluación en vivo:", e); }
-    })();
-  }, [perfil]);
-
-  // Resetear evalId si el usuario reinicia
-  useEffect(() => {
-    if (view === "intro") evalIdRef.current = null;
-  }, [view]);
+  const evalIdRef   = useRef(null);
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   // Guardar scores finales al llegar al resumen
   useEffect(() => {
@@ -1486,6 +1468,44 @@ export default function App() {
     }
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
+
+  // Función para guardar/sincronizar progreso en cualquier momento
+  async function guardarProgreso(ans) {
+    if (!perfil) return;
+    setSaving(true); setSavedOk(false);
+    try {
+      if (!evalIdRef.current) {
+        // Crear evaluación nueva
+        const { data, error } = await supabase.from("evaluaciones").insert([{
+          direccion:  perfil.direccion  || null,
+          rol:        perfil.rol        || null,
+          empresa_id: perfil.empresa_id || null,
+        }]).select();
+        if (error) throw error;
+        evalIdRef.current = data[0].id;
+      }
+      // Guardar todas las respuestas actuales
+      const filas = [];
+      DIMS.forEach(d => d.subs.forEach(s => {
+        if ((ans||answers)[s.id] > 0) filas.push({
+          evaluacion_id:   evalIdRef.current,
+          subdimension_id: s.id,
+          dimension_key:   d.key,
+          valor:           (ans||answers)[s.id],
+        });
+      }));
+      if (filas.length > 0) {
+        // Delete existing and re-insert (simpler than upsert with constraint)
+        await supabase.from("respuestas").delete().eq("evaluacion_id", evalIdRef.current);
+        await supabase.from("respuestas").insert(filas);
+      }
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 2000);
+    } catch(e) {
+      console.error("Error guardando progreso:", e);
+    }
+    setSaving(false);
+  }
 
   const EC  = empresa?.color_primary || T.red;
   const ECD = empresa?.color_dark    || T.redDk;
@@ -1509,19 +1529,9 @@ export default function App() {
   const dim=EDIMS[activeDim];
   const sub=dim.subs[activeSub];
   const setVal=(id,v)=>{
-    setAnswers(p=>({...p,[id]:v}));
-    // Upsert respuesta en tiempo real
-    if (evalIdRef.current) {
-      const dimKey = EDIMS.find(d=>d.subs.some(s=>s.id===id))?.key || null;
-      supabase.from("respuestas").upsert([{
-        evaluacion_id:   evalIdRef.current,
-        subdimension_id: id,
-        dimension_key:   dimKey,
-        valor:           v,
-      }], { onConflict: "evaluacion_id,subdimension_id" }).then(({error})=>{
-        if(error) console.error("upsert respuesta:", error);
-      });
-    }
+    const next = {...answers,[id]:v};
+    setAnswers(next);
+    guardarProgreso(next);
   };
 
   const totalQ=DIMS.reduce((a,d)=>a+d.subs.length,0);
@@ -1718,6 +1728,19 @@ export default function App() {
                 <div className="display" style={{fontSize:18,fontWeight:900,color:T.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
                 <div style={{fontSize:11,color:T.inkSoft,marginTop:2}}>{dim.sub}</div>
               </div>
+              <button onClick={()=>guardarProgreso(answers)} disabled={saving}
+                style={{
+                  display:"flex",alignItems:"center",gap:6,
+                  padding:"8px 16px",borderRadius:8,border:"none",flexShrink:0,
+                  background: savedOk ? "#D1FAE5" : saving ? "#E8E4DF" : `linear-gradient(135deg,${EC},${ECD})`,
+                  color: savedOk ? "#065F46" : saving ? "#AAA" : "#fff",
+                  fontSize:12,fontWeight:700,cursor:saving?"not-allowed":"pointer",
+                  boxShadow: saving||savedOk ? "none" : `0 2px 10px ${EC}50`,
+                  transition:"all .2s",
+                }}>
+                {saving ? "⏳" : savedOk ? "✓" : "💾"}
+                <span>{saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar progreso"}</span>
+              </button>
               {getDimScore(dim,answers)&&(
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
                   <LvBadge v={Math.round(getDimScore(dim,answers))}/>
