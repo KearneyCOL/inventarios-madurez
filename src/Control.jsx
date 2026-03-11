@@ -563,13 +563,6 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
   function toggle(arr, setArr, val) { setArr(a => a.includes(val) ? a.filter(x=>x!==val) : [...a, val]); }
 
-  const filtered = useMemo(() => enriched.filter(e => {
-    if (filterDir.length && !filterDir.includes(e.direccion)) return false;
-    if (filterRol.length && !filterRol.includes(e.rol)) return false;
-    if (filterLvl.length && !filterLvl.includes(Math.round(e.score_global))) return false;
-    return true;
-  }), [enriched, filterDir, filterRol, filterLvl]);
-
   // Enriquecer evaluaciones con scores calculados desde respuestas si score_global es null
   const enriched = useMemo(() => evaluaciones.map(e => {
     if (e.score_global) return e;
@@ -586,6 +579,13 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
       ? parseFloat((dVals.reduce((a,b)=>a+b,0)/dVals.length).toFixed(2)) : null;
     return { ...e, ...dimScores, score_global };
   }), [evaluaciones, respuestas]);
+
+  const filtered = useMemo(() => enriched.filter(e => {
+    if (filterDir.length && !filterDir.includes(e.direccion)) return false;
+    if (filterRol.length && !filterRol.includes(e.rol)) return false;
+    if (filterLvl.length && !filterLvl.includes(Math.round(e.score_global))) return false;
+    return true;
+  }), [enriched, filterDir, filterRol, filterLvl]);
 
   const hasFilters = filterDir.length || filterRol.length || filterLvl.length;
   const RED = "#7823DC";
