@@ -2808,7 +2808,7 @@ export default function ControlApp() {
         </div>
 
         <div style={{ padding: "32px 36px" }}>
-        <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 28 }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#7823DC", letterSpacing: "-.02em" }}>
@@ -2848,13 +2848,12 @@ export default function ControlApp() {
         {tab === "links" && <LinksTab />}
         {tab === "empresas" && <EmpresasTab empresas={empresas} evaluaciones={evaluaciones} onRefresh={fetchData} showToast={showToast} />}
         {tab === "downloads" && <DownloadsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
-      </div>
-
+          </div>{/* end header+tabs wrapper */}
+        </div>{/* end padding wrapper */}
       {confirmDelete && (
         <ConfirmModal count={confirmDelete.length} onConfirm={doDelete} onCancel={() => setConfirmDelete(null)} />
       )}
 
-        </div>{/* end padding wrapper */}
       {toast && (
         <div style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 2000,
