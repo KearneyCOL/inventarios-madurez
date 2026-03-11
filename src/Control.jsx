@@ -732,11 +732,14 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         </div>
       </AnalyticsCard>
 
-      {!evaluaciones.length || filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <AnalyticsCard>
-          <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>Sin evaluaciones con los filtros seleccionados</div>
+          <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>
+            {!evaluaciones.length ? "No hay evaluaciones registradas aún." : "Sin evaluaciones con los filtros activos."}
+          </div>
         </AnalyticsCard>
       ) : (<>
+
 
       {/* ═══ KPIs ═══ */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
@@ -2837,7 +2840,7 @@ export default function ControlApp() {
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro||!e.empresa_id) : evaluaciones} respuestas={respuestas} />}
         {tab === "reporte" && <ReportTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
         {tab === "empresas" && <EmpresasTab empresas={empresas} evaluaciones={evaluaciones} onRefresh={fetchData} showToast={showToast} />}
