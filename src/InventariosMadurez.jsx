@@ -1187,13 +1187,13 @@ function SummaryTab({answers, perfil, color=T.red, colorDk=T.redDk}) {
 
 
       {/* MODERATE GAPS */}
-      {([...critGaps,...modGaps].length>0&&(
+      {([...critGaps,...modGaps].length>0)&&(
         <div className="fade-up-4" style={{borderRadius:18,border:"1.5px solid #FDE68A",padding:"24px 26px",marginBottom:14,background:"#FFFBF0",boxShadow:"0 4px 16px rgba(217,119,6,0.07)"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
             <div style={{width:38,height:38,borderRadius:11,background:"#FEF3C7",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:18}}>⚡</span></div>
             <div>
               <div className="display" style={{fontSize:15,fontWeight:800,color:"#92400E"}}>Oportunidades de Mejora</div>
-              <div style={{fontSize:11,color:"#B45309",marginTop:2}}>{modGaps.length} sub-dimensiones · Sub-dimensiones con mayor potencial de avance</div>
+              <div style={{fontSize:11,color:"#B45309",marginTop:2}}>{[...critGaps,...modGaps].length} sub-dimensiones · Sub-dimensiones con mayor potencial de avance</div>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
