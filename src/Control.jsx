@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
-import * as XLSX from "xlsx";
+// XLSX loaded dynamically to avoid chunk initialization conflict
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line } from "recharts";
 
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
@@ -1635,6 +1635,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
         "Score Global": e.score_global || "", "Nivel Global": getLevelLabel(e.score_global),
         ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
       }));
+      const XLSX = await import("xlsx");
       const ws = XLSX.utils.json_to_sheet(rows);
       ws["!cols"] = [{ wch:36 },{wch:20},{wch:20},{wch:18},{wch:22},{wch:14},{wch:14},...Array(7).fill({wch:16})];
       const wb = XLSX.utils.book_new();
@@ -1655,6 +1656,7 @@ function DownloadsTab({ evaluaciones, respuestas }) {
     setDownloading(e.id);
     setTimeout(() => {
       const resps = respuestas.filter(r => r.evaluacion_id === e.id);
+      const XLSX = await import("xlsx");
       const ws1 = XLSX.utils.json_to_sheet([
         { Campo: "ID", Valor: e.id },
         { Campo: "Dirección", Valor: e.direccion || "" },
