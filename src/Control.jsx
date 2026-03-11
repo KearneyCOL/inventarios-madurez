@@ -2809,15 +2809,21 @@ export default function ControlApp() {
             {loading ? "Actualizando..." : "En vivo · Supabase Realtime"}
           </div>
           <button onClick={fetchData} disabled={loading} className="btn-action" style={{
-            display: "flex", alignItems: "center", gap: 7,
-            padding: "8px 20px", borderRadius: 8, border: "none",
-            background: loading ? "#E8E4DF" : "linear-gradient(135deg,#7823DC,#5A1AA0)",
-            color: loading ? "#AAA" : "#fff", fontSize: 12.5, fontWeight: 700,
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "10px 24px", borderRadius: 10, border: "none",
+            background: loading ? "#E8E4DF" : "linear-gradient(135deg,#9B35F5,#7823DC,#5A1AA0)",
+            color: loading ? "#AAA" : "#fff", fontSize: 13, fontWeight: 800,
             cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: loading ? "none" : "0 2px 10px rgba(120,35,220,0.3)",
-          }}>
-            <span className={loading ? "spin" : ""} style={{ fontSize: 13 }}>🔄</span>
-            {loading ? "Cargando..." : "Actualizar datos"}
+            boxShadow: loading ? "none" : "0 4px 18px rgba(120,35,220,0.45)",
+            letterSpacing: "-.01em",
+            transform: loading ? "none" : "translateY(0)",
+            transition: "all .15s ease",
+          }}
+            onMouseEnter={e=>{ if(!loading){ e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow="0 6px 24px rgba(120,35,220,0.55)"; }}}
+            onMouseLeave={e=>{ e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow=loading?"none":"0 4px 18px rgba(120,35,220,0.45)"; }}
+          >
+            <span className={loading ? "spin" : ""} style={{ fontSize: 14 }}>🔄</span>
+            {loading ? "Actualizando..." : "Actualizar datos"}
           </button>
         </div>
 
