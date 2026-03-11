@@ -61,8 +61,15 @@ function formatDate(d) {
   });
 }
 
-function ScoreBadge({ v, sm }) {
-  if (!v) return <span style={{ color: "#444", fontSize: sm ? 11 : 13 }}>—</span>;
+function ScoreBadge({ v, sm, pct }) {
+  if (!v && pct != null) return (
+    <span style={{ display:"inline-flex", alignItems:"center", gap:4,
+      padding: sm?"2px 6px":"3px 9px", borderRadius:99,
+      background:"#F3F2F0", fontSize: sm?10:12, color:"#888", fontWeight:600 }}>
+      {pct}%
+    </span>
+  );
+  if (!v) return <span style={{ color: "#CCC", fontSize: sm ? 11 : 13 }}>—</span>;
   const c = getLevelColor(v);
   return (
     <span style={{
@@ -404,9 +411,33 @@ function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelect
               textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {e.rol || <span style={{ color: "#CCC" }}>Sin rol</span>}
             </div>
-            <ScoreBadge v={e.score_global} />
-            {DIMS.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`]} sm />)}
-            <div style={{ fontSize: 11, color: "#AAA" }}>{formatDate(e.created_at)}</div>
+            {(() => {
+              const eResps = respuestas.filter(r => r.evaluacion_id === e.id);
+              const pct = e.score_global ? null : Math.round((eResps.length / 35) * 100);
+              // Compute partial dim scores from respuestas
+              const dimScores = DIMS_META.reduce((acc, d) => {
+                const dResps = eResps.filter(r => r.dimension_key === d.key);
+                acc[d.key] = dResps.length > 0
+                  ? parseFloat((dResps.reduce((s,r)=>s+r.valor,0)/dResps.length).toFixed(2))
+                  : null;
+                return acc;
+              }, {});
+              return (<>
+                <ScoreBadge v={e.score_global} pct={e.score_global ? null : pct} />
+                {DIMS_META.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`] || dimScores[d.key]} sm />)}
+              </>);
+            })()}
+            <div style={{ fontSize: 11, color: "#AAA" }}>
+              {formatDate(e.created_at)}
+              {!e.score_global && (() => {
+                const n = respuestas.filter(r => r.evaluacion_id === e.id).length;
+                return n > 0 ? (
+                  <div style={{ marginTop:3, height:3, borderRadius:99, background:"#E8E4DF", overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${Math.round(n/35*100)}%`, background:"#7823DC", borderRadius:99 }}/>
+                  </div>
+                ) : null;
+              })()}
+            </div>
             <button
               onClick={() => onDelete([e.id])}
               className="btn-action"
