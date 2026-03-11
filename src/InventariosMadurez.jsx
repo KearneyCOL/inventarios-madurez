@@ -1728,21 +1728,7 @@ export default function App() {
                 <div className="display" style={{fontSize:18,fontWeight:900,color:T.ink,letterSpacing:"-.02em"}}>{dim.num}. {dim.label}</div>
                 <div style={{fontSize:11,color:T.inkSoft,marginTop:2}}>{dim.sub}</div>
               </div>
-              <button onClick={()=>guardarProgreso(answers)} disabled={saving}
-                style={{
-                  display:"flex",alignItems:"center",gap:5,
-                  padding:"7px 15px",borderRadius:20,flexShrink:0,
-                  border: savedOk ? "1.5px solid #6EE7B7" : saving ? "1.5px solid #E8E4DF" : "1.5px solid transparent",
-                  background: savedOk ? "#ECFDF5" : saving ? "#F7F5F2" : `linear-gradient(135deg,${EC},${ECD})`,
-                  color: savedOk ? "#059669" : saving ? "#BBB" : "#fff",
-                  fontSize:11.5,fontWeight:700,cursor:saving?"default":"pointer",
-                  boxShadow: saving||savedOk ? "none" : `0 2px 12px ${EC}40`,
-                  letterSpacing:".01em",
-                  transition:"all .25s ease",
-                }}>
-                <span style={{fontSize:12,lineHeight:1}}>{saving ? "⏳" : savedOk ? "✓" : "↑"}</span>
-                <span>{saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar"}</span>
-              </button>
+              <button onClick={()=>guardarProgreso(answers)} disabled={saving} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 18px",borderRadius:99,flexShrink:0,border:"none",background:savedOk?"#ECFDF5":saving?"#F0EDE9":`linear-gradient(135deg,${EC},${ECD})`,color:savedOk?"#059669":saving?"#AAA":"#fff",fontSize:12,fontWeight:700,cursor:saving?"default":"pointer",boxShadow:saving||savedOk?"none":`0 2px 12px ${EC}44`,transition:"all .2s",}}><span style={{fontSize:13}}>{saving?"⏳":savedOk?"✓":"↑"}</span><span style={{letterSpacing:".02em"}}>{saving?"Guardando":savedOk?"Guardado":"Guardar"}</span></button>
               {getDimScore(dim,answers)&&(
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
                   <LvBadge v={Math.round(getDimScore(dim,answers))}/>
