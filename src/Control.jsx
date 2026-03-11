@@ -694,12 +694,6 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
     }}>{label}</button>
   );
 
-  if (!evaluaciones.length) return (
-    <div style={{ padding:"60px", textAlign:"center", color:"#AAA", fontSize:13 }}>
-      No hay evaluaciones aún. Los datos aparecerán aquí cuando los participantes completen el diagnóstico.
-    </div>
-  );
-
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
 
@@ -738,7 +732,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         </div>
       </AnalyticsCard>
 
-      {filtered.length === 0 ? (
+      {!evaluaciones.length || filtered.length === 0 ? (
         <AnalyticsCard>
           <div style={{ textAlign:"center", padding:"48px 0", color:"#AAA", fontSize:13 }}>Sin evaluaciones con los filtros seleccionados</div>
         </AnalyticsCard>
@@ -1083,7 +1077,7 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         </div>
       </AnalyticsCard>
 
-      </>)}
+    </>)}
     </div>
   );
 }
