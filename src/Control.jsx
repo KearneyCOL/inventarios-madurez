@@ -1625,9 +1625,10 @@ function DownloadsTab({ evaluaciones, respuestas }) {
     (filterRol === "Todos"  || e.rol      === filterRol)
   );
 
-  function dlAgregado() {
+  async function dlAgregado() {
     const evaluaciones = filtered;
     setDownloading("all");
+    const XLSX = await import("xlsx");
     setTimeout(() => {
       const rows = evaluaciones.map(e => ({
         "ID": e.id, "Dirección": e.direccion || "", "Rol": e.rol || "",
@@ -1635,7 +1636,6 @@ function DownloadsTab({ evaluaciones, respuestas }) {
         "Score Global": e.score_global || "", "Nivel Global": getLevelLabel(e.score_global),
         ...Object.fromEntries(DIMS.map(d => [`${d.num} ${d.label}`, e[`score_${d.key}`] || ""])),
       }));
-      const XLSX = await import("xlsx");
       const ws = XLSX.utils.json_to_sheet(rows);
       ws["!cols"] = [{ wch:36 },{wch:20},{wch:20},{wch:18},{wch:22},{wch:14},{wch:14},...Array(7).fill({wch:16})];
       const wb = XLSX.utils.book_new();
@@ -1652,11 +1652,11 @@ function DownloadsTab({ evaluaciones, respuestas }) {
     }, 600);
   }
 
-  function dlIndividual(e) {
+  async function dlIndividual(e) {
     setDownloading(e.id);
+    const XLSX = await import("xlsx");
     setTimeout(() => {
       const resps = respuestas.filter(r => r.evaluacion_id === e.id);
-      const XLSX = await import("xlsx");
       const ws1 = XLSX.utils.json_to_sheet([
         { Campo: "ID", Valor: e.id },
         { Campo: "Dirección", Valor: e.direccion || "" },
