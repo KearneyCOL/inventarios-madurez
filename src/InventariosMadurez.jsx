@@ -538,6 +538,18 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
     <div style={{maxWidth:1060,margin:"0 auto",padding:"36px 36px 52px"}}>
 
       {/* ═══ HERO ═══ */}
+      <div style={{
+        background:"linear-gradient(135deg,#F0E8FF 0%,#E8DCFF 100%)",
+        borderBottom:"1px solid #DDD0F7",
+        padding:"14px 28px",
+        display:"flex", alignItems:"center", gap:12,
+      }}>
+        <span style={{fontSize:20}}>👋</span>
+        <p style={{margin:0, fontSize:13, color:"#3D1A6E", lineHeight:1.6}}>
+          <strong>Gracias por realizar este ejercicio.</strong>{" "}
+          Tu perspectiva es de mucho valor para trabajar en conjunto hacia las oportunidades identificadas en la gestión de inventarios.
+        </p>
+      </div>
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
         background:`linear-gradient(150deg,${colorDk} 0%,${color} 50%,${colorDk} 100%)`,

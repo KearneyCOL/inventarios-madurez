@@ -2674,8 +2674,8 @@ export default function ControlApp() {
         borderRight: "1px solid #E8E4DF",
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
-        <div style={{ marginBottom: 32, padding: "0 8px" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:17, display:"block", marginBottom:6 }}/>
+        <div style={{ marginBottom: 32, padding: "0 8px", display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:17, display:"block", marginBottom:6, maxWidth:"100%" }}/>
           <div style={{ fontSize:9, fontWeight:700, color:"#7823DC", letterSpacing:".1em", textTransform:"uppercase" }}>Inventarios · Admin</div>
         </div>
 
@@ -2722,12 +2722,12 @@ export default function ControlApp() {
                 {TABS.find(t => t.id === tab)?.icon} {TABS.find(t => t.id === tab)?.label}
               </div>
               <div style={{ fontSize: 12, color: "#AAA", marginTop: 3 }}>
-                {tab === "monitor"   && "Vista general de todas las evaluaciones registradas"}
-                {tab === "links"     && "Genera y gestiona links de acceso al diagnóstico"}
-                {tab === "analytics" && "Visualizaciones y comparativas por dirección"}
-                {tab === "reporte"   && "Genera un reporte PDF personalizado"}
-                {tab === "downloads" && "Descarga evaluaciones en formato Excel"}
-                {tab === "empresas"  && "Gestiona empresas, industrias y preguntas personalizadas"}
+                {tab === "monitor"   && "Seguimiento en tiempo real de todos los diagnósticos registrados — avance, puntajes por dimensión y perfil del respondente."}
+                {tab === "links"     && "Crea y comparte links de acceso únicos por empresa para que los equipos realicen el diagnóstico."}
+                {tab === "analytics" && "Comparativas de madurez por dirección, rol e industria para identificar patrones y brechas clave."}
+                {tab === "reporte"   && "Genera reportes PDF personalizados con resultados, brechas y oportunidades por empresa."}
+                {tab === "downloads" && "Exporta los datos de evaluaciones en formato Excel para análisis adicional."}
+                {tab === "empresas"  && "Configura empresas, industrias, colores, preguntas personalizadas, direcciones y roles para cada cliente."}
               </div>
             </div>
             {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (
