@@ -361,7 +361,9 @@ function CodigoAccesoScreen({ onSuccess }) {
       // Load subs_custom, then overlay industry defaults for empty ones
       const { data: subs } = await supabase
         .from("subs_custom").select("*").eq("empresa_id", data.id);
-      const industryDefaults = INDUSTRY_QUESTIONS[data.industria] || {};
+      const industria = data.industria || "Telecomunicaciones";
+      const industryDefaults = INDUSTRY_QUESTIONS[industria] || {};
+      console.log("[Madurez] empresa:", data.nombre, "| industria:", industria, "| overrides:", Object.keys(industryDefaults).length);
       const subsMap = {};
       // First apply industry defaults
       Object.entries(industryDefaults).forEach(([sub_id, vals]) => {
@@ -378,8 +380,8 @@ function CodigoAccesoScreen({ onSuccess }) {
         };
       });
       // Direcciones y roles: DB overrides → industry defaults → fallback
-      const dirs  = data.direcciones  || DEFAULT_DIRECCIONES[data.industria]  || DIRECCIONES_FALLBACK;
-      const roles = data.roles        || DEFAULT_ROLES[data.industria]        || ROLES_FALLBACK;
+      const dirs  = data.direcciones  || DEFAULT_DIRECCIONES[industria]  || DIRECCIONES_FALLBACK;
+      const roles = data.roles        || DEFAULT_ROLES[industria]        || ROLES_FALLBACK;
       onSuccess(data, subsMap, dirs, roles);
     } catch(e) {
       setError("Error al conectar. Intenta de nuevo.");
