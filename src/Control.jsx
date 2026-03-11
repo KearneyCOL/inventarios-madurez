@@ -414,17 +414,33 @@ function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelect
             {(() => {
               const eResps = respuestas.filter(r => r.evaluacion_id === e.id);
               const pct = e.score_global ? null : Math.round((eResps.length / 35) * 100);
-              // Compute partial dim scores from respuestas
               const dimScores = DIMS_META.reduce((acc, d) => {
-                const dResps = eResps.filter(r => r.dimension_key === d.key);
-                acc[d.key] = dResps.length > 0
-                  ? parseFloat((dResps.reduce((s,r)=>s+r.valor,0)/dResps.length).toFixed(2))
-                  : null;
+                const vals = eResps.filter(r => r.dimension_key === d.key);
+                acc[d.key] = vals.length > 0
+                  ? parseFloat((vals.reduce((s,r)=>s+r.valor,0)/vals.length).toFixed(2)) : null;
                 return acc;
               }, {});
+              const globalScore = e.score_global ||
+                (Object.values(dimScores).filter(Boolean).length > 0
+                  ? parseFloat((Object.values(dimScores).filter(Boolean).reduce((a,b)=>a+b,0)/Object.values(dimScores).filter(Boolean).length).toFixed(2))
+                  : null);
               return (<>
-                <ScoreBadge v={e.score_global} pct={e.score_global ? null : pct} />
-                {DIMS_META.map(d => <ScoreBadge key={d.key} v={e[`score_${d.key}`] || dimScores[d.key]} sm />)}
+                <div style={{textAlign:"center"}}>
+                  {globalScore
+                    ? <ScoreBadge v={globalScore}/>
+                    : pct > 0
+                      ? <span style={{fontSize:11,fontWeight:700,color:"#7823DC",background:"#F0E8FF",padding:"2px 7px",borderRadius:99}}>{pct}%</span>
+                      : <span style={{color:"#CCC"}}>—</span>
+                  }
+                </div>
+                {DIMS_META.map(d => {
+                  const v = e[`score_${d.key}`] || dimScores[d.key];
+                  return (
+                    <div key={d.key} style={{textAlign:"center"}}>
+                      {v ? <ScoreBadge v={v} sm/> : <span style={{color:"#CCC",fontSize:11}}>—</span>}
+                    </div>
+                  );
+                })}
               </>);
             })()}
             <div style={{ fontSize: 11, color: "#AAA" }}>
