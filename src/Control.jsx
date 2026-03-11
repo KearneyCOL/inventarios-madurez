@@ -100,7 +100,7 @@ function Login({ onLogin }) {
         boxShadow: "0 40px 100px rgba(0,0,0,0.08)",
       }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:28, display:"block", margin:"0 auto 12px", maxWidth:"100%" }}/>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjUwJSIgeT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iNTAwIiBmaWxsPSIjMUUxRTFFIiBsZXR0ZXItc3BhY2luZz0iNCI+S0VBUk5FWTwvdGV4dD48L3N2Zz4=" alt="Kearney" style={{ height:28, display:"block", margin:"0 auto 12px", maxWidth:"100%" }}/>
           <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase", textAlign:"center" }}>Inventarios · Admin</div>
         </div>
 
@@ -2675,7 +2675,7 @@ export default function ControlApp() {
         display: "flex", flexDirection: "column", padding: "24px 16px",
       }}>
         <div style={{ marginBottom: 32, padding: "0 8px", display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:17, display:"block", marginBottom:6, maxWidth:"100%" }}/>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjUwJSIgeT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInR2lsbCBTYW5zJywnVHJlYnVjaGV0IE1TJywnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iNTAwIiBmaWxsPSIjMUUxRTFFIiBsZXR0ZXItc3BhY2luZz0iNCI+S0VBUk5FWTwvdGV4dD48L3N2Zz4=" alt="Kearney" style={{ height:17, display:"block", marginBottom:6, maxWidth:"100%" }}/>
           <div style={{ fontSize:9, fontWeight:700, color:"#7823DC", letterSpacing:".1em", textTransform:"uppercase" }}>Inventarios · Admin</div>
         </div>
 
