@@ -1730,16 +1730,18 @@ export default function App() {
               </div>
               <button onClick={()=>guardarProgreso(answers)} disabled={saving}
                 style={{
-                  display:"flex",alignItems:"center",gap:6,
-                  padding:"8px 16px",borderRadius:8,border:"none",flexShrink:0,
-                  background: savedOk ? "#D1FAE5" : saving ? "#E8E4DF" : `linear-gradient(135deg,${EC},${ECD})`,
-                  color: savedOk ? "#065F46" : saving ? "#AAA" : "#fff",
-                  fontSize:12,fontWeight:700,cursor:saving?"not-allowed":"pointer",
-                  boxShadow: saving||savedOk ? "none" : `0 2px 10px ${EC}50`,
-                  transition:"all .2s",
+                  display:"flex",alignItems:"center",gap:5,
+                  padding:"7px 15px",borderRadius:20,flexShrink:0,
+                  border: savedOk ? "1.5px solid #6EE7B7" : saving ? "1.5px solid #E8E4DF" : "1.5px solid transparent",
+                  background: savedOk ? "#ECFDF5" : saving ? "#F7F5F2" : `linear-gradient(135deg,${EC},${ECD})`,
+                  color: savedOk ? "#059669" : saving ? "#BBB" : "#fff",
+                  fontSize:11.5,fontWeight:700,cursor:saving?"default":"pointer",
+                  boxShadow: saving||savedOk ? "none" : `0 2px 12px ${EC}40`,
+                  letterSpacing:".01em",
+                  transition:"all .25s ease",
                 }}>
-                {saving ? "⏳" : savedOk ? "✓" : "💾"}
-                <span>{saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar progreso"}</span>
+                <span style={{fontSize:12,lineHeight:1}}>{saving ? "⏳" : savedOk ? "✓" : "↑"}</span>
+                <span>{saving ? "Guardando..." : savedOk ? "Guardado" : "Guardar"}</span>
               </button>
               {getDimScore(dim,answers)&&(
                 <div style={{display:"flex",alignItems:"center",gap:9}}>
