@@ -1653,9 +1653,10 @@ export default function App() {
               boxShadow:"0 4px 16px rgba(0,0,0,0.06)",
             }}>
               <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:20,gap:14}}>
-                <div>
+                <div style={{flex:1}}>
                   <div className="display" style={{fontSize:16,fontWeight:800,color:T.ink,letterSpacing:"-.015em",marginBottom:5}}>{sub.label}</div>
-                  <div style={{fontSize:12,color:T.inkMid}}>{sub.desc}</div>
+                  <div style={{fontSize:12,color:T.inkMid,marginBottom:sub.q?10:0}}>{sub.desc}</div>
+                  {sub.q&&<div style={{fontSize:13,color:T.ink,lineHeight:1.6,fontStyle:"italic",padding:"10px 14px",background:"#F7F3FF",borderRadius:10,borderLeft:"3px solid #7823DC"}}>{sub.q}</div>}
                 </div>
                 {answers[sub.id]>0&&<LvBadge v={answers[sub.id]}/>}
               </div>
