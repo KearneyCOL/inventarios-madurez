@@ -1471,38 +1471,45 @@ export default function App() {
 
   // Función para guardar/sincronizar progreso en cualquier momento
   async function guardarProgreso(ans) {
-    if (!perfil) return;
+    if (!perfil) { console.warn("guardarProgreso: no perfil"); return; }
     setSaving(true); setSavedOk(false);
     try {
+      // Asegurar empresa_id siempre desde empresa actual
+      const eid = empresa?.id || perfil.empresa_id || null;
+
       if (!evalIdRef.current) {
-        // Crear evaluación nueva
-        const { data, error } = await supabase.from("evaluaciones").insert([{
-          direccion:  perfil.direccion  || null,
-          rol:        perfil.rol        || null,
-          empresa_id: perfil.empresa_id || null,
-        }]).select();
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from("evaluaciones")
+          .insert([{ direccion: perfil.direccion||null, rol: perfil.rol||null, empresa_id: eid }])
+          .select("id");
+        if (error) { console.error("insert eval error:", error); setSaving(false); return; }
         evalIdRef.current = data[0].id;
+        console.log("Evaluacion creada:", evalIdRef.current);
       }
-      // Guardar todas las respuestas actuales
+
+      const evalId = evalIdRef.current;
+      const curAnswers = ans || answers;
       const filas = [];
       DIMS.forEach(d => d.subs.forEach(s => {
-        if ((ans||answers)[s.id] > 0) filas.push({
-          evaluacion_id:   evalIdRef.current,
-          subdimension_id: s.id,
-          dimension_key:   d.key,
-          valor:           (ans||answers)[s.id],
+        if (curAnswers[s.id] > 0) filas.push({
+          evaluacion_id: evalId, subdimension_id: s.id,
+          dimension_key: d.key, valor: curAnswers[s.id],
         });
       }));
+
+      console.log("Guardando", filas.length, "respuestas para eval", evalId);
+
       if (filas.length > 0) {
-        // Delete existing and re-insert (simpler than upsert with constraint)
-        await supabase.from("respuestas").delete().eq("evaluacion_id", evalIdRef.current);
-        await supabase.from("respuestas").insert(filas);
+        const { error: delErr } = await supabase.from("respuestas").delete().eq("evaluacion_id", evalId);
+        if (delErr) { console.error("delete error:", delErr); }
+        const { error: insErr } = await supabase.from("respuestas").insert(filas);
+        if (insErr) { console.error("insert respuestas error:", insErr); setSaving(false); return; }
       }
+
       setSavedOk(true);
-      setTimeout(() => setSavedOk(false), 2000);
+      setTimeout(() => setSavedOk(false), 2500);
     } catch(e) {
-      console.error("Error guardando progreso:", e);
+      console.error("guardarProgreso exception:", e);
     }
     setSaving(false);
   }
