@@ -2574,6 +2574,15 @@ export default function ControlApp() {
     return () => s.remove();
   }, []);
 
+  async function fetchDataSilent() {
+    const [{ data: evals }, { data: resps }] = await Promise.all([
+      supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
+      supabase.from("respuestas").select("*"),
+    ]);
+    if (evals) setEvaluaciones(evals);
+    if (resps) setRespuestas(resps);
+  }
+
   async function fetchData() {
     setLoading(true);
     const [{ data: evals }, { data: resps }, { data: emps }] = await Promise.all([
@@ -2587,7 +2596,21 @@ export default function ControlApp() {
     setLoading(false);
   }
 
-  useEffect(() => { if (authed) fetchData(); }, [authed]);
+  useEffect(() => {
+    if (!authed) return;
+    fetchData();
+
+    // ── Realtime: re-fetch silently on any change in evaluaciones or respuestas ──
+    const channel = supabase
+      .channel("admin-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "evaluaciones" },
+        () => fetchDataSilent())
+      .on("postgres_changes", { event: "*", schema: "public", table: "respuestas" },
+        () => fetchDataSilent())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [authed]);
 
   function showToast(msg, type = "success") {
     setToast({ msg, type });
