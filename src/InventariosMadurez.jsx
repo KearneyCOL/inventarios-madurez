@@ -12,6 +12,33 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
+async function actualizarScoresFinales(answers, evalId) {
+  try {
+    const scores = {};
+    DIMS.forEach(d => {
+      const vals = d.subs.map(s => answers[s.id]).filter(v => v > 0);
+      scores[d.key] = vals.length
+        ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2))
+        : null;
+    });
+    const scoreGlobal = parseFloat(
+      (Object.values(scores).filter(Boolean).reduce((a,b)=>a+b,0) /
+        Object.values(scores).filter(Boolean).length).toFixed(2)
+    );
+    await supabase.from("evaluaciones").update({
+      score_global:          scoreGlobal,
+      score_estrategia:      scores.estrategia,
+      score_caracterizacion: scores.caracterizacion,
+      score_procesos:        scores.procesos,
+      score_roles:           scores.roles,
+      score_herramientas:    scores.herramientas,
+      score_indicadores:     scores.indicadores,
+      score_abastecimiento:  scores.abastecimiento,
+    }).eq("id", evalId);
+    console.log("✅ Scores finales actualizados");
+  } catch(e) { console.error("Error actualizando scores:", e); }
+}
+
 async function guardarEvaluacion(answers, perfil = {}) {
   try {
     // Calcular scores por dimensión
@@ -1425,10 +1452,34 @@ export default function App() {
 
   // ─── GUARDAR EN SUPABASE AL LLEGAR AL RESUMEN ────────────────────────────
   const guardadoRef = useRef(false);
+  const evalIdRef   = useRef(null);   // ID de evaluación en progreso
+
+  // Crear fila de evaluación en Supabase al entrar al assessment
+  useEffect(() => {
+    if (view === "assessment" && !evalIdRef.current && perfil) {
+      (async () => {
+        try {
+          const { data } = await supabase.from("evaluaciones").insert([{
+            direccion:  perfil.direccion  || null,
+            rol:        perfil.rol        || null,
+            empresa_id: perfil.empresa_id || null,
+          }]).select();
+          if (data?.[0]) evalIdRef.current = data[0].id;
+        } catch(e) { console.error("Error creando evaluación en vivo:", e); }
+      })();
+    }
+    if (view !== "assessment" && view !== "summary") evalIdRef.current = null;
+  }, [view, perfil]);
+
+  // Guardar scores finales al llegar al resumen
   useEffect(() => {
     if (view === "summary" && !guardadoRef.current) {
       guardadoRef.current = true;
-      guardarEvaluacion(answers, perfil || {});
+      if (evalIdRef.current) {
+        actualizarScoresFinales(answers, evalIdRef.current);
+      } else {
+        guardarEvaluacion(answers, perfil || {});
+      }
     }
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
@@ -1454,7 +1505,21 @@ export default function App() {
 
   const dim=EDIMS[activeDim];
   const sub=dim.subs[activeSub];
-  const setVal=(id,v)=>setAnswers(p=>({...p,[id]:v}));
+  const setVal=(id,v)=>{
+    setAnswers(p=>({...p,[id]:v}));
+    // Upsert respuesta en tiempo real
+    if (evalIdRef.current) {
+      const dimKey = EDIMS.find(d=>d.subs.some(s=>s.id===id))?.key || null;
+      supabase.from("respuestas").upsert([{
+        evaluacion_id:   evalIdRef.current,
+        subdimension_id: id,
+        dimension_key:   dimKey,
+        valor:           v,
+      }], { onConflict: "evaluacion_id,subdimension_id" }).then(({error})=>{
+        if(error) console.error("upsert respuesta:", error);
+      });
+    }
+  };
 
   const totalQ=DIMS.reduce((a,d)=>a+d.subs.length,0);
   const answered=Object.values(answers).filter(v=>v>0).length;
