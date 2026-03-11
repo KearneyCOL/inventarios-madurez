@@ -285,8 +285,21 @@ function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelect
   const [sortDir, setSortDir] = useState("desc");
   const [detail, setDetail] = useState(null);
 
-  const avgScore = evaluaciones.length
-    ? (evaluaciones.reduce((a, e) => a + (e.score_global || 0), 0) / evaluaciones.length).toFixed(2)
+  // Calcular score efectivo desde respuestas si score_global es null
+  const effectiveScore = (e) => {
+    if (e.score_global) return e.score_global;
+    const eResps = respuestas.filter(r => r.evaluacion_id === e.id);
+    if (!eResps.length) return null;
+    const dimScores = DIMS.map(d => {
+      const vals = eResps.filter(r => r.dimension_key === d.key).map(r => r.valor).filter(Boolean);
+      return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+    }).filter(Boolean);
+    return dimScores.length ? dimScores.reduce((a,b)=>a+b,0)/dimScores.length : null;
+  };
+
+  const scores = evaluaciones.map(effectiveScore).filter(Boolean);
+  const avgScore = scores.length
+    ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2)
     : null;
 
   const completas = evaluaciones.filter(e =>
