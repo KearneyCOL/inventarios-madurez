@@ -1454,22 +1454,25 @@ export default function App() {
   const guardadoRef = useRef(false);
   const evalIdRef   = useRef(null);   // ID de evaluación en progreso
 
-  // Crear fila de evaluación en Supabase al entrar al assessment
+  // Crear fila de evaluación en Supabase en cuanto el perfil queda definido
   useEffect(() => {
-    if (view === "assessment" && !evalIdRef.current && perfil) {
-      (async () => {
-        try {
-          const { data } = await supabase.from("evaluaciones").insert([{
-            direccion:  perfil.direccion  || null,
-            rol:        perfil.rol        || null,
-            empresa_id: perfil.empresa_id || null,
-          }]).select();
-          if (data?.[0]) evalIdRef.current = data[0].id;
-        } catch(e) { console.error("Error creando evaluación en vivo:", e); }
-      })();
-    }
-    if (view !== "assessment" && view !== "summary") evalIdRef.current = null;
-  }, [view, perfil]);
+    if (!perfil || evalIdRef.current) return;
+    (async () => {
+      try {
+        const { data } = await supabase.from("evaluaciones").insert([{
+          direccion:  perfil.direccion  || null,
+          rol:        perfil.rol        || null,
+          empresa_id: perfil.empresa_id || null,
+        }]).select();
+        if (data?.[0]) { evalIdRef.current = data[0].id; }
+      } catch(e) { console.error("Error creando evaluación en vivo:", e); }
+    })();
+  }, [perfil]);
+
+  // Resetear evalId si el usuario reinicia
+  useEffect(() => {
+    if (view === "intro") evalIdRef.current = null;
+  }, [view]);
 
   // Guardar scores finales al llegar al resumen
   useEffect(() => {
