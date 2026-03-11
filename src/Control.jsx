@@ -563,12 +563,29 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
   function toggle(arr, setArr, val) { setArr(a => a.includes(val) ? a.filter(x=>x!==val) : [...a, val]); }
 
-  const filtered = useMemo(() => evaluaciones.filter(e => {
+  const filtered = useMemo(() => enriched.filter(e => {
     if (filterDir.length && !filterDir.includes(e.direccion)) return false;
     if (filterRol.length && !filterRol.includes(e.rol)) return false;
     if (filterLvl.length && !filterLvl.includes(Math.round(e.score_global))) return false;
     return true;
-  }), [evaluaciones, filterDir, filterRol, filterLvl]);
+  }), [enriched, filterDir, filterRol, filterLvl]);
+
+  // Enriquecer evaluaciones con scores calculados desde respuestas si score_global es null
+  const enriched = useMemo(() => evaluaciones.map(e => {
+    if (e.score_global) return e;
+    const eResps = respuestas.filter(r => r.evaluacion_id === e.id);
+    if (!eResps.length) return e;
+    const dimScores = DIMS_META.reduce((acc, d) => {
+      const vals = eResps.filter(r => r.dimension_key === d.key);
+      acc[`score_${d.key}`] = vals.length > 0
+        ? parseFloat((vals.reduce((s,r)=>s+(r.valor||0),0)/vals.length).toFixed(2)) : null;
+      return acc;
+    }, {});
+    const dVals = Object.values(dimScores).filter(Boolean);
+    const score_global = dVals.length
+      ? parseFloat((dVals.reduce((a,b)=>a+b,0)/dVals.length).toFixed(2)) : null;
+    return { ...e, ...dimScores, score_global };
+  }), [evaluaciones, respuestas]);
 
   const hasFilters = filterDir.length || filterRol.length || filterLvl.length;
   const RED = "#7823DC";
