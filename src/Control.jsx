@@ -22,7 +22,7 @@ const DIMS = [
   { key: "abastecimiento",  label: "Abastecimiento",   num: "07" },
 ];
 
-const LEVEL_LABELS = ["", "Básico", "Emergente", "Robusto", "End-to-End", "Pivote"];
+const LEVEL_LABELS = ["", "Básico", "Emergente", "Robusto", "Avanzado", "Líder"];
 const LEVEL_COLORS = ["", "#78716C", "#D97706", "#2563EB", "#7C3AED", "#059669"];
 
 const GS = `
@@ -519,8 +519,8 @@ const LV_META = [
   { v:1, label:"Básico",     c:"#78716C", bg:"#FAFAF8" },
   { v:2, label:"Emergente",  c:"#D97706", bg:"#FFFBEB" },
   { v:3, label:"Robusto",    c:"#2563EB", bg:"#EFF6FF" },
-  { v:4, label:"End-to-End", c:"#7C3AED", bg:"#F5F3FF" },
-  { v:5, label:"Pivote",     c:"#059669", bg:"#ECFDF5" },
+  { v:4, label:"Avanzado", c:"#7C3AED", bg:"#F5F3FF" },
+  { v:5, label:"Líder",     c:"#059669", bg:"#ECFDF5" },
 ];
 
 function lvMeta(v) { return LV_META[Math.max(0,Math.round(v)-1)] || LV_META[0]; }
@@ -692,6 +692,12 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
       background: active?(color||RED)+"18":"#FFFFFF",
       color: active?(color||RED):"#999", transition:"all .15s",
     }}>{label}</button>
+  );
+
+  if (!evaluaciones.length) return (
+    <div style={{ padding:"60px", textAlign:"center", color:"#AAA", fontSize:13 }}>
+      No hay evaluaciones aún. Los datos aparecerán aquí cuando los participantes completen el diagnóstico.
+    </div>
   );
 
   return (
@@ -1810,7 +1816,7 @@ function ReportTab({ evaluaciones, respuestas }) {
     return ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][r-1]||"#AAA";
   }
   function lvLabel(v) {
-    return ["","Básico","Emergente","Robusto","End-to-End","Pivote"][Math.round(v)]||"—";
+    return ["","Básico","Emergente","Robusto","Avanzado","Líder"][Math.round(v)]||"—";
   }
 
   async function generatePDF() {
@@ -1883,7 +1889,7 @@ function ReportTab({ evaluaciones, respuestas }) {
       const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
       const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
       const spread    = strongest&&weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
-      const LV_NAMES  = ["","Básico","Emergente","Robusto","End-to-End","Pivote"];
+      const LV_NAMES  = ["","Básico","Emergente","Robusto","Avanzado","Líder"];
       const LV_COLORS_RGB = [[120,113,108],[217,119,6],[37,99,235],[124,58,237],[5,150,105]];
 
       const gapsData = DIMS_META.map(d => {
@@ -2165,7 +2171,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         y += 6;
         setFont("bold", 7, MID);
         doc.text("Referencia de colores:", 16, y); y += 5;
-        ["#1","Básico","#2","Emergente","#3","Robusto","#4","End-to-End","#5","Pivote"].forEach((lbl,i) => {
+        ["#1","Básico","#2","Emergente","#3","Robusto","#4","Avanzado","#5","Líder"].forEach((lbl,i) => {
           if (i%2===0) return;
           const lx = 16 + Math.floor(i/2)*42;
           const rgb = LV_COLORS_RGB[Math.floor(i/2)];
@@ -2616,6 +2622,7 @@ export default function ControlApp() {
   const [empresas, setEmpresas]           = useState([]);
   const [empresaFiltro, setEmpresaFiltro] = useState(null);
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [selected, setSelected] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
@@ -2627,27 +2634,38 @@ export default function ControlApp() {
     return () => s.remove();
   }, []);
 
-  async function fetchDataSilent() {
-    const [{ data: evals }, { data: resps }] = await Promise.all([
-      supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
-      supabase.from("respuestas").select("*"),
-    ]);
-    if (evals) setEvaluaciones(evals);
-    if (resps) setRespuestas(resps);
-  }
-
-  async function fetchData() {
-    setLoading(true);
+  async async function fetchDataSilent() {
     try {
-      const [{ data: evals }, { data: resps }, { data: emps }] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
         supabase.from("respuestas").select("*"),
         supabase.from("empresas").select("*").order("created_at", { ascending: false }),
       ]);
-      setEvaluaciones(evals || []);
-      setRespuestas(resps || []);
-      setEmpresas(emps || []);
+      if (!r1.error) setEvaluaciones(r1.data || []);
+      if (!r2.error) setRespuestas(r2.data || []);
+      if (!r3.error) setEmpresas(r3.data || []);
+    } catch(e) { console.error("fetchDataSilent:", e); }
+  }
+
+  async function fetchData() {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(true);
+    const timeout = setTimeout(() => { setLoading(false); loadingRef.current = false; }, 10000);
+    try {
+      const [r1, r2, r3] = await Promise.all([
+        supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
+        supabase.from("respuestas").select("*"),
+        supabase.from("empresas").select("*").order("created_at", { ascending: false }),
+      ]);
+      if (!r1.error) setEvaluaciones(r1.data || []);
+      if (!r2.error) setRespuestas(r2.data   || []);
+      if (!r3.error) setEmpresas(r3.data     || []);
+    } catch(e) {
+      console.error("fetchData error:", e);
     } finally {
+      clearTimeout(timeout);
+      loadingRef.current = false;
       setLoading(false);
     }
   }
