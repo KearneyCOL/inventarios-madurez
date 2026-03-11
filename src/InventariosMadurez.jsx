@@ -523,6 +523,33 @@ function PerfilModal({onStart}) {
 }
 
 // ─── INTRO TAB ────────────────────────────────────────────────────────────────
+// ─── BANNER GRACIAS (dismissible) ────────────────────────────────────────────
+function BannerGracias() {
+  const [visible, setVisible] = React.useState(() => {
+    try { return localStorage.getItem("banner_gracias_dismissed") !== "1"; } catch { return true; }
+  });
+  if (!visible) return null;
+  return (
+    <div style={{
+      background:"linear-gradient(135deg,#F0E8FF 0%,#E8DCFF 100%)",
+      borderBottom:"1px solid #DDD0F7",
+      padding:"10px 20px 10px 24px",
+      display:"flex", alignItems:"center", gap:10,
+    }}>
+      <span style={{fontSize:16, flexShrink:0}}>👋</span>
+      <p style={{margin:0, fontSize:12, color:"#3D1A6E", lineHeight:1.5, flex:1}}>
+        <strong>Gracias por realizar este ejercicio.</strong>{" "}
+        Tu perspectiva es de mucho valor para trabajar en conjunto hacia las oportunidades identificadas.
+      </p>
+      <button onClick={()=>{ setVisible(false); try{localStorage.setItem("banner_gracias_dismissed","1");}catch{} }}
+        style={{ background:"none", border:"none", cursor:"pointer", fontSize:18,
+          color:"#9B59D6", lineHeight:1, padding:"0 4px", flexShrink:0, opacity:.7 }}
+        title="Cerrar">×</button>
+    </div>
+  );
+}
+
+
 function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
   const total=DIMS.reduce((a,d)=>a+d.subs.length,0);
 
@@ -538,18 +565,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
     <div style={{maxWidth:1060,margin:"0 auto",padding:"36px 36px 52px"}}>
 
       {/* ═══ HERO ═══ */}
-      <div style={{
-        background:"linear-gradient(135deg,#F0E8FF 0%,#E8DCFF 100%)",
-        borderBottom:"1px solid #DDD0F7",
-        padding:"14px 28px",
-        display:"flex", alignItems:"center", gap:12,
-      }}>
-        <span style={{fontSize:20}}>👋</span>
-        <p style={{margin:0, fontSize:13, color:"#3D1A6E", lineHeight:1.6}}>
-          <strong>Gracias por realizar este ejercicio.</strong>{" "}
-          Tu perspectiva es de mucho valor para trabajar en conjunto hacia las oportunidades identificadas en la gestión de inventarios.
-        </p>
-      </div>
+      <BannerGracias/>
       <div className="fade-up hover-lift" style={{
         borderRadius:24,marginBottom:22,overflow:"hidden",position:"relative",
         background:`linear-gradient(150deg,${colorDk} 0%,${color} 50%,${colorDk} 100%)`,

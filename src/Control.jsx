@@ -100,8 +100,8 @@ function Login({ onLogin }) {
         boxShadow: "0 40px 100px rgba(0,0,0,0.08)",
       }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
-          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:26, display:"block", margin:"0 auto 10px"}}/>
-          <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase" }}>Inventarios · Admin</div>
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMzIiIGZpbGw9Im5vbmUiPjx0ZXh0IHg9IjEiIHk9IjI0IiBmb250LWZhbWlseT0iJ0dpbGwgU2FucycsJ1RyZWJ1Y2hldCBNUycsJ0hlbHZldGljYSBOZXVlJyxIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzFFMUUxRSIgbGV0dGVyLXNwYWNpbmc9IjQiPktFQVJORVk8L3RleHQ+PC9zdmc+" alt="Kearney" style={{ height:28, display:"block", margin:"0 auto 12px", maxWidth:"100%" }}/>
+          <div style={{ fontSize:11, fontWeight:700, color:"#7823DC", letterSpacing:".12em", textTransform:"uppercase", textAlign:"center" }}>Inventarios · Admin</div>
         </div>
 
         <input
@@ -2702,8 +2702,8 @@ export default function ControlApp() {
           display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
           boxShadow: loading ? "none" : "0 4px 14px rgba(120,35,220,0.35)",
         }}>
-          <span className={loading ? "spin" : ""} style={{ display: "inline-block", fontSize: 15 }}>🔄</span>
-          {loading ? "Cargando..." : "Actualizar datos"}
+          <span className={loading ? "spin" : ""} style={{ display: "inline-block", fontSize: 14 }}>🔄</span>
+          {loading ? "Cargando..." : "Actualizar"}
         </button>
 
         <button onClick={() => setAuthed(false)} className="btn-action" style={{
@@ -2714,7 +2714,32 @@ export default function ControlApp() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: "auto", padding: "32px 36px" }}>
+      <div style={{ flex: 1, overflow: "auto", padding: "0" }}>
+
+        {/* ── Refresh bar ── */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "10px 36px", background: "#fff",
+          borderBottom: "1px solid #E8E4DF", flexShrink: 0,
+        }}>
+          <div style={{ fontSize: 11, color: "#AAA", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ width:7, height:7, borderRadius:"50%", background: loading ? "#F59E0B" : "#10B981", display:"inline-block" }}/>
+            {loading ? "Actualizando..." : "En vivo · Supabase Realtime"}
+          </div>
+          <button onClick={fetchData} disabled={loading} className="btn-action" style={{
+            display: "flex", alignItems: "center", gap: 7,
+            padding: "8px 20px", borderRadius: 8, border: "none",
+            background: loading ? "#E8E4DF" : "linear-gradient(135deg,#7823DC,#5A1AA0)",
+            color: loading ? "#AAA" : "#fff", fontSize: 12.5, fontWeight: 700,
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: loading ? "none" : "0 2px 10px rgba(120,35,220,0.3)",
+          }}>
+            <span className={loading ? "spin" : ""} style={{ fontSize: 13 }}>🔄</span>
+            {loading ? "Cargando..." : "Actualizar datos"}
+          </button>
+        </div>
+
+        <div style={{ padding: "32px 36px" }}>
         <div style={{ marginBottom: 28 }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
             <div>
@@ -2761,16 +2786,26 @@ export default function ControlApp() {
         <ConfirmModal count={confirmDelete.length} onConfirm={doDelete} onCancel={() => setConfirmDelete(null)} />
       )}
 
+        </div>{/* end padding wrapper */}
       {toast && (
         <div style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 2000,
-          padding: "12px 20px", borderRadius: 12,
-          background: toast.type === "error" ? "#7823DC" : "#059669",
-          color: "#fff", fontWeight: 600, fontSize: 13,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-          animation: "fadeIn .3s ease",
+          padding: "10px 14px 10px 16px", borderRadius: 10,
+          background: toast.type === "error" ? "#FFF1F0" : "#F0FDF4",
+          border: `1px solid ${toast.type === "error" ? "#FECACA" : "#BBF7D0"}`,
+          color: toast.type === "error" ? "#991B1B" : "#166534",
+          fontWeight: 500, fontSize: 12.5,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          animation: "fadeIn .2s ease",
+          display: "flex", alignItems: "center", gap: 10, maxWidth: 320,
         }}>
-          {toast.type === "error" ? "❌" : "✅"} {toast.msg}
+          <span style={{ fontSize: 13 }}>{toast.type === "error" ? "⚠️" : "✓"}</span>
+          <span style={{ flex: 1 }}>{toast.msg}</span>
+          <button onClick={() => setToast(null)} style={{
+            background: "none", border: "none", cursor: "pointer",
+            fontSize: 16, color: "#AAA", lineHeight: 1, padding: "0 2px",
+            flexShrink: 0,
+          }}>×</button>
         </div>
       )}
     </div>
