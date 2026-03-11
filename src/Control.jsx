@@ -377,14 +377,14 @@ function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelect
         </div>
 
         {/* Rows */}
-        {loading ? (
+        {loading && filtered.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center" }}>
             <div className="spin" style={{ display: "inline-block", width: 22, height: 22,
               border: "2px solid #333", borderTopColor: "#7823DC", borderRadius: "50%" }} />
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: "48px", textAlign: "center", color: "#555", fontSize: 13 }}>
-            No hay evaluaciones aún
+          <div style={{ padding: "48px", textAlign: "center", color: "#AAA", fontSize: 13 }}>
+            {search ? "Sin resultados para esa búsqueda" : "No hay evaluaciones aún"}
           </div>
         ) : filtered.map((e, i) => (
           <div key={e.id} className="row-hover"
@@ -2638,15 +2638,18 @@ export default function ControlApp() {
 
   async function fetchData() {
     setLoading(true);
-    const [{ data: evals }, { data: resps }, { data: emps }] = await Promise.all([
-      supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
-      supabase.from("respuestas").select("*"),
-      supabase.from("empresas").select("*").order("created_at", { ascending: false }),
-    ]);
-    setEvaluaciones(evals || []);
-    setRespuestas(resps || []);
-    setEmpresas(emps || []);
-    setLoading(false);
+    try {
+      const [{ data: evals }, { data: resps }, { data: emps }] = await Promise.all([
+        supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
+        supabase.from("respuestas").select("*"),
+        supabase.from("empresas").select("*").order("created_at", { ascending: false }),
+      ]);
+      setEvaluaciones(evals || []);
+      setRespuestas(resps || []);
+      setEmpresas(emps || []);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
