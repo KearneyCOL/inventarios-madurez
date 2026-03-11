@@ -2865,7 +2865,7 @@ export default function ControlApp() {
             onDelete={ids => setConfirmDelete(ids)} loading={loading}
           />
         )}
-        {tab === "analytics" && <AnalyticsTab evaluaciones={evaluaciones} respuestas={respuestas} />}
+        {tab === "analytics" && <AnalyticsTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "reporte" && <ReportTab evaluaciones={empresaFiltro ? evaluaciones.filter(e=>e.empresa_id===empresaFiltro) : evaluaciones} respuestas={respuestas} />}
         {tab === "links" && <LinksTab />}
         {tab === "empresas" && <EmpresasTab empresas={empresas} evaluaciones={evaluaciones} onRefresh={fetchData} showToast={showToast} />}
