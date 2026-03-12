@@ -958,18 +958,29 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
       <AnalyticsCard>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
           <AnalyticsLabel>Análisis de Brechas y Hoja de Ruta</AnalyticsLabel>
-          <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+          <div style={{ display:"flex", gap:6 }}>
             {[
-              { id:"critical", label:`🚨 Críticas (${critGaps.length})`, c:"#DC2626" },
-              { id:"moderate", label:`⚡ Moderadas (${modGaps.length})`, c:"#D97706" },
-              { id:"roadmap",  label:"🗺️ Hoja de Ruta",                  c:"#059669" },
+              { id:"critical", label:`🚨 Críticas`, count: critGaps.length, c:"#DC2626" },
+              { id:"moderate", label:`⚡ Moderadas`, count: modGaps.length, c:"#D97706" },
+              { id:"roadmap",  label:"🗺️ Hoja de Ruta", count: null, c:"#059669" },
             ].map(t=>(
               <button key={t.id} onClick={()=>setGapsView(t.id)} style={{
                 padding:"6px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
                 border:`1.5px solid ${gapsView===t.id?t.c:"#E8E4DF"}`,
                 background: gapsView===t.id?t.c+"15":"#FAFAFA",
                 color: gapsView===t.id?t.c:"#AAA", transition:"all .15s",
-              }}>{t.label}</button>
+                display:"flex", alignItems:"center", gap:5,
+              }}>
+                {t.label}
+                {t.count !== null && (
+                  <span style={{
+                    background: gapsView===t.id ? t.c : "#E8E4DF",
+                    color: gapsView===t.id ? "#fff" : "#888",
+                    borderRadius:99, fontSize:10, fontWeight:800,
+                    padding:"1px 7px", minWidth:18, textAlign:"center",
+                  }}>{t.count}</span>
+                )}
+              </button>
             ))}
           </div>
         </div>
@@ -977,31 +988,47 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         {gapsView === "critical" && (
           critGaps.length === 0
             ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>✅ No hay brechas críticas en la selección actual</div>
-            : <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            : <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 {critGaps.map(g=>{
                   const l = lvMeta(g.score);
                   return (
-                    <div key={g.key} style={{ background:"#FFF8F8", border:"1px solid #FECACA", borderRadius:14, padding:"16px 18px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                        <div style={{ fontSize:22, flexShrink:0 }}>{g.dimIcon}</div>
+                    <div key={g.key} style={{
+                      background:"linear-gradient(135deg,#FFF5F5,#FFF8F8)",
+                      border:"1.5px solid #FECACA", borderRadius:16, padding:"18px 20px",
+                      boxShadow:"0 2px 8px rgba(220,38,38,0.08)",
+                    }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                        <div style={{ width:38, height:38, borderRadius:11, background:"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <span style={{ fontSize:18 }}>{g.dimIcon}</span>
+                        </div>
                         <div style={{ flex:1 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                            <span style={{ fontSize:9, fontWeight:700, color:RED, background:RED+"15", padding:"2px 8px", borderRadius:99 }}>{g.dimNum}</span>
-                            <span style={{ fontSize:13, fontWeight:700, color:"#1A1A18" }}>{g.dimLabel}</span>
-                            <span style={{ padding:"3px 9px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{g.score.toFixed(1)} · {l.label}</span>
+                          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                            <span style={{ fontSize:9, fontWeight:700, color:"#DC2626", background:"#FEE2E2", padding:"2px 7px", borderRadius:99 }}>{g.dimNum}</span>
+                            <span style={{ fontSize:12, fontWeight:800, color:"#1A1A18" }}>{g.dimLabel}</span>
                           </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                            <div style={{ flex:1, height:6, background:"#F0EDE9", borderRadius:99, overflow:"hidden" }}>
-                              <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:l.c, borderRadius:99 }} />
-                            </div>
-                            <span style={{ fontSize:12, fontWeight:800, color:"#DC2626", flexShrink:0 }}>+{g.gap.toFixed(1)} niveles de brecha</span>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label}</span>
+                            <span style={{ fontSize:11, fontWeight:800, color:"#DC2626" }}>Score: {g.score.toFixed(1)}/5</span>
                           </div>
                         </div>
-                        <div style={{ flexShrink:0, textAlign:"center", minWidth:48 }}>
-                          <div style={{ fontSize:9, fontWeight:700, color:"#AAA", textTransform:"uppercase" }}>n</div>
-                          <div style={{ fontSize:20, fontWeight:900, color:"#555" }}>{g.n}</div>
-                          <div style={{ fontSize:9, color:"#AAA" }}>evals</div>
+                        <div style={{ textAlign:"center", flexShrink:0 }}>
+                          <div style={{ fontSize:22, fontWeight:900, color:"#DC2626", lineHeight:1 }}>{g.n}</div>
+                          <div style={{ fontSize:9, color:"#AAA", fontWeight:600 }}>evals</div>
                         </div>
+                      </div>
+                      <div style={{ marginBottom:8 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                          <span style={{ fontSize:10, color:"#AAA" }}>Nivel actual</span>
+                          <span style={{ fontSize:10, fontWeight:800, color:"#DC2626" }}>+{g.gap.toFixed(1)} hasta Líder</span>
+                        </div>
+                        <div style={{ height:8, background:"#FEE2E2", borderRadius:99, overflow:"hidden" }}>
+                          <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:`linear-gradient(90deg,#DC2626,#EF4444)`, borderRadius:99, transition:"width .6s ease" }} />
+                        </div>
+                      </div>
+                      <div style={{ display:"flex", gap:3 }}>
+                        {[1,2,3,4,5].map(v=>(
+                          <div key={v} style={{ flex:1, height:4, borderRadius:99, background: v<=Math.round(g.score)?l.c:"#F0EDE9" }} />
+                        ))}
                       </div>
                     </div>
                   );
@@ -2859,12 +2886,25 @@ export default function ControlApp() {
               </div>
             </div>
             {tab !== "empresas" && tab !== "links" && empresas.length > 0 && (
-              <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <span style={{ fontSize:10, fontWeight:700, color:"#BBB", textTransform:"uppercase", letterSpacing:".1em" }}>Empresa</span>
-                <button onClick={()=>setEmpresaFiltro(null)} style={{ padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer", border:`1.5px solid ${!empresaFiltro?"#7823DC":"#E8E4DF"}`, background:!empresaFiltro?"#7823DC18":"#FAFAFA", color:!empresaFiltro?"#7823DC":"#999" }}>Todas</button>
-                {empresas.map(emp=>(
-                  <button key={emp.id} onClick={()=>setEmpresaFiltro(emp.id)} style={{ padding:"5px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer", border:`1.5px solid ${empresaFiltro===emp.id?emp.color_primary||"#7823DC":"#E8E4DF"}`, background:empresaFiltro===emp.id?(emp.color_primary||"#7823DC")+"18":"#FAFAFA", color:empresaFiltro===emp.id?(emp.color_primary||"#7823DC"):"#999" }}>{emp.nombre}</button>
-                ))}
+                <select
+                  value={empresaFiltro || ""}
+                  onChange={e => setEmpresaFiltro(e.target.value || null)}
+                  style={{
+                    padding:"6px 32px 6px 12px", borderRadius:9, fontSize:12, fontWeight:600,
+                    border:"1.5px solid " + (empresaFiltro ? "#7823DC" : "#E8E4DF"),
+                    background:"#FAFAFA", color: empresaFiltro ? "#7823DC" : "#666",
+                    cursor:"pointer", outline:"none", appearance:"none",
+                    backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat:"no-repeat", backgroundPosition:"right 10px center",
+                  }}
+                >
+                  <option value="">Todas</option>
+                  {empresas.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.nombre}</option>
+                  ))}
+                </select>
               </div>
             )}
           </div>
