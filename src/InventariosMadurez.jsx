@@ -647,7 +647,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
               {n:"7",    l:"Dimensiones"},
               {n:String(total),l:"Sub-dimensiones"},
               {n:"5",    l:"Niveles SoE"},
-              {n:"~45′", l:"Duración"},
+              {n:"7", l:"Dimensiones"},
             ].map((s,i)=>(
               <div key={s.n} style={{
                 padding:"18px 0",
@@ -778,7 +778,7 @@ function ModeloTab({color=T.red, colorDk=T.redDk}) {
               {n:"7",   l:"dimensiones",      c:"#FFFFFF"},
               {n:"35",  l:"sub-dimensiones",  c:"#FFBBBB"},
               {n:"5",   l:"niveles de madurez",c:"#FFD5D5"},
-              {n:"~45′",l:"duración",          c:"#FFCCCC"},
+              {n:"7",l:"dimensiones",       c:"#FFCCCC"},
             ].map(s=>(
               <div key={s.n} style={{
                 background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
