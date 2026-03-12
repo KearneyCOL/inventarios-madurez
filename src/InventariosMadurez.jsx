@@ -582,7 +582,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
 
   const STEPS=[
     {n:"01",icon:"📖",c:color,bg:(color+"18"),label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
-    {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta ~45 min."},
+    {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta con tu equipo."},
     {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
     {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
     {n:"05",icon:"🗺️",c:"#D97706",bg:"#FFFBEB",label:"Define el Plan",  desc:"Prioriza iniciativas en 3 horizontes: 0–6, 6–12 y 12–24 meses."},
@@ -667,7 +667,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
         {[
           {t:"Objetivo",icon:"🎯",ib:"#FEF2F1",ibr:"#FDDCDA",body:"Evaluar la madurez de la gestión de inventarios de Claro en 7 dimensiones clave, identificar brechas frente a mejores prácticas del sector y construir una hoja de ruta que optimice el balance servicio · costo · capital de trabajo."},
-          {t:"Alcance", icon:"🔭",ib:"#EFF6FF",ibr:"#BFDBFE",body:"Cadena de inventarios Telco Retail: B2B (corporativo/pyme) + B2C (prepago/postpago), todas las categorías (dispositivos, CPE, SIM, accesorios, repuestos) y la red de distribución (CDC, tiendas, distribuidores, 3PL)."},
+          {t:"Alcance", icon:"🔭",ib:"#EFF6FF",ibr:"#BFDBFE",body:"UMC, UMM, TyT y TEC. Desde la estrategia de inventarios hasta la ejecución operativa en campo."},
         ].map((c,i)=>(
           <div key={c.t} className={`fade-up-${i+1} hover-lift`} style={{
             background:T.card,borderRadius:18,
@@ -683,25 +683,6 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
             <p style={{fontSize:12.5,color:T.inkMid,lineHeight:1.85,margin:0}}>{c.body}</p>
           </div>
         ))}
-      </div>
-
-      {/* ═══ DELIVERABLES ═══ */}
-      <div className="fade-up-2 hover-lift" style={{background:T.card,borderRadius:18,border:`1px solid ${T.borderSm}`,padding:"26px 28px",marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
-        <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:18}}>Qué obtienes al final</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-          {[
-            {icon:"🎯",bg:"#FEF2F1",bdr:"#FDDCDA",tc:"colorDk",t:"Diagnóstico",      d:"Puntaje 1–5 por dimensión y sub-dimensión con radar y barras."},
-            {icon:"🚨",bg:"#FFF8ED",bdr:"#FFD89B",tc:"#92400E",t:"Brechas críticas", d:"Sub-dimensiones en niveles 1–2 con análisis de estado actual."},
-            {icon:"💡",bg:"#ECFDF5",bdr:"#A7F3D0",tc:"#065F46",t:"Oportunidades",    d:"Impacto cuantificado: % reducción capital, quiebres, fraude."},
-            {icon:"🗺️",bg:"#EFF6FF",bdr:"#BFDBFE",tc:"#1E3A8A",t:"Hoja de ruta",    d:"Plan en 3 horizontes: 0–6, 6–12 y 12–24 meses."},
-          ].map((d,i)=>(
-            <div key={d.t} className={`fade-up-${i+1} hover-lift`} style={{borderRadius:14,padding:"18px 16px",background:d.bg,border:`1px solid ${d.bdr}`}}>
-              <div style={{fontSize:26,marginBottom:12}}>{d.icon}</div>
-              <div className="display" style={{fontSize:12,fontWeight:700,color:d.tc,marginBottom:7,lineHeight:1.3}}>{d.t}</div>
-              <div style={{fontSize:11,color:T.inkMid,lineHeight:1.7}}>{d.d}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ═══ PASO A PASO ═══ */}
@@ -742,7 +723,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
             ¿Listo para comenzar?
           </div>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>
-            El diagnóstico toma ~45 minutos. Necesitarás a tu equipo de Supply, Comercial y Finanzas.
+            Necesitarás a tu equipo de Supply, Comercial y Finanzas.
           </div>
         </div>
         <button className="btn-red" onClick={()=>onNavigate("assessment")} style={{
@@ -1735,10 +1716,6 @@ export default function App() {
                 })}
               </div>
 
-              <div style={{background:T.surface,borderRadius:10,padding:"10px 14px",border:`1px solid ${T.borderSm}`}}>
-                <span style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".1em"}}>Oportunidad: </span>
-                <span style={{fontSize:11.5,color:T.inkMid,lineHeight:1.65}}>{sub.opp}</span>
-              </div>
             </div>
 
             {/* nav */}
