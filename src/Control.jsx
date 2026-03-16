@@ -1039,21 +1039,47 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         {gapsView === "moderate" && (
           modGaps.length === 0
             ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas moderadas</div>
-            : <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            : <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {modGaps.map(g=>{
                   const l = lvMeta(g.score);
                   return (
-                    <div key={g.key} style={{ background:"#FFFBF0", border:"1px solid #FDE68A", borderRadius:14, padding:"14px 16px" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                        <span style={{ fontSize:18 }}>{g.dimIcon}</span>
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>{g.dimLabel}</div>
-                          <div style={{ fontSize:9.5, color:"#AAA" }}>{g.dimNum} · n={g.n}</div>
+                    <div key={g.key} style={{
+                      background:"linear-gradient(135deg,#FFFDF0,#FFFBEB)",
+                      border:"1.5px solid #FDE68A", borderRadius:14, padding:"16px 20px",
+                      boxShadow:"0 2px 8px rgba(217,119,6,0.06)",
+                    }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
+                        <div style={{ width:36, height:36, borderRadius:10, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <span style={{ fontSize:17 }}>{g.dimIcon}</span>
                         </div>
-                        <span style={{ padding:"3px 9px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c }}>{g.score.toFixed(1)}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:2 }}>
+                            <span style={{ fontSize:9, fontWeight:700, color:"#D97706", background:"#FEF3C7", padding:"2px 7px", borderRadius:99 }}>{g.dimNum}</span>
+                            <span style={{ fontSize:13, fontWeight:800, color:"#1A1A18" }}>{g.dimLabel}</span>
+                          </div>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label}</span>
+                            <span style={{ fontSize:11, color:"#D97706", fontWeight:700 }}>Score: {g.score.toFixed(1)}/5 · +{g.gap.toFixed(1)} hasta Líder</span>
+                          </div>
+                        </div>
+                        <div style={{ textAlign:"center", flexShrink:0 }}>
+                          <div style={{ fontSize:20, fontWeight:900, color:"#D97706", lineHeight:1 }}>{g.n}</div>
+                          <div style={{ fontSize:9, color:"#AAA", fontWeight:600 }}>evals</div>
+                        </div>
                       </div>
-                      <div style={{ height:5, background:"#F0EDE9", borderRadius:99, overflow:"hidden" }}>
-                        <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:l.c, borderRadius:99 }} />
+                      <div style={{ marginBottom:6 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                          <span style={{ fontSize:10, color:"#AAA" }}>Nivel actual</span>
+                          <span style={{ fontSize:10, fontWeight:700, color:"#D97706" }}>{Math.round((g.score/5)*100)}% del máximo</span>
+                        </div>
+                        <div style={{ height:7, background:"#FEF3C7", borderRadius:99, overflow:"hidden" }}>
+                          <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:`linear-gradient(90deg,#D97706,#F59E0B)`, borderRadius:99 }} />
+                        </div>
+                      </div>
+                      <div style={{ display:"flex", gap:3 }}>
+                        {[1,2,3,4,5].map(v=>(
+                          <div key={v} style={{ flex:1, height:4, borderRadius:99, background: v<=Math.round(g.score)?l.c:"#F0EDE9" }} />
+                        ))}
                       </div>
                     </div>
                   );

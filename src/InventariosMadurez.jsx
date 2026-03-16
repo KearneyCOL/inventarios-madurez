@@ -582,10 +582,8 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
 
   const STEPS=[
     {n:"01",icon:"📖",c:color,bg:(color+"18"),label:"Lee el Modelo",   desc:"Revisa las 7 dimensiones y la escala de madurez SoE antes de evaluar."},
-    {n:"02",icon:"👥",c:"#2563EB",bg:"#EFF6FF",label:"Convoca al equipo",desc:"Supply, Comercial, Finanzas, Ops y TI. Sesión conjunta con tu equipo."},
-    {n:"03",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que describe la situación actual."},
-    {n:"04",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar, brechas críticas y oportunidades con impacto cuantificado."},
-    {n:"05",icon:"🗺️",c:"#D97706",bg:"#FFFBEB",label:"Define el Plan",  desc:"Prioriza iniciativas en 3 horizontes: 0–6, 6–12 y 12–24 meses."},
+    {n:"02",icon:"📝",c:"#7C3AED",bg:"#F5F3FF",label:"Evalúa las 35",   desc:"Para cada sub-dimensión elige el nivel que mejor describe la operación actual."},
+    {n:"03",icon:"📊",c:"#059669",bg:"#ECFDF5",label:"Lee el Resumen",  desc:"Radar de resultados por cada dimensión, junto con oportunidades clave para la evolución de la administración de inventarios."},
   ];
 
   return (
@@ -646,8 +644,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
             {[
               {n:"7",    l:"Dimensiones"},
               {n:String(total),l:"Sub-dimensiones"},
-              {n:"5",    l:"Niveles SoE"},
-              {n:"7", l:"Dimensiones"},
+              {n:"5",    l:"Niveles de excelencia"},
             ].map((s,i)=>(
               <div key={s.n} style={{
                 padding:"18px 0",
@@ -666,8 +663,8 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
       {/* ═══ OBJETIVO + ALCANCE ═══ */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
         {[
-          {t:"Objetivo",icon:"🎯",ib:"#FEF2F1",ibr:"#FDDCDA",body:"Evaluar la madurez de la gestión de inventarios de Claro en 7 dimensiones clave, identificar brechas frente a mejores prácticas del sector y construir una hoja de ruta que optimice el balance servicio · costo · capital de trabajo."},
-          {t:"Alcance", icon:"🔭",ib:"#EFF6FF",ibr:"#BFDBFE",body:"UMC, UMM, TyT y TEC. Desde la estrategia de inventarios hasta la ejecución operativa en campo."},
+          {t:"Objetivo",icon:"🎯",ib:"#FEF2F1",ibr:"#FDDCDA",body:"Evaluar los estados de excelencia de la administración de inventarios de Claro, a través del análisis de 7 dimensiones clave, para identificar brechas y oportunidades frente a mejores prácticas del sector."},
+          {t:"Alcance", icon:"🔭",ib:"#EFF6FF",ibr:"#BFDBFE",body:"Evaluar el proceso de administración de inventarios para UMC, UMM, TyT y TEC, analizando desde la estrategia de inventarios hasta la ejecución operativa."},
         ].map((c,i)=>(
           <div key={c.t} className={`fade-up-${i+1} hover-lift`} style={{
             background:T.card,borderRadius:18,
@@ -722,9 +719,7 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
           <div className="display" style={{fontSize:22,fontWeight:900,color:"#fff",letterSpacing:"-.02em",marginBottom:6}}>
             ¿Listo para comenzar?
           </div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>
-            Necesitarás a tu equipo de Supply, Comercial y Finanzas.
-          </div>
+
         </div>
         <button className="btn-red" onClick={()=>onNavigate("assessment")} style={{
           padding:"16px 40px",borderRadius:14,border:"2px solid rgba(255,255,255,0.3)",
@@ -775,10 +770,9 @@ function ModeloTab({color=T.red, colorDk=T.redDk}) {
           </div>
           <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
             {[
-              {n:"7",   l:"dimensiones",      c:"#FFFFFF"},
-              {n:"35",  l:"sub-dimensiones",  c:"#FFBBBB"},
-              {n:"5",   l:"niveles de madurez",c:"#FFD5D5"},
-              {n:"7",l:"dimensiones",       c:"#FFCCCC"},
+              {n:"7",   l:"dimensiones",        c:"#FFFFFF"},
+              {n:"35",  l:"sub-dimensiones",    c:"#FFBBBB"},
+              {n:"5",   l:"niveles de excelencia",c:"#FFD5D5"},
             ].map(s=>(
               <div key={s.n} style={{
                 background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
@@ -1167,7 +1161,45 @@ function SummaryTab({answers, perfil, color=T.red, colorDk=T.redDk}) {
       </div>
 
 
-      {/* MODERATE GAPS */}
+      {/* PRINCIPALES OPORTUNIDADES */}
+      {([...critGaps,...modGaps].length>0)&&(
+        <div className="fade-up-3" style={{borderRadius:18,border:"1.5px solid #7823DC40",padding:"24px 26px",marginBottom:14,background:"#FDFBFF"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+            <div style={{width:38,height:38,borderRadius:11,background:"#F0E8FF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <span style={{fontSize:18}}>🎯</span>
+            </div>
+            <div>
+              <div className="display" style={{fontSize:15,fontWeight:800,color:"#5A1AA0"}}>Principales Oportunidades</div>
+              <div style={{fontSize:11,color:"#9B59D6",marginTop:2}}>Top {Math.min(5,[...critGaps,...modGaps].length)} priorizadas por impacto</div>
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[...critGaps,...modGaps].slice(0,5).map((g,idx)=>(
+              <div key={g.sub.id} style={{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 16px",borderRadius:12,
+                background:idx===0?"#F0E8FF":idx===1?"#F5F1FF":"#FAFAFA",
+                border:`1px solid ${idx<2?"#DDD0F7":"#EEDEFF"}`}}>
+                <div style={{width:24,height:24,borderRadius:99,background:"#7823DC",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                  <span style={{fontSize:10,fontWeight:900,color:"#fff"}}>#{idx+1}</span>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <span style={{fontSize:14}}>{g.dim.icon}</span>
+                    <span className="display" style={{fontSize:12,fontWeight:700,color:"#1A1A18"}}>{g.sub.label}</span>
+                    <span style={{fontSize:9.5,color:"#9B59D6",background:"#F0E8FF",padding:"2px 8px",borderRadius:99,fontWeight:600}}>{g.dim.label}</span>
+                  </div>
+                  <div style={{fontSize:11.5,color:"#5A1AA0",lineHeight:1.6,fontStyle:"italic"}}>{g.sub.opp}</div>
+                </div>
+                <div style={{textAlign:"center",flexShrink:0}}>
+                  <div style={{fontSize:9,color:"#AAA",fontWeight:600,textTransform:"uppercase"}}>Score</div>
+                  <div style={{fontSize:16,fontWeight:900,color:g.score<=2?"#DC2626":"#D97706"}}>{g.score.toFixed(1)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TODAS LAS OPORTUNIDADES */}
       {([...critGaps,...modGaps].length>0)&&(
         <div className="fade-up-4" style={{borderRadius:18,border:"1.5px solid #FDE68A",padding:"24px 26px",marginBottom:14,background:"#FFFBF0",boxShadow:"0 4px 16px rgba(217,119,6,0.07)"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
@@ -1609,14 +1641,14 @@ export default function App() {
                         <div style={{height:"100%",width:`${(sc/5)*100}%`,background:getLv(Math.round(sc)).c,borderRadius:99,transition:"width .4s"}}/>
                       </div>
                     )}
-                  </button>
+                  </div>
                   {active&&(
                     <div style={{paddingLeft:30,paddingBottom:6,background:"#FFFAF9"}}>
                       {d.subs.map((s,j)=>(
-                        <button key={s.id} onClick={()=>setActiveSub(j)} style={{
+                        <div key={s.id} style={{
                           display:"block",width:"100%",textAlign:"left",
                           padding:"4px 10px",borderRadius:7,border:"none",
-                          background:j===activeSub?"#FFF1F0":"transparent",cursor:"pointer",marginBottom:1,
+                          background:j===activeSub?"#FFF1F0":"transparent",cursor:"default",marginBottom:1,
                         }}>
                           <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?EC:answers[s.id]?getLv(answers[s.id]).text:T.inkSoft}}>
                             {answers[s.id]?"●":"○"} {s.label}
