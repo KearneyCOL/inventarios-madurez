@@ -512,21 +512,65 @@ function MonitorTab({ evaluaciones, respuestas, empresas=[], selected, setSelect
 
 // ─── SHARED DIMS META (with icons + sub-dimension labels for gaps) ────────────
 const DIMS_META = [
-  { key:"estrategia",      label:"Estrategia de Gestión",   num:"01", icon:"🎯",
-    subs:["Objetivos & trade-offs","Políticas por canal","Diseño de red","Gobernanza S&OP","Riesgos y resiliencia"] },
-  { key:"caracterizacion", label:"Caracterización",          num:"02", icon:"🏷️",
-    subs:["Segmentación ABC/XYZ","Atributos & trazabilidad","Ciclo de vida y SLOB","Ubicación y propiedad","Retornos y condición"] },
-  { key:"procesos",        label:"Procesos",                 num:"03", icon:"⚙️",
-    subs:["Planeación & reposición","Asignación omnicanal","Ejecución física","Control & exactitud","Excepciones y retornos"] },
-  { key:"roles",           label:"Roles y Responsabilidades",num:"04", icon:"👥",
-    subs:["Modelo operativo & RACI","Interfaces clave","Gestión de terceros","Capacidades y formación","Incentivos & accountability"] },
-  { key:"herramientas",    label:"Herramientas",             num:"05", icon:"🔧",
-    subs:["Arquitectura core","Herramientas de planificación","Visibilidad & trazabilidad","Datos & analítica","Automatización"] },
-  { key:"indicadores",     label:"Indicadores",              num:"06", icon:"📊",
-    subs:["Servicio al cliente","Eficiencia & capital","Exactitud & pérdidas","Salud del inventario","Cumplimiento & riesgo"] },
-  { key:"abastecimiento",  label:"Abastecimiento",           num:"07", icon:"📦",
-    subs:["Dispositivos","CPE/routers/STB","SIM/eSIM & kits","Accesorios","Repuestos/refurb/swap"] },
+  { key:"estrategia", label:"Estrategia de Gestión", num:"01", icon:"🎯",
+    subs:["Objetivos & trade-offs", "Políticas por canal/segmento", "Diseño de red y posicionamiento", "Gobernanza y alineación", "Riesgos y resiliencia"],
+    subDetails:[
+      {label:"Objetivos & trade-offs", desc:"Servicio, costo, capital de trabajo", opp:"Objetivos dinámicos: se ajustan con datos/analítica y optimizan continuamente servicio vs costo vs capital.", ndesc:["No hay objetivos claros; se repone 'para no quedarnos sin stock'.", "Hay objetivos generales (p. ej., 'tener cobertura'), pero se aplican de forma irregular.", "Objetivos definidos por canal/categoría; se usan de forma consistente y se revisan periódicamente.", "Objetivos acordados entre áreas y bajados a nivel de productos/ubicaciones; guían la planeación.", "Objetivos dinámicos: se ajustan con datos/analítica y optimizan continuamente servicio vs costo vs capital."]},
+      {label:"Políticas por canal/segmento", desc:"B2B/B2C, SS/ROP por canal", opp:"Políticas automatizadas y optimizadas (según demanda y restricciones) con revisión continua.", ndesc:["No hay políticas por canal; se atiende por urgencias y disponibilidad.", "Hay algunas reglas por canal (p. ej., mínimos), pero no son consistentes ni siempre se cumplen.", "Políticas claras por canal/segmento (niveles objetivo, reposición); se cumplen en la mayoría de los casos.", "Políticas integradas con la promesa comercial y la capacidad logística; se ajustan por temporada/eventos.", "Políticas automatizadas y optimizadas (según demanda y restricciones) con revisión continua."]},
+      {label:"Diseño de red y posicionamiento", desc:"CDC, tiendas, hubs, técnicos", opp:"Red y posicionamiento optimizados con simulaciones/analítica; ajustes ágiles ante cambios y disrupciones.", ndesc:["Se decide por historial o 'como siempre', sin análisis formal.", "Se hacen ajustes puntuales cuando hay problemas, con análisis básico.", "Hay un diseño de red y reglas de distribución definidas; se revisa cuando cambian volúmenes/canales.", "Decisiones basadas en análisis de costo-servicio y tiempos; coordinación de punta a punta (CD-tiendas-última milla).", "Red y posicionamiento optimizados con simulaciones/analítica; ajustes ágiles ante cambios y disrupciones."]},
+      {label:"Gobernanza y alineación", desc:"S&OP/S&OE, Comercial, Finanzas", opp:"Gobernanza madura: decisiones rápidas con escenarios, y alineación extendida con proveedores y logística.", ndesc:["Cada área decide por su lado; no hay foros ni reglas claras de decisión.", "Hay reuniones ocasionales, pero sin decisiones sostenidas ni seguimiento.", "Existe un proceso regular de planeación/ejecución con acuerdos y seguimiento de acciones.", "Gobernanza formal con responsables, datos comunes y decisiones end-to-end (demanda-abasto-inventario).", "Gobernanza madura: decisiones rápidas con escenarios, y alineación extendida con proveedores y logística."]},
+      {label:"Riesgos y resiliencia", desc:"Disrupciones, fraude, regulación", opp:"Resiliencia avanzada: alertas tempranas, simulación de escenarios y respuesta coordinada con terceros.", ndesc:["No se gestionan riesgos; se reacciona cuando el problema ocurre.", "Hay controles básicos, pero sin análisis de riesgos ni planes de contingencia claros.", "Riesgos identificados y controles definidos; planes básicos de contingencia.", "Gestión proactiva: monitoreo, controles antifraude/seguridad y planes de continuidad probados.", "Resiliencia avanzada: alertas tempranas, simulación de escenarios y respuesta coordinada con terceros."]}] },
+  { key:"caracterizacion", label:"Caracterización", num:"02", icon:"🏷️",
+    subs:["Segmentación ABC/XYZ", "Atributos & trazabilidad", "Ciclo de vida y obsolescencia", "Ubicación y propiedad", "Retornos y condición"],
+    subDetails:[
+      {label:"Segmentación ABC/XYZ", desc:"Categoría, criticidad, valor-volumen", opp:"Segmentación avanzada y dinámica: se ajusta con analítica (demanda/riesgo) y mejora continuamente.", ndesc:["No se clasifica; todo se trata igual.", "Clasificación básica hecha manualmente y sin actualización frecuente.", "Segmentación estandarizada y actualizada periódicamente.", "La segmentación se usa para definir políticas (niveles, conteos, seguridad) y prioridades por canal/ubicación.", "Segmentación avanzada y dinámica: se ajusta con analítica (demanda/riesgo) y mejora continuamente."]},
+      {label:"Atributos & trazabilidad", desc:"Serial/IMEI, lotes, caducidad", opp:"Trazabilidad casi en tiempo real con controles automáticos y analítica para detectar anomalías/fraude.", ndesc:["Trazabilidad limitada o inexistente; se pierde el rastro entre movimientos.", "Se registra en algunos puntos, pero con errores y registros manuales.", "Trazabilidad consistente en sistemas para lo crítico; controles para evitar duplicados/errores.", "Trazabilidad de punta a punta (entrada-movimiento-venta-posventa) y conciliaciones regulares entre sistemas.", "Trazabilidad casi en tiempo real con controles automáticos y analítica para detectar anomalías/fraude."]},
+      {label:"Ciclo de vida y obsolescencia", desc:"SLOB, lanzamientos, fin de vida", opp:"Gestión avanzada: predicción de obsolescencia y decisiones tempranas (mix, precios, devoluciones, swap).", ndesc:["No se planifica el ciclo de vida; se acumula inventario obsoleto.", "Acciones puntuales (promos/liquidaciones) cuando el inventario ya está envejecido.", "Planificación básica de lanzamientos y fin de vida; seguimiento de inventario envejecido.", "Gestión integrada: planes de lanzamiento/retirada con Comercial y proveedores; metas de envejecimiento/obsolescencia.", "Gestión avanzada: predicción de obsolescencia y decisiones tempranas (mix, precios, devoluciones, swap)."]},
+      {label:"Ubicación y propiedad", desc:"Consignación, 3PL, tiendas, técnicos", opp:"Visibilidad casi en tiempo real con integraciones/alertas y control contractual y operativo robusto.", ndesc:["No hay visibilidad completa; se desconoce parte del inventario fuera del CD.", "Visibilidad a nivel general, pero con datos desactualizados o inconsistentes.", "Inventario identificado por ubicación y dueño en sistemas; conciliaciones periódicas.", "Visibilidad end-to-end con reglas claras de propiedad y responsabilidades; conciliaciones frecuentes.", "Visibilidad casi en tiempo real con integraciones/alertas y control contractual y operativo robusto."]},
+      {label:"Retornos y condición", desc:"Nuevo, refurb, swap, scrap", opp:"Gestión optimizada: automatización, analítica de fallas y recuperación de valor (economía circular).", ndesc:["No se controla bien la condición; se mezclan estados y hay reprocesos.", "Separación básica con registros manuales y poca trazabilidad.", "Estados definidos y registrados en sistema; proceso estándar para retornos/garantías.", "Gestión integrada con posventa/proveedores: clasificación, pruebas, rutas y KPIs de ciclo.", "Gestión optimizada: automatización, analítica de fallas y recuperación de valor (economía circular)."]}] },
+  { key:"procesos", label:"Procesos", num:"03", icon:"⚙️",
+    subs:["Planeación & reposición", "Asignación omnicanal", "Ejecución física", "Control & exactitud", "Excepciones y devoluciones"],
+    subDetails:[
+      {label:"Planeación & reposición", desc:"DRP, min-max, MEIO", opp:"Planeación optimizada con analítica/automatización (mejor pronóstico, escenarios y ajustes continuos).", ndesc:["Se repone de forma reactiva (cuando se agota o cuando alguien lo pide).", "Planificación básica con reglas simples/Excel; depende de personas clave.", "Proceso definido con parámetros (mínimos/máximos, coberturas) y revisión regular.", "Planeación integrada por canal/ubicación con coordinación demanda-abasto y control de excepciones.", "Planeación optimizada con analítica/automatización (mejor pronóstico, escenarios y ajustes continuos)."]},
+      {label:"Asignación omnicanal", desc:"ATP/CTP, reservas omnicanal", opp:"Asignación optimizada en tiempo real con reglas dinámicas y cumplimiento consistente de la promesa.", ndesc:["No hay visibilidad confiable; se promete sin confirmar inventario.", "Visibilidad parcial; reservas manuales y conflictos entre canales.", "Reglas claras de asignación; se puede reservar y ver disponibilidad en la mayoría de casos.", "Disponibilidad integrada (CD-tiendas-online) con prioridades por canal y control de sobreventa.", "Asignación optimizada en tiempo real con reglas dinámicas y cumplimiento consistente de la promesa."]},
+      {label:"Ejecución física", desc:"Recepción, almacenaje, picking", opp:"Ejecución optimizada: automatización, productividad alta y trazabilidad detallada en tiempo real.", ndesc:["Procesos poco definidos; alta variabilidad y errores frecuentes.", "Procedimientos básicos; controles manuales y calidad irregular.", "Procesos estandarizados y medidos; formación y controles de calidad regulares.", "Ejecución integrada con herramientas (movilidad/escaneo) y mejora continua basada en datos.", "Ejecución optimizada: automatización, productividad alta y trazabilidad detallada en tiempo real."]},
+      {label:"Control & exactitud", desc:"Conteos cíclicos, shrinkage", opp:"Exactitud líder: controles preventivos y analítica para detectar desviaciones/pérdidas temprano.", ndesc:["Exactitud baja; diferencias frecuentes entre sistema y físico.", "Conteos esporádicos; correcciones reactivas y poco análisis de causa.", "Conteos cíclicos y auditorías planificadas; análisis básico de variaciones.", "Alta exactitud sostenida: controles por riesgo, investigación de causas y acciones correctivas.", "Exactitud líder: controles preventivos y analítica para detectar desviaciones/pérdidas temprano."]},
+      {label:"Excepciones y devoluciones", desc:"RMA, devoluciones, reparación", opp:"Líder: automatización, diagnóstico rápido y recuperación de valor (refurb, reutilización, scrap controlado).", ndesc:["No hay proceso claro; devoluciones se acumulan y se pierde visibilidad.", "Proceso básico y manual; tiempos altos y poca visibilidad del estado.", "Proceso estandarizado con estados en sistema; tiempos y responsabilidades definidos.", "Integrado con posventa/proveedores/logística: trazabilidad end-to-end y KPIs de ciclo.", "Líder: automatización, diagnóstico rápido y recuperación de valor (refurb, reutilización, scrap controlado)."]}] },
+  { key:"roles", label:"Roles y Responsabilidades", num:"04", icon:"👥",
+    subs:["Modelo operativo & RACI", "Coordinación entre áreas", "Gestión de terceros", "Capacidades y formación", "Incentivos & accountability"],
+    subDetails:[
+      {label:"Modelo operativo & RACI", desc:"Dueños de proceso E2E", opp:"Modelo operativo optimizado: accountability fuerte, decisiones ágiles y mejora continua sostenida.", ndesc:["No están claros; depende de personas y se generan 'zonas grises'.", "Roles definidos de forma parcial; aún hay solapamientos o vacíos.", "RACI definido y conocido; responsabilidades claras para la mayoría de actividades.", "Dueños de proceso E2E con autoridad y rutinas de gestión; escalamiento definido.", "Modelo operativo optimizado: accountability fuerte, decisiones ágiles y mejora continua sostenida."]},
+      {label:"Coordinación entre áreas", desc:"Comercial, Finanzas, Operaciones, TI", opp:"Colaboración avanzada: planificación conjunta, escenarios y decisiones alineadas end-to-end.", ndesc:["Trabajo en silos; hay reprocesos y conflictos frecuentes.", "Coordinación por casos; acuerdos informales y poca disciplina.", "Rutinas regulares de coordinación con datos comunes y compromisos claros.", "Gestión integrada: decisiones basadas en un solo 'dato oficial' y resolución rápida de conflictos.", "Colaboración avanzada: planificación conjunta, escenarios y decisiones alineadas end-to-end."]},
+      {label:"Gestión de terceros", desc:"OEM, 3PL, distribuidores, dealers", opp:"Gestión optimizada: colaboración avanzada, incentivos alineados y desempeño sobresaliente.", ndesc:["No hay control claro; se confía en reportes sin verificación.", "Acuerdos básicos; seguimiento esporádico.", "Indicadores y acuerdos de servicio definidos; conciliaciones y auditorías periódicas.", "Gestión integrada: visibilidad compartida, mejora conjunta y manejo de riesgos con terceros.", "Gestión optimizada: colaboración avanzada, incentivos alineados y desempeño sobresaliente."]},
+      {label:"Capacidades y formación", desc:"Planificación, analítica, operación", opp:"Excelencia: desarrollo continuo (certificaciones/mentoría) basado en brechas y necesidades.", ndesc:["No hay formación estructurada; se aprende 'sobre la marcha'.", "Capacitación básica para roles críticos; iniciativas puntuales.", "Plan de formación por rol; conocimientos consistentes.", "Capacidades avanzadas y comunidades de práctica (mejora de procesos y analítica).", "Excelencia: desarrollo continuo (certificaciones/mentoría) basado en brechas y necesidades."]},
+      {label:"Incentivos & accountability", desc:"SLAs, KPIs, consecuencias", opp:"Incentivos optimizados: foco en resultados end-to-end y mejora continua sin 'juegos' de métricas.", ndesc:["No hay indicadores ni consecuencias claras; se mide poco.", "Algunos indicadores existen, pero no influyen en prioridades ni decisiones.", "Indicadores definidos por rol/área; seguimiento regular y planes de acción.", "Incentivos/acuerdos alineados entre áreas; accountability real y gestión por desempeño.", "Incentivos optimizados: foco en resultados end-to-end y mejora continua sin 'juegos' de métricas."]}] },
+  { key:"herramientas", label:"Herramientas", num:"05", icon:"🔧",
+    subs:["Arquitectura core", "Herramientas de planificación", "Visibilidad & trazabilidad", "Datos & analítica", "Automatización"],
+    subDetails:[
+      {label:"Arquitectura core", desc:"ERP/OMS/WMS e integración", opp:"Integración en tiempo real, alta confiabilidad y rápida incorporación de nuevos canales.", ndesc:["Sistemas desconectados; mucha operación manual y datos inconsistentes.", "Integración parcial; se usan archivos/ajustes manuales para conciliar.", "Integraciones estándar para procesos clave; información razonablemente confiable.", "Integración end-to-end con conciliaciones automáticas; baja duplicidad de datos.", "Integración en tiempo real, alta confiabilidad y rápida incorporación de nuevos canales."]},
+      {label:"Herramientas de planificación", desc:"APS/DRP, pronóstico, S&OP", opp:"Planeación avanzada: modelos predictivos/optimización y recomendaciones automáticas.", ndesc:["Sin herramientas; se planea manualmente.", "Herramientas básicas (Excel/reportes); poca automatización.", "Herramienta formal para pronóstico/reposición; uso consistente y parámetros controlados.", "Planeación integrada con escenarios y gestión de excepciones; datos compartidos entre áreas.", "Planeación avanzada: modelos predictivos/optimización y recomendaciones automáticas."]},
+      {label:"Visibilidad & trazabilidad", desc:"Serialización, RFID, track&trace", opp:"Visibilidad líder: monitoreo en tiempo real y analítica para anticipar riesgos/desviaciones.", ndesc:["Visibilidad limitada; se desconoce ubicación/estado con frecuencia.", "Visibilidad básica con registros manuales o atrasados.", "Visibilidad estandarizada en sistemas para la mayoría de movimientos; trazabilidad donde aplica.", "Visibilidad end-to-end y casi en tiempo real; alertas por inconsistencias.", "Visibilidad líder: monitoreo en tiempo real y analítica para anticipar riesgos/desviaciones."]},
+      {label:"Datos & analítica", desc:"Lakehouse, BI, modelos, calidad", opp:"Analítica predictiva/prescriptiva: recomendaciones automáticas y mejora continua basada en aprendizaje.", ndesc:["Datos poco confiables; se decide por intuición.", "Reportes básicos; mucha limpieza manual de datos.", "Datos gobernados para inventarios; tableros regulares y métricas confiables.", "Analítica avanzada para decisiones (segmentación, causas, escenarios) con datos integrados.", "Analítica predictiva/prescriptiva: recomendaciones automáticas y mejora continua basada en aprendizaje."]},
+      {label:"Automatización", desc:"RPA, APIs/EDI, alertas, movilidad", opp:"Automatización avanzada: orquestación en tiempo real y mejora continua de flujos.", ndesc:["Todo es manual; alta dependencia de correos y aprobaciones informales.", "Automatización puntual; poca estandarización.", "Automatización en procesos clave; uso de movilidad/escaneo en operación.", "Automatización end-to-end con alertas, integraciones y controles; baja intervención manual.", "Automatización avanzada: orquestación en tiempo real y mejora continua de flujos."]}] },
+  { key:"indicadores", label:"Indicadores", num:"06", icon:"📊",
+    subs:["Servicio al cliente", "Eficiencia & capital", "Exactitud & pérdidas", "Salud del inventario", "Cumplimiento & riesgo"],
+    subDetails:[
+      {label:"Servicio al cliente", desc:"Fill rate, OTIF, backorders, NPS", opp:"Gestión optimizada: alertas tempranas y mejora continua basada en datos; servicio predecible.", ndesc:["No se mide de forma consistente; se conoce por quejas.", "Se mide ocasionalmente con reportes manuales; poca acción correctiva.", "Indicadores definidos y revisados regularmente; planes de acción cuando hay desviaciones.", "Indicadores integrados por canal/segmento y conectados a decisiones de inventario y logística.", "Gestión optimizada: alertas tempranas y mejora continua basada en datos; servicio predecible."]},
+      {label:"Eficiencia & capital", desc:"Rotación, DIO, capital de trabajo", opp:"Optimización continua del capital con disciplina sostenida y modelos/alertas.", ndesc:["No se mide o no se usa para gestionar.", "Se mide a nivel general, sin palancas claras de mejora.", "Indicadores por categoría/canal; seguimiento regular y acciones.", "Gestión integrada con Finanzas: metas, trade-offs y decisiones basadas en datos.", "Optimización continua del capital con disciplina sostenida y modelos/alertas."]},
+      {label:"Exactitud & pérdidas", desc:"Accuracy, shrinkage, ajustes", opp:"Control avanzado: detección temprana con analítica y reducción sostenida de pérdidas.", ndesc:["No hay medición confiable; ajustes frecuentes sin explicación.", "Se registran ajustes, pero con poca investigación y prevención.", "Indicadores con análisis de causa y acciones correctivas.", "Control proactivo por ubicación/proceso, auditorías dirigidas y prevención.", "Control avanzado: detección temprana con analítica y reducción sostenida de pérdidas."]},
+      {label:"Salud del inventario", desc:"Aging, SLOB, write-offs, DOH", opp:"Gestión optimizada: predicción de riesgo y acciones tempranas que minimizan obsolescencia.", ndesc:["No se mide; se detecta tarde cuando ya hay pérdidas.", "Se mide de forma básica; acciones reactivas tardías.", "Indicadores definidos; revisión regular y planes de acción.", "Gestión integrada con Comercial/Finanzas: prevención y recuperación de valor.", "Gestión optimizada: predicción de riesgo y acciones tempranas que minimizan obsolescencia."]},
+      {label:"Cumplimiento & riesgo", desc:"Fraude, auditoría, regulatorio", opp:"Gestión líder: controles preventivos y analítica antifraude con cumplimiento robusto en toda la red.", ndesc:["No se mide; controles mínimos.", "Controles básicos; medición parcial.", "Indicadores y controles definidos; auditorías periódicas.", "Gestión integrada: monitoreo, cumplimiento consistente y respuesta a hallazgos.", "Gestión líder: controles preventivos y analítica antifraude con cumplimiento robusto en toda la red."]}] },
+  { key:"abastecimiento", label:"Abastecimiento", num:"07", icon:"📦",
+    subs:["Dispositivos (smartphones/tablets)", "CPE/routers/STB", "SIM/eSIM & kits", "Accesorios", "Repuestos/refurb/swap"],
+    subDetails:[
+      {label:"Dispositivos (smartphones/tablets)", desc:"Smartphones/tablets: lanzamiento-rampa-EOL", opp:"Optimización avanzada: analítica para lanzamientos/demanda y acciones tempranas para evitar obsolescencia.", ndesc:["Se compra reactivamente; quiebres o sobrestock frecuentes en lanzamientos.", "Planificación básica por experiencia; ajustes tardíos según ventas reales.", "Plan por lanzamiento con metas y seguimiento; coordinación razonable con proveedores.", "Estrategia integrada con Comercial y proveedores: escenarios, asignación por canal y control de fin de vida.", "Optimización avanzada: analítica para lanzamientos/demanda y acciones tempranas para evitar obsolescencia."]},
+      {label:"CPE/routers/STB", desc:"Proyectos, bundles, reposición de fallas", opp:"Líder: modelos para fallas y proyectos, y ciclos cerrados de recuperación y reutilización.", ndesc:["Se gestiona caso a caso; faltantes afectan instalaciones o reposiciones.", "Se planifica por proyectos, pero con visibilidad limitada y ajustes manuales.", "Planificación y reposición estandarizadas; niveles de seguridad para fallas y proyectos.", "Integrado con instalación/posventa: pronóstico, disponibilidad y control de retornos/recuperación.", "Líder: modelos para fallas y proyectos, y ciclos cerrados de recuperación y reutilización."]},
+      {label:"SIM/eSIM & kits", desc:"Alto volumen, bajo valor, control fraude", opp:"Gestión líder: monitoreo y analítica antifraude, automatización y mínima desviación.", ndesc:["Control débil; pérdidas o uso indebido sin trazabilidad suficiente.", "Controles básicos; conteos manuales y diferencias.", "Trazabilidad y control estandarizados; reglas claras de entrega/consumo y auditorías.", "Gestión integrada: visibilidad por canal/ubicación, controles antifraude y conciliaciones frecuentes.", "Gestión líder: monitoreo y analítica antifraude, automatización y mínima desviación."]},
+      {label:"Accesorios", desc:"Amplia variedad, moda, obsolescencia", opp:"Optimización avanzada: analítica de surtido/precio y ajuste rápido del portafolio para minimizar obsolescencia.", ndesc:["Se compra sin criterio claro; alto sobrestock y descuentos frecuentes.", "Se gestiona por intuición; control básico y liquidaciones tardías.", "Estrategia estándar (mix, mínimos) y seguimiento por rotación/envejecimiento.", "Gestión integrada con Comercial: surtido por tienda/canal, reposición ágil y acciones preventivas.", "Optimización avanzada: analítica de surtido/precio y ajuste rápido del portafolio para minimizar obsolescencia."]},
+      {label:"Repuestos/refurb/swap", desc:"Circularidad, garantías, niveles de servicio", opp:"Líder: economía circular avanzada, analítica de fallas y mejora continua que reduce costos y tiempos.", ndesc:["No hay control claro; tiempos altos y pérdidas de valor.", "Proceso básico; visibilidad limitada y decisiones manuales.", "Proceso estandarizado con trazabilidad y tiempos objetivo; control por estado.", "Integrado con posventa/proveedores: indicadores de ciclo, recuperación de valor y disponibilidad por acuerdos de servicio.", "Líder: economía circular avanzada, analítica de fallas y mejora continua que reduce costos y tiempos."]}] }
 ];
+
+
 
 const LV_META = [
   { v:1, label:"Básico",     c:"#78716C", bg:"#FAFAF8" },
@@ -653,38 +697,26 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
 
   // ── Gaps Analysis (aggregate across all filtered evaluaciones) ─────────────
   const gapsData = useMemo(() => {
-    // For each sub-dimension, average the scores across evaluaciones
-    // A "gap" exists when avg score ≤ 3
-    const subScores = {};
-    DIMS_META.forEach(d => {
-      d.subs.forEach((subLabel, idx) => {
-        const subKey = `${d.key}_sub${idx}`;
-        // Find respuestas for this sub-dim by dimension_key + position
-        // We use respuestas filtered by evaluacion_id of filtered evals
-        const filteredIds = new Set(filtered.map(e=>e.id));
-        const subResps = respuestas.filter(r =>
-          filteredIds.has(r.evaluacion_id) && r.dimension_key === d.key
-        );
-        // group by evaluacion_id, take the idx-th response for this dim
-        const evalGroups = {};
-        subResps.forEach(r => {
-          if (!evalGroups[r.evaluacion_id]) evalGroups[r.evaluacion_id] = [];
-          evalGroups[r.evaluacion_id].push(r);
-        });
-        const vals = Object.values(evalGroups)
-          .map(arr => arr.sort((a,b)=>a.subdimension_id?.localeCompare(b.subdimension_id))[idx]?.valor)
-          .filter(Boolean);
-        const avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : null;
-        subScores[subKey] = { dim: d, subLabel, avg, idx };
-      });
-    });
-
-    // Also compute from dim-level scores when respuestas unavailable
-    // Supplement with dimension-level data
     const gaps = [];
     DIMS_META.forEach(d => {
       const dimScore = avgArr(filtered.map(e=>e[`score_${d.key}`]));
       if (dimScore && dimScore <= 3) {
+        // Get sub-level scores from respuestas
+        const filteredIds = new Set(filtered.map(e=>e.id));
+        const subResps = respuestas.filter(r => filteredIds.has(r.evaluacion_id) && r.dimension_key === d.key);
+        const subScores = (d.subDetails||[]).map((sub, idx) => {
+          const evalGroups = {};
+          subResps.forEach(r => {
+            if (!evalGroups[r.evaluacion_id]) evalGroups[r.evaluacion_id] = [];
+            evalGroups[r.evaluacion_id].push(r);
+          });
+          const vals = Object.values(evalGroups)
+            .map(arr => arr.sort((a,b)=>(a.subdimension_id||"").localeCompare(b.subdimension_id||""))[idx]?.valor)
+            .filter(Boolean);
+          const avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : null;
+          return { ...sub, score: avg, idx };
+        }).filter(s => s.score && s.score <= 3).sort((a,b)=>a.score-b.score);
+
         gaps.push({
           key: d.key,
           dimLabel: d.label,
@@ -693,6 +725,9 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
           score: dimScore,
           gap: parseFloat((5-dimScore).toFixed(1)),
           n: filtered.filter(e=>e[`score_${d.key}`]).length,
+          subScores,
+          // Top opp from lowest-scoring sub or first subDetail
+          topOpp: subScores[0]?.opp || (d.subDetails&&d.subDetails[0]?.opp) || "",
         });
       }
     });
@@ -988,48 +1023,75 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         {gapsView === "critical" && (
           critGaps.length === 0
             ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>✅ No hay brechas críticas en la selección actual</div>
-            : <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            : <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                 {critGaps.map(g=>{
                   const l = lvMeta(g.score);
                   return (
                     <div key={g.key} style={{
                       background:"linear-gradient(135deg,#FFF5F5,#FFF8F8)",
-                      border:"1.5px solid #FECACA", borderRadius:16, padding:"18px 20px",
-                      boxShadow:"0 2px 8px rgba(220,38,38,0.08)",
+                      border:"1.5px solid #FECACA", borderRadius:16, padding:"20px 22px",
+                      boxShadow:"0 2px 12px rgba(220,38,38,0.08)",
                     }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-                        <div style={{ width:38, height:38, borderRadius:11, background:"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                          <span style={{ fontSize:18 }}>{g.dimIcon}</span>
+                      {/* Header */}
+                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                        <div style={{ width:42, height:42, borderRadius:12, background:"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <span style={{ fontSize:20 }}>{g.dimIcon}</span>
                         </div>
                         <div style={{ flex:1 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:4 }}>
                             <span style={{ fontSize:9, fontWeight:700, color:"#DC2626", background:"#FEE2E2", padding:"2px 7px", borderRadius:99 }}>{g.dimNum}</span>
-                            <span style={{ fontSize:12, fontWeight:800, color:"#1A1A18" }}>{g.dimLabel}</span>
+                            <span style={{ fontSize:14, fontWeight:900, color:"#1A1A18" }}>{g.dimLabel}</span>
+                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label} · {g.score.toFixed(1)}/5</span>
                           </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label}</span>
-                            <span style={{ fontSize:11, fontWeight:800, color:"#DC2626" }}>Score: {g.score.toFixed(1)}/5</span>
+                          <div style={{ height:7, background:"#FEE2E2", borderRadius:99, overflow:"hidden", marginBottom:4 }}>
+                            <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:"linear-gradient(90deg,#DC2626,#EF4444)", borderRadius:99 }} />
+                          </div>
+                          <div style={{ display:"flex", justifyContent:"space-between" }}>
+                            <span style={{ fontSize:10, color:"#AAA" }}>{g.n} evaluaciones</span>
+                            <span style={{ fontSize:10, fontWeight:800, color:"#DC2626" }}>+{g.gap.toFixed(1)} puntos hasta Líder</span>
                           </div>
                         </div>
-                        <div style={{ textAlign:"center", flexShrink:0 }}>
-                          <div style={{ fontSize:22, fontWeight:900, color:"#DC2626", lineHeight:1 }}>{g.n}</div>
-                          <div style={{ fontSize:9, color:"#AAA", fontWeight:600 }}>evals</div>
-                        </div>
                       </div>
-                      <div style={{ marginBottom:8 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                          <span style={{ fontSize:10, color:"#AAA" }}>Nivel actual</span>
-                          <span style={{ fontSize:10, fontWeight:800, color:"#DC2626" }}>+{g.gap.toFixed(1)} hasta Líder</span>
+                      {/* Oportunidad principal */}
+                      {g.topOpp && (
+                        <div style={{ background:"#FFF0F0", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:12 }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>💡 Oportunidad principal</div>
+                          <div style={{ fontSize:12, color:"#7F1D1D", lineHeight:1.6 }}>{g.topOpp}</div>
                         </div>
-                        <div style={{ height:8, background:"#FEE2E2", borderRadius:99, overflow:"hidden" }}>
-                          <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:`linear-gradient(90deg,#DC2626,#EF4444)`, borderRadius:99, transition:"width .6s ease" }} />
+                      )}
+                      {/* Sub-dimensiones con brecha */}
+                      {g.subScores && g.subScores.length > 0 && (
+                        <div>
+                          <div style={{ fontSize:9, fontWeight:700, color:"#AAA", textTransform:"uppercase", letterSpacing:".1em", marginBottom:8 }}>Sub-dimensiones críticas</div>
+                          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                            {g.subScores.map((s,i)=>{
+                              const sl = lvMeta(s.score);
+                              const currentDesc = s.ndesc && s.score ? s.ndesc[Math.round(s.score)-1] : null;
+                              return (
+                                <div key={i} style={{ borderRadius:12, border:"1px solid #FECACA", overflow:"hidden" }}>
+                                  {/* Sub header */}
+                                  <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"rgba(220,38,38,0.05)" }}>
+                                    <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:800, background:sl.c+"20", color:sl.c, border:`1px solid ${sl.c}30`, flexShrink:0 }}>{s.score.toFixed(1)} · {sl.label}</span>
+                                    <span style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>{s.label}</span>
+                                  </div>
+                                  {/* Estado actual */}
+                                  {currentDesc && (
+                                    <div style={{ padding:"8px 14px", background:"#FFF8F8", borderBottom:"1px solid #FECACA" }}>
+                                      <div style={{ fontSize:9, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>📍 Estado actual</div>
+                                      <div style={{ fontSize:11, color:"#7F1D1D", lineHeight:1.6 }}>{currentDesc}</div>
+                                    </div>
+                                  )}
+                                  {/* Iniciativa / Oportunidad */}
+                                  <div style={{ padding:"8px 14px", background:"#FFFBF8" }}>
+                                    <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>🚀 Iniciativa recomendada</div>
+                                    <div style={{ fontSize:11, color:"#064E3B", lineHeight:1.6, fontStyle:"italic" }}>{s.opp}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ display:"flex", gap:3 }}>
-                        {[1,2,3,4,5].map(v=>(
-                          <div key={v} style={{ flex:1, height:4, borderRadius:99, background: v<=Math.round(g.score)?l.c:"#F0EDE9" }} />
-                        ))}
-                      </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1076,11 +1138,17 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
                           <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:`linear-gradient(90deg,#D97706,#F59E0B)`, borderRadius:99 }} />
                         </div>
                       </div>
-                      <div style={{ display:"flex", gap:3 }}>
+                      <div style={{ display:"flex", gap:3, marginBottom: g.topOpp?10:0 }}>
                         {[1,2,3,4,5].map(v=>(
                           <div key={v} style={{ flex:1, height:4, borderRadius:99, background: v<=Math.round(g.score)?l.c:"#F0EDE9" }} />
                         ))}
                       </div>
+                      {g.topOpp && (
+                        <div style={{ borderTop:"1px solid #FDE68A", paddingTop:10 }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>🚀 Iniciativa recomendada</div>
+                          <div style={{ fontSize:11, color:"#064E3B", lineHeight:1.6, fontStyle:"italic" }}>{g.topOpp}</div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
