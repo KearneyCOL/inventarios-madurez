@@ -1320,10 +1320,13 @@ function ScrollIndicator({ scrollRef, color=T.red }) {
 const LS_ANSWERS = "madurez_answers";
 const LS_PERFIL  = "madurez_perfil";
 function loadLS(key, fallback) {
-  try { const s=localStorage.getItem(key); return s?JSON.parse(s):fallback; } catch{ return fallback; }
+  try { const s=sessionStorage.getItem(key); return s?JSON.parse(s):fallback; } catch{ return fallback; }
 }
 function saveLS(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch{}
+  try { sessionStorage.setItem(key, JSON.stringify(val)); } catch{}
+}
+function removeLS(key) {
+  try { sessionStorage.removeItem(key); } catch{}
 }
 
 export default function App() {
@@ -1351,7 +1354,7 @@ export default function App() {
     setAnswers(empty);
     saveLS(LS_ANSWERS,empty);
     setPerfil(null);
-    localStorage.removeItem(LS_PERFIL);
+    removeLS(LS_PERFIL);
     setActiveDim(0);
     setActiveSub(0);
     setView("intro");
@@ -1513,7 +1516,7 @@ export default function App() {
       const perfilEsDeEstaEmpresa = savedPerfil?.empresa_id === emp.id;
       if (!perfilEsDeEstaEmpresa) {
         setPerfil(null);
-        localStorage.removeItem("madurez_perfil");
+        removeLS("madurez_perfil");
         setShowRegistro(true);
       }
     }}/>
