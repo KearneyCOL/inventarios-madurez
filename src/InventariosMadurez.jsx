@@ -1621,12 +1621,12 @@ export default function App() {
               const active=i===activeDim;
               return (
                 <div key={d.key}>
-                  <button className="sidebar-item" onClick={()=>{setActiveDim(i);setActiveSub(0);}} style={{
+                  <div className="sidebar-item" style={{
                     width:"100%",textAlign:"left",padding:"10px 14px",
                     background:active?"#FFF8F7":"transparent",
                     borderLeft:`3px solid ${active?EC:"transparent"}`,
-                    border:"none",borderBottom:`1px solid ${T.borderSm}`,
-                    cursor:"pointer",
+                    borderBottom:`1px solid ${T.borderSm}`,
+                    cursor:"default",
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:9}}>
                       <span style={{fontSize:15}}>{d.icon}</span>
@@ -1653,7 +1653,7 @@ export default function App() {
                           <span style={{fontSize:9.5,fontWeight:j===activeSub?700:400,color:j===activeSub?EC:answers[s.id]?getLv(answers[s.id]).text:T.inkSoft}}>
                             {answers[s.id]?"●":"○"} {s.label}
                           </span>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}
