@@ -685,9 +685,9 @@ function IntroTab({onNavigate, color=T.red, colorDk=T.redDk}) {
       {/* ═══ PASO A PASO ═══ */}
       <div className="fade-up-3 hover-lift" style={{background:T.card,borderRadius:18,border:`1px solid ${T.borderSm}`,padding:"26px 28px",boxShadow:"0 2px 8px rgba(0,0,0,0.04)"}}>
         <div style={{fontSize:9.5,fontWeight:700,color:T.inkSoft,textTransform:"uppercase",letterSpacing:".16em",marginBottom:26}}>Cómo completar la evaluación</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,position:"relative"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:24,position:"relative",maxWidth:680,margin:"0 auto"}}>
           {/* connector */}
-          <div style={{position:"absolute",top:24,left:"9%",right:"9%",height:1,background:`linear-gradient(90deg,${(color+"30")},${color},${colorDk},${color},${(color+"30")})`,zIndex:0}}/>
+          <div style={{position:"absolute",top:24,left:"16%",right:"16%",height:1,background:`linear-gradient(90deg,${(color+"30")},${color},${colorDk},${color},${(color+"30")})`,zIndex:0}}/>
           {STEPS.map((s,i)=>(
             <div key={s.n} className={`fade-up-${i+1}`} style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"0 4px"}}>
               <div style={{

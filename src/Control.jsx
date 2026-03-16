@@ -989,102 +989,136 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
         </AnalyticsCard>
       )}
 
-      {/* ═══ BRECHAS & ROADMAP ═══ */}
-      <AnalyticsCard>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-          <AnalyticsLabel>Análisis de Brechas y Hoja de Ruta</AnalyticsLabel>
+            {/* ═══ BRECHAS & ROADMAP ═══ */}
+      <AnalyticsCard style={{ padding:0, overflow:"hidden" }}>
+        {/* Tab header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", borderBottom:"1px solid #F0EDE9" }}>
+          <div>
+            <AnalyticsLabel style={{ marginBottom:2 }}>Análisis de Brechas y Hoja de Ruta</AnalyticsLabel>
+            <div style={{ fontSize:11, color:"#AAA" }}>
+              {critGaps.length} brechas críticas · {modGaps.length} moderadas · {gapsData.length} dimensiones con oportunidad
+            </div>
+          </div>
           <div style={{ display:"flex", gap:6 }}>
             {[
-              { id:"critical", label:`🚨 Críticas`, count: critGaps.length, c:"#DC2626" },
-              { id:"moderate", label:`⚡ Moderadas`, count: modGaps.length, c:"#D97706" },
-              { id:"roadmap",  label:"🗺️ Hoja de Ruta", count: null, c:"#059669" },
+              { id:"critical", label:"🚨 Críticas",    count:critGaps.length, c:"#DC2626" },
+              { id:"moderate", label:"⚡ Moderadas",   count:modGaps.length,  c:"#D97706" },
+              { id:"roadmap",  label:"🗺️ Hoja de Ruta",count:null,            c:"#059669" },
             ].map(t=>(
               <button key={t.id} onClick={()=>setGapsView(t.id)} style={{
-                padding:"6px 14px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
+                padding:"7px 16px", borderRadius:99, fontSize:11, fontWeight:700, cursor:"pointer",
                 border:`1.5px solid ${gapsView===t.id?t.c:"#E8E4DF"}`,
                 background: gapsView===t.id?t.c+"15":"#FAFAFA",
                 color: gapsView===t.id?t.c:"#AAA", transition:"all .15s",
                 display:"flex", alignItems:"center", gap:5,
               }}>
                 {t.label}
-                {t.count !== null && (
-                  <span style={{
-                    background: gapsView===t.id ? t.c : "#E8E4DF",
-                    color: gapsView===t.id ? "#fff" : "#888",
-                    borderRadius:99, fontSize:10, fontWeight:800,
-                    padding:"1px 7px", minWidth:18, textAlign:"center",
-                  }}>{t.count}</span>
-                )}
+                {t.count!==null && <span style={{ background:gapsView===t.id?t.c:"#E8E4DF", color:gapsView===t.id?"#fff":"#888", borderRadius:99, fontSize:10, fontWeight:800, padding:"1px 7px" }}>{t.count}</span>}
               </button>
             ))}
           </div>
         </div>
 
+        <div style={{ padding:"20px 24px" }}>
+
+        {/* ── CRÍTICAS ── */}
         {gapsView === "critical" && (
           critGaps.length === 0
-            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>✅ No hay brechas críticas en la selección actual</div>
-            : <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"40px 0" }}>✅ No hay brechas críticas en la selección actual</div>
+            : <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
                 {critGaps.map(g=>{
                   const l = lvMeta(g.score);
                   return (
-                    <div key={g.key} style={{
-                      background:"linear-gradient(135deg,#FFF5F5,#FFF8F8)",
-                      border:"1.5px solid #FECACA", borderRadius:16, padding:"20px 22px",
-                      boxShadow:"0 2px 12px rgba(220,38,38,0.08)",
-                    }}>
-                      {/* Header */}
-                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
-                        <div style={{ width:42, height:42, borderRadius:12, background:"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                          <span style={{ fontSize:20 }}>{g.dimIcon}</span>
-                        </div>
-                        <div style={{ flex:1 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:4 }}>
-                            <span style={{ fontSize:9, fontWeight:700, color:"#DC2626", background:"#FEE2E2", padding:"2px 7px", borderRadius:99 }}>{g.dimNum}</span>
-                            <span style={{ fontSize:14, fontWeight:900, color:"#1A1A18" }}>{g.dimLabel}</span>
-                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label} · {g.score.toFixed(1)}/5</span>
-                          </div>
-                          <div style={{ height:7, background:"#FEE2E2", borderRadius:99, overflow:"hidden", marginBottom:4 }}>
-                            <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:"linear-gradient(90deg,#DC2626,#EF4444)", borderRadius:99 }} />
-                          </div>
-                          <div style={{ display:"flex", justifyContent:"space-between" }}>
-                            <span style={{ fontSize:10, color:"#AAA" }}>{g.n} evaluaciones</span>
-                            <span style={{ fontSize:10, fontWeight:800, color:"#DC2626" }}>+{g.gap.toFixed(1)} puntos hasta Líder</span>
+                    <div key={g.key} style={{ borderRadius:16, border:"2px solid #FECACA", overflow:"hidden", boxShadow:"0 4px 16px rgba(220,38,38,0.08)" }}>
+
+                      {/* ── Dim header ── */}
+                      <div style={{ background:"linear-gradient(135deg,#FEF2F2,#FFF5F5)", padding:"18px 22px", borderBottom:"1px solid #FECACA" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                          <div style={{ width:48, height:48, borderRadius:14, background:"#FEE2E2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:22 }}>{g.dimIcon}</div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                              <span style={{ fontSize:10, fontWeight:700, color:"#DC2626", background:"#FEE2E2", padding:"2px 9px", borderRadius:99 }}>{g.dimNum}</span>
+                              <span style={{ fontSize:16, fontWeight:900, color:"#1A1A18" }}>{g.dimLabel}</span>
+                              <span style={{ padding:"3px 10px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label} · {g.score.toFixed(1)}/5</span>
+                              <span style={{ marginLeft:"auto", fontSize:12, fontWeight:800, color:"#DC2626" }}>Brecha: +{g.gap.toFixed(1)} pts</span>
+                            </div>
+                            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                              <div style={{ flex:1, height:8, background:"#FEE2E2", borderRadius:99, overflow:"hidden" }}>
+                                <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:"linear-gradient(90deg,#DC2626,#EF4444)", borderRadius:99 }}/>
+                              </div>
+                              <span style={{ fontSize:10, color:"#AAA", flexShrink:0 }}>{g.n} evaluaciones · {Math.round((g.score/5)*100)}% del potencial</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      {/* Oportunidad principal */}
+
+                      {/* ── Oportunidad principal ── */}
                       {g.topOpp && (
-                        <div style={{ background:"#FFF0F0", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:12 }}>
-                          <div style={{ fontSize:9, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>💡 Oportunidad principal</div>
-                          <div style={{ fontSize:12, color:"#7F1D1D", lineHeight:1.6 }}>{g.topOpp}</div>
+                        <div style={{ padding:"14px 22px", background:"#FFFBF8", borderBottom:"1px solid #FECACA", display:"flex", gap:12 }}>
+                          <div style={{ width:32, height:32, borderRadius:99, background:"#DCFCE7", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15 }}>💡</div>
+                          <div>
+                            <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Oportunidad clave de la dimensión</div>
+                            <div style={{ fontSize:12.5, color:"#064E3B", lineHeight:1.7, fontWeight:500 }}>{g.topOpp}</div>
+                          </div>
                         </div>
                       )}
-                      {/* Sub-dimensiones con brecha */}
+
+                      {/* ── Sub-dimensiones ── */}
                       {g.subScores && g.subScores.length > 0 && (
-                        <div>
-                          <div style={{ fontSize:9, fontWeight:700, color:"#AAA", textTransform:"uppercase", letterSpacing:".1em", marginBottom:8 }}>Sub-dimensiones críticas</div>
-                          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                        <div style={{ padding:"16px 22px" }}>
+                          <div style={{ fontSize:10, fontWeight:700, color:"#AAA", textTransform:"uppercase", letterSpacing:".12em", marginBottom:12 }}>
+                            Sub-dimensiones críticas ({g.subScores.length})
+                          </div>
+                          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
                             {g.subScores.map((s,i)=>{
                               const sl = lvMeta(s.score);
-                              const currentDesc = s.ndesc && s.score ? s.ndesc[Math.round(s.score)-1] : null;
+                              const curDesc  = s.ndesc && s.score ? s.ndesc[Math.round(s.score)-1] : null;
+                              const nextDesc = s.ndesc && s.score && Math.round(s.score) < 5 ? s.ndesc[Math.round(s.score)] : null;
                               return (
-                                <div key={i} style={{ borderRadius:12, border:"1px solid #FECACA", overflow:"hidden" }}>
-                                  {/* Sub header */}
-                                  <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"rgba(220,38,38,0.05)" }}>
-                                    <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:800, background:sl.c+"20", color:sl.c, border:`1px solid ${sl.c}30`, flexShrink:0 }}>{s.score.toFixed(1)} · {sl.label}</span>
-                                    <span style={{ fontSize:12, fontWeight:700, color:"#1A1A18" }}>{s.label}</span>
-                                  </div>
-                                  {/* Estado actual */}
-                                  {currentDesc && (
-                                    <div style={{ padding:"8px 14px", background:"#FFF8F8", borderBottom:"1px solid #FECACA" }}>
-                                      <div style={{ fontSize:9, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>📍 Estado actual</div>
-                                      <div style={{ fontSize:11, color:"#7F1D1D", lineHeight:1.6 }}>{currentDesc}</div>
+                                <div key={i} style={{ borderRadius:12, border:`1.5px solid ${sl.c}30`, overflow:"hidden" }}>
+                                  {/* Sub header con score visual */}
+                                  <div style={{ background:`linear-gradient(90deg,${sl.c}12,transparent)`, padding:"10px 16px", borderBottom:`1px solid ${sl.c}20`, display:"flex", alignItems:"center", gap:12 }}>
+                                    <div style={{ textAlign:"center", flexShrink:0 }}>
+                                      <div style={{ fontSize:20, fontWeight:900, color:sl.c, lineHeight:1 }}>{s.score.toFixed(1)}</div>
+                                      <div style={{ fontSize:8, color:sl.c, fontWeight:700 }}>/5</div>
                                     </div>
-                                  )}
-                                  {/* Iniciativa / Oportunidad */}
-                                  <div style={{ padding:"8px 14px", background:"#FFFBF8" }}>
-                                    <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>🚀 Iniciativa recomendada</div>
-                                    <div style={{ fontSize:11, color:"#064E3B", lineHeight:1.6, fontStyle:"italic" }}>{s.opp}</div>
+                                    <div style={{ flex:1 }}>
+                                      <div style={{ fontSize:12, fontWeight:800, color:"#1A1A18", marginBottom:3 }}>{s.label}</div>
+                                      <div style={{ display:"flex", gap:2 }}>
+                                        {[1,2,3,4,5].map(v=>(
+                                          <div key={v} style={{ flex:1, height:5, borderRadius:99, background:v<=Math.round(s.score)?sl.c:"#E8E4DF" }}/>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <span style={{ padding:"3px 10px", borderRadius:99, fontSize:10, fontWeight:700, background:sl.c+"18", color:sl.c, border:`1px solid ${sl.c}30`, flexShrink:0 }}>{sl.label}</span>
+                                  </div>
+
+                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0 }}>
+                                    {/* Estado actual */}
+                                    {curDesc && (
+                                      <div style={{ padding:"12px 16px", background:"#FFF8F8", borderRight:"1px solid #F0EDE9" }}>
+                                        <div style={{ fontSize:9, fontWeight:700, color:"#DC2626", textTransform:"uppercase", letterSpacing:".08em", marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
+                                          <span>📍</span> Estado actual
+                                        </div>
+                                        <div style={{ fontSize:11, color:"#7F1D1D", lineHeight:1.65 }}>{curDesc}</div>
+                                      </div>
+                                    )}
+                                    {/* Próximo nivel */}
+                                    {nextDesc && (
+                                      <div style={{ padding:"12px 16px", background:"#FFFBF0", borderRight:"1px solid #F0EDE9" }}>
+                                        <div style={{ fontSize:9, fontWeight:700, color:"#D97706", textTransform:"uppercase", letterSpacing:".08em", marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
+                                          <span>⬆️</span> Próximo nivel
+                                        </div>
+                                        <div style={{ fontSize:11, color:"#78350F", lineHeight:1.65 }}>{nextDesc}</div>
+                                      </div>
+                                    )}
+                                    {/* Iniciativa */}
+                                    <div style={{ padding:"12px 16px", background:"#F0FDF4" }}>
+                                      <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".08em", marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
+                                        <span>🚀</span> Iniciativa recomendada
+                                      </div>
+                                      <div style={{ fontSize:11, color:"#064E3B", lineHeight:1.65, fontStyle:"italic" }}>{s.opp}</div>
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -1098,55 +1132,71 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
               </div>
         )}
 
+        {/* ── MODERADAS ── */}
         {gapsView === "moderate" && (
           modGaps.length === 0
-            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas moderadas</div>
-            : <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"40px 0" }}>Sin brechas moderadas</div>
+            : <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
                 {modGaps.map(g=>{
                   const l = lvMeta(g.score);
                   return (
-                    <div key={g.key} style={{
-                      background:"linear-gradient(135deg,#FFFDF0,#FFFBEB)",
-                      border:"1.5px solid #FDE68A", borderRadius:14, padding:"16px 20px",
-                      boxShadow:"0 2px 8px rgba(217,119,6,0.06)",
-                    }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:10 }}>
-                        <div style={{ width:36, height:36, borderRadius:10, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                          <span style={{ fontSize:17 }}>{g.dimIcon}</span>
-                        </div>
-                        <div style={{ flex:1 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:2 }}>
-                            <span style={{ fontSize:9, fontWeight:700, color:"#D97706", background:"#FEF3C7", padding:"2px 7px", borderRadius:99 }}>{g.dimNum}</span>
-                            <span style={{ fontSize:13, fontWeight:800, color:"#1A1A18" }}>{g.dimLabel}</span>
+                    <div key={g.key} style={{ borderRadius:16, border:"2px solid #FDE68A", overflow:"hidden", boxShadow:"0 4px 16px rgba(217,119,6,0.07)" }}>
+                      {/* Header */}
+                      <div style={{ background:"linear-gradient(135deg,#FFFBEB,#FFFDF5)", padding:"16px 22px", borderBottom:"1px solid #FDE68A" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                          <div style={{ width:44, height:44, borderRadius:13, background:"#FEF3C7", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20 }}>{g.dimIcon}</div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+                              <span style={{ fontSize:10, fontWeight:700, color:"#D97706", background:"#FEF3C7", padding:"2px 9px", borderRadius:99 }}>{g.dimNum}</span>
+                              <span style={{ fontSize:15, fontWeight:900, color:"#1A1A18" }}>{g.dimLabel}</span>
+                              <span style={{ padding:"3px 10px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label} · {g.score.toFixed(1)}/5</span>
+                              <span style={{ marginLeft:"auto", fontSize:12, fontWeight:800, color:"#D97706" }}>+{g.gap.toFixed(1)} pts hasta Líder</span>
+                            </div>
+                            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                              <div style={{ flex:1, height:7, background:"#FEF3C7", borderRadius:99, overflow:"hidden" }}>
+                                <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:"linear-gradient(90deg,#D97706,#F59E0B)", borderRadius:99 }}/>
+                              </div>
+                              <span style={{ fontSize:10, color:"#AAA", flexShrink:0 }}>{g.n} evals · {Math.round((g.score/5)*100)}% del potencial</span>
+                            </div>
                           </div>
-                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:l.c+"18", color:l.c, border:`1px solid ${l.c}30` }}>{l.label}</span>
-                            <span style={{ fontSize:11, color:"#D97706", fontWeight:700 }}>Score: {g.score.toFixed(1)}/5 · +{g.gap.toFixed(1)} hasta Líder</span>
-                          </div>
-                        </div>
-                        <div style={{ textAlign:"center", flexShrink:0 }}>
-                          <div style={{ fontSize:20, fontWeight:900, color:"#D97706", lineHeight:1 }}>{g.n}</div>
-                          <div style={{ fontSize:9, color:"#AAA", fontWeight:600 }}>evals</div>
                         </div>
                       </div>
-                      <div style={{ marginBottom:6 }}>
-                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
-                          <span style={{ fontSize:10, color:"#AAA" }}>Nivel actual</span>
-                          <span style={{ fontSize:10, fontWeight:700, color:"#D97706" }}>{Math.round((g.score/5)*100)}% del máximo</span>
-                        </div>
-                        <div style={{ height:7, background:"#FEF3C7", borderRadius:99, overflow:"hidden" }}>
-                          <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:`linear-gradient(90deg,#D97706,#F59E0B)`, borderRadius:99 }} />
-                        </div>
-                      </div>
-                      <div style={{ display:"flex", gap:3, marginBottom: g.topOpp?10:0 }}>
-                        {[1,2,3,4,5].map(v=>(
-                          <div key={v} style={{ flex:1, height:4, borderRadius:99, background: v<=Math.round(g.score)?l.c:"#F0EDE9" }} />
-                        ))}
-                      </div>
+                      {/* Iniciativa */}
                       {g.topOpp && (
-                        <div style={{ borderTop:"1px solid #FDE68A", paddingTop:10 }}>
-                          <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".08em", marginBottom:3 }}>🚀 Iniciativa recomendada</div>
-                          <div style={{ fontSize:11, color:"#064E3B", lineHeight:1.6, fontStyle:"italic" }}>{g.topOpp}</div>
+                        <div style={{ padding:"12px 22px", background:"#FFFDF5", borderBottom:"1px solid #FDE68A", display:"flex", gap:10 }}>
+                          <span style={{ fontSize:16, flexShrink:0 }}>🚀</span>
+                          <div>
+                            <div style={{ fontSize:9, fontWeight:700, color:"#059669", textTransform:"uppercase", letterSpacing:".1em", marginBottom:3 }}>Iniciativa recomendada</div>
+                            <div style={{ fontSize:12, color:"#064E3B", lineHeight:1.65, fontStyle:"italic" }}>{g.topOpp}</div>
+                          </div>
+                        </div>
+                      )}
+                      {/* Sub-scores */}
+                      {g.subScores && g.subScores.length > 0 && (
+                        <div style={{ padding:"14px 22px" }}>
+                          <div style={{ fontSize:10, fontWeight:700, color:"#AAA", textTransform:"uppercase", letterSpacing:".12em", marginBottom:10 }}>Sub-dimensiones moderadas ({g.subScores.length})</div>
+                          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                            {g.subScores.map((s,i)=>{
+                              const sl = lvMeta(s.score);
+                              const curDesc = s.ndesc && s.score ? s.ndesc[Math.round(s.score)-1] : null;
+                              return (
+                                <div key={i} style={{ borderRadius:10, border:`1px solid ${sl.c}25`, overflow:"hidden" }}>
+                                  <div style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 14px", background:`${sl.c}08` }}>
+                                    <span style={{ fontSize:16, fontWeight:900, color:sl.c, minWidth:32, textAlign:"center" }}>{s.score.toFixed(1)}</span>
+                                    <div style={{ flex:1 }}>
+                                      <div style={{ fontSize:11, fontWeight:700, color:"#1A1A18" }}>{s.label}</div>
+                                      {curDesc && <div style={{ fontSize:10, color:"#AAA", marginTop:1 }}>{curDesc}</div>}
+                                    </div>
+                                    <span style={{ padding:"2px 8px", borderRadius:99, fontSize:9.5, fontWeight:700, background:sl.c+"18", color:sl.c, flexShrink:0 }}>{sl.label}</span>
+                                  </div>
+                                  <div style={{ padding:"8px 14px", background:"#FAFAF8" }}>
+                                    <span style={{ fontSize:9, fontWeight:700, color:"#059669", marginRight:6 }}>→</span>
+                                    <span style={{ fontSize:10.5, color:"#064E3B", fontStyle:"italic", lineHeight:1.6 }}>{s.opp}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1155,37 +1205,93 @@ function AnalyticsTab({ evaluaciones, respuestas }) {
               </div>
         )}
 
+        {/* ── HOJA DE RUTA ── */}
         {gapsView === "roadmap" && (
           gapsData.length === 0
-            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"32px 0" }}>Sin brechas identificadas</div>
-            : <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12 }}>
-                {[
-                  { t:"Corto Plazo",  sub:"0–6 meses",    c:"#DC2626", bg:"#FEF2F2", bdr:"#FECACA", icon:"🚀", items: critGaps.slice(0,4) },
-                  { t:"Mediano Plazo",sub:"6–12 meses",   c:"#D97706", bg:"#FFFBEB", bdr:"#FDE68A", icon:"⚡", items: [...critGaps.slice(4),...modGaps.slice(0,3)].slice(0,4) },
-                  { t:"Largo Plazo",  sub:"12–24 meses",  c:"#059669", bg:"#ECFDF5", bdr:"#A7F3D0", icon:"🏆", items: modGaps.slice(3,7) },
-                ].map(ph=>(
-                  <div key={ph.t} style={{ borderRadius:14, border:`1.5px solid ${ph.bdr}`, background:ph.bg, overflow:"hidden" }}>
-                    <div style={{ padding:"12px 16px", borderBottom:`1px solid ${ph.bdr}`, display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ fontSize:15 }}>{ph.icon}</span>
-                      <div>
-                        <div style={{ fontSize:12, fontWeight:800, color:ph.c }}>{ph.t}</div>
-                        <div style={{ fontSize:9.5, color:ph.c, opacity:.7 }}>{ph.sub}</div>
+            ? <div style={{ textAlign:"center", color:"#AAA", fontSize:13, padding:"40px 0" }}>Sin brechas identificadas</div>
+            : <div>
+                {/* Summary strip */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:20 }}>
+                  {[
+                    { label:"Brechas críticas", val:critGaps.length, c:"#DC2626", bg:"#FEF2F2", desc:"Requieren acción inmediata (0–6 meses)" },
+                    { label:"Brechas moderadas", val:modGaps.length, c:"#D97706", bg:"#FFFBEB", desc:"Consolidar en 6–12 meses" },
+                    { label:"Score promedio", val:globalAvg?.toFixed(2)||"—", c:"#7823DC", bg:"#F5F0FF", desc:"Potencial de mejora hasta Líder" },
+                  ].map((s,i)=>(
+                    <div key={i} style={{ borderRadius:12, background:s.bg, border:`1px solid ${s.c}30`, padding:"14px 18px" }}>
+                      <div style={{ fontSize:28, fontWeight:900, color:s.c, lineHeight:1, marginBottom:4 }}>{s.val}</div>
+                      <div style={{ fontSize:11, fontWeight:700, color:s.c }}>{s.label}</div>
+                      <div style={{ fontSize:10, color:"#AAA", marginTop:2 }}>{s.desc}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 3 horizontes */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+                  {[
+                    { t:"🚀 Corto Plazo",   sub:"0–6 meses",   c:"#DC2626", bg:"#FEF2F2", bdr:"#FECACA", tc:"#7F1D1D",  items:critGaps.slice(0,3) },
+                    { t:"⚡ Mediano Plazo", sub:"6–12 meses",  c:"#D97706", bg:"#FFFBEB", bdr:"#FDE68A", tc:"#78350F",  items:[...critGaps.slice(3),...modGaps.slice(0,2)].slice(0,3) },
+                    { t:"🏆 Largo Plazo",   sub:"12–24 meses", c:"#059669", bg:"#ECFDF5", bdr:"#A7F3D0", tc:"#064E3B",  items:modGaps.slice(2,5) },
+                  ].map(ph=>(
+                    <div key={ph.t} style={{ borderRadius:14, border:`2px solid ${ph.bdr}`, background:ph.bg, overflow:"hidden" }}>
+                      {/* Phase header */}
+                      <div style={{ padding:"14px 18px", borderBottom:`1px solid ${ph.bdr}`, background:`linear-gradient(135deg,${ph.c}10,transparent)` }}>
+                        <div style={{ fontSize:14, fontWeight:900, color:ph.c, marginBottom:2 }}>{ph.t}</div>
+                        <div style={{ fontSize:10, color:ph.c, opacity:.75, fontWeight:600 }}>{ph.sub}</div>
+                      </div>
+                      {/* Items */}
+                      <div style={{ padding:"14px 18px", display:"flex", flexDirection:"column", gap:12 }}>
+                        {ph.items.length > 0 ? ph.items.map((g,j)=>{
+                          const gl = lvMeta(g.score);
+                          return (
+                            <div key={j} style={{ borderRadius:10, background:"rgba(255,255,255,0.7)", border:`1px solid ${ph.bdr}`, padding:"12px 14px" }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                                <span style={{ fontSize:18 }}>{g.dimIcon}</span>
+                                <div style={{ flex:1 }}>
+                                  <div style={{ fontSize:11, fontWeight:800, color:"#1A1A18" }}>{g.dimLabel}</div>
+                                  <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2 }}>
+                                    <span style={{ fontSize:9, fontWeight:700, padding:"1px 6px", borderRadius:99, background:gl.c+"18", color:gl.c }}>{gl.label} · {g.score.toFixed(1)}</span>
+                                    <span style={{ fontSize:9, color:"#AAA" }}>+{g.gap.toFixed(1)} hasta Líder</span>
+                                  </div>
+                                </div>
+                                <div style={{ width:36, height:36, borderRadius:99, background:ph.c+"15", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                                  <span style={{ fontSize:10, fontWeight:900, color:ph.c }}>#{j+1}</span>
+                                </div>
+                              </div>
+                              {/* Mini progress */}
+                              <div style={{ height:4, background:`${ph.c}20`, borderRadius:99, overflow:"hidden", marginBottom:8 }}>
+                                <div style={{ height:"100%", width:`${(g.score/5)*100}%`, background:ph.c, borderRadius:99 }}/>
+                              </div>
+                              {/* Top initiative */}
+                              {g.topOpp && (
+                                <div style={{ fontSize:10.5, color:ph.tc, lineHeight:1.6, fontStyle:"italic", paddingTop:6, borderTop:`1px dashed ${ph.bdr}` }}>
+                                  <span style={{ fontStyle:"normal", fontWeight:700, marginRight:4 }}>→</span>{g.topOpp}
+                                </div>
+                              )}
+                              {/* Sub-scores summary */}
+                              {g.subScores && g.subScores.length > 0 && (
+                                <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:4 }}>
+                                  <div style={{ fontSize:9, fontWeight:700, color:"#AAA", textTransform:"uppercase", letterSpacing:".08em" }}>Sub-dimensiones a atender:</div>
+                                  {g.subScores.map((s,si)=>(
+                                    <div key={si} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                                      <div style={{ width:28, textAlign:"center" }}>
+                                        <span style={{ fontSize:9, fontWeight:800, color:lvMeta(s.score).c }}>{s.score.toFixed(1)}</span>
+                                      </div>
+                                      <span style={{ fontSize:10, color:"#555", flex:1 }}>{s.label}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }) : <div style={{ fontSize:11, color:"#AAA", fontStyle:"italic", textAlign:"center", padding:"12px 0" }}>Sin brechas en este horizonte</div>}
                       </div>
                     </div>
-                    <div style={{ padding:"12px 16px", display:"flex", flexDirection:"column", gap:8 }}>
-                      {ph.items.length > 0 ? ph.items.map((g,j)=>(
-                        <div key={j} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                          <span style={{ fontSize:14 }}>{g.dimIcon}</span>
-                          <span style={{ fontSize:11, color:"#555", flex:1 }}>{g.dimLabel}</span>
-                          <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:99,
-                            background:lvMeta(g.score).c+"18", color:lvMeta(g.score).c }}>{g.score.toFixed(1)}</span>
-                        </div>
-                      )) : <div style={{ fontSize:11, color:"#AAA", fontStyle:"italic" }}>Sin brechas en este horizonte</div>}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
         )}
+
+        </div>
       </AnalyticsCard>
 
       {/* ═══ RANKING ═══ */}
