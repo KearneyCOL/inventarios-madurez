@@ -87,8 +87,9 @@ async function guardarEvaluacion(answers, perfil = {}) {
       });
     });
 
-    await supabase.from("respuestas").insert(filas);
-    console.log("✅ Evaluación guardada correctamente en Supabase");
+    const resResp = await supabase.from("respuestas").insert(filas);
+    if (resResp.error) console.error("❌ Error insertando respuestas:", resResp.error);
+    else console.log("✅ Evaluación guardada correctamente en Supabase (" + filas.length + " respuestas)");
   } catch (err) {
     console.error("Error inesperado:", err);
   }
@@ -1407,8 +1408,18 @@ export default function App() {
     if (view !== "summary") guardadoRef.current = false;
   }, [view]);
 
-  // Función para guardar/sincronizar progreso en cualquier momento
+  // Función para guardar/sincronizar progreso en cualquier momento (con debounce)
+  const saveTimeoutRef = useRef(null);
+  const pendingAnsRef = useRef(null);
   async function guardarProgreso(ans) {
+    if (!perfil) return;
+    pendingAnsRef.current = ans || answers;
+    // Debounce: esperar 700ms después del último cambio para evitar hammer a la DB
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => { doGuardarProgreso(pendingAnsRef.current); }, 700);
+  }
+
+  async function doGuardarProgreso(curAnswers) {
     if (!perfil) return;
     setSaving(true); setSavedOk(false);
     try {
@@ -1421,40 +1432,48 @@ export default function App() {
           .insert([{ direccion: perfil.direccion||null, rol: perfil.rol||null, empresa_id: eid }])
           .select("id");
         if (res.error) {
+          console.error("❌ Error al crear evaluacion:", res.error);
           setGuardarError("Error al crear evaluacion: " + res.error.message);
           setSaving(false); return;
         }
         evalIdRef.current = res.data[0].id;
+        console.log("✅ Evaluación creada:", evalIdRef.current);
       }
 
-      // 2. Guardar cada respuesta individualmente (sin delete previo)
-      const curAnswers = ans || answers;
+      // 2. Construir arreglo de respuestas y reemplazar en bloque
+      //    (delete + insert evita depender de un UNIQUE constraint en la DB)
+      const filas = [];
       for (const d of DIMS) {
         for (const s of d.subs) {
           const v = curAnswers[s.id];
           if (!v || v < 1) continue;
-          const res = await supabase.from("respuestas").upsert({
+          filas.push({
             evaluacion_id: evalIdRef.current,
             subdimension_id: s.id,
             dimension_key: d.key,
             valor: v,
-          }, { onConflict: "evaluacion_id,subdimension_id", ignoreDuplicates: false });
-          if (res.error) {
-            // Si falla upsert, intentar insert directo
-            await supabase.from("respuestas").insert({
-              evaluacion_id: evalIdRef.current,
-              subdimension_id: s.id,
-              dimension_key: d.key,
-              valor: v,
-            });
-          }
+          });
         }
+      }
+
+      const delRes = await supabase.from("respuestas").delete().eq("evaluacion_id", evalIdRef.current);
+      if (delRes.error) console.warn("⚠️ Delete previo falló:", delRes.error.message);
+
+      if (filas.length > 0) {
+        const insRes = await supabase.from("respuestas").insert(filas);
+        if (insRes.error) {
+          console.error("❌ Insert batch de respuestas falló:", insRes.error);
+          setGuardarError("Error guardando respuestas: " + insRes.error.message);
+          setSaving(false); return;
+        }
+        console.log("✅ Respuestas sincronizadas:", filas.length);
       }
 
       setGuardarError(null);
       setSavedOk(true);
       setTimeout(() => setSavedOk(false), 2500);
     } catch(e) {
+      console.error("❌ Error inesperado en guardarProgreso:", e);
       setGuardarError(e.message);
     }
     setSaving(false);

@@ -2890,15 +2890,31 @@ export default function ControlApp() {
     return () => s.remove();
   }, []);
 
+  async function fetchAllRespuestas() {
+    const all = [];
+    const PAGE = 1000;
+    let from = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from("respuestas").select("*").range(from, from + PAGE - 1);
+      if (error) { console.error("Error fetching respuestas:", error); break; }
+      if (!data || data.length === 0) break;
+      all.push(...data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+    return all;
+  }
+
   async function fetchDataSilent() {
     try {
-      const [r1, r2, r3] = await Promise.all([
+      const [r1, r3] = await Promise.all([
         supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
-        supabase.from("respuestas").select("*"),
         supabase.from("empresas").select("*").order("created_at", { ascending: false }),
       ]);
+      const allResp = await fetchAllRespuestas();
       if (!r1.error) setEvaluaciones(r1.data || []);
-      if (!r2.error) setRespuestas(r2.data || []);
+      setRespuestas(allResp);
       if (!r3.error) setEmpresas(r3.data || []);
     } catch(e) { console.error("fetchDataSilent:", e); }
   }
@@ -2909,14 +2925,17 @@ export default function ControlApp() {
     setLoading(true);
     const timeout = setTimeout(() => { setLoading(false); loadingRef.current = false; }, 10000);
     try {
-      const [r1, r2, r3] = await Promise.all([
+      const [r1, r3] = await Promise.all([
         supabase.from("evaluaciones").select("*").order("created_at", { ascending: false }),
-        supabase.from("respuestas").select("*"),
         supabase.from("empresas").select("*").order("created_at", { ascending: false }),
       ]);
+      const allResp = await fetchAllRespuestas();
       if (!r1.error) setEvaluaciones(r1.data || []);
-      if (!r2.error) setRespuestas(r2.data   || []);
-      if (!r3.error) setEmpresas(r3.data     || []);
+      else console.error("Error fetching evaluaciones:", r1.error);
+      setRespuestas(allResp);
+      console.log("📊 Evaluaciones:", r1.data?.length, "| Respuestas:", allResp.length, "| Empresas:", r3.data?.length);
+      if (!r3.error) setEmpresas(r3.data || []);
+      else console.error("Error fetching empresas:", r3.error);
     } catch(e) {
       console.error("fetchData error:", e);
     } finally {
