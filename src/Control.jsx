@@ -2366,11 +2366,10 @@ function ReportTab({ evaluaciones, respuestas }) {
         // 4 big KPI boxes
         const kpiBox = (x, bw, icon, label, value, sub, rgb) => {
           rect(x, y, bw-3, 28, 5, [248,246,243]);
-          doc.setDrawColor(...rgb, 60);
+          doc.setDrawColor(...rgb);
           doc.setLineWidth(0.5);
           doc.roundedRect(x, y, bw-3, 28, 5, 5);
-          setFont("normal", 11, []);
-          doc.setTextColor(...rgb);
+          setFont("normal", 11, rgb);
           doc.text(icon, x+5, y+9);
           setFont("bold", 18, rgb);
           doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
@@ -2622,7 +2621,7 @@ function ReportTab({ evaluaciones, respuestas }) {
         phases.forEach((ph,pi) => {
           const px = 16 + pi*(colW2+3);
           rect(px, y, colW2, 12, 4, ph.bgRGB);
-          doc.setDrawColor(...ph.rgb,80);
+          doc.setDrawColor(...ph.rgb);
           doc.roundedRect(px, y, colW2, 12, 4, 4);
           setFont("bold", 9, ph.rgb);
           doc.text(ph.t, px+5, y+6);
