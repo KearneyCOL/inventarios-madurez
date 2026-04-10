@@ -2131,22 +2131,29 @@ function ReportTab({ evaluaciones, respuestas }) {
   function toggleRol(r) { setFilterRol(a => a.includes(r)?a.filter(x=>x!==r):[...a,r]); }
   function toggleSection(k) { setSections(s => ({ ...s, [k]: !s[k] })); }
 
-  const filtered = useMemo(() => evaluaciones.filter(e => {
+  // Enriquecer evaluaciones con scores calculados desde respuestas si score_global es null
+  const enriched = useMemo(() => evaluaciones.map(e => {
+    if (e.score_global) return e;
+    const eResps = respuestas.filter(r => r.evaluacion_id === e.id);
+    if (!eResps.length) return e;
+    const dimScores = DIMS_META.reduce((acc, d) => {
+      const vals = eResps.filter(r => r.dimension_key === d.key);
+      acc[`score_${d.key}`] = vals.length > 0
+        ? parseFloat((vals.reduce((s,r)=>s+(r.valor||0),0)/vals.length).toFixed(2)) : null;
+      return acc;
+    }, {});
+    const dVals = Object.values(dimScores).filter(Boolean);
+    const score_global = dVals.length
+      ? parseFloat((dVals.reduce((a,b)=>a+b,0)/dVals.length).toFixed(2)) : null;
+    return { ...e, ...dimScores, score_global };
+  }), [evaluaciones, respuestas]);
+
+  const filtered = useMemo(() => enriched.filter(e => {
     if (filterDir.length && !filterDir.includes(e.direccion)) return false;
     if (filterRol.length && !filterRol.includes(e.rol)) return false;
     return true;
-  }), [evaluaciones, filterDir, filterRol]);
+  }), [enriched, filterDir, filterRol]);
 
-  function avgArr(arr) {
-    const a = arr.filter(x=>x!=null&&!isNaN(x));
-    return a.length ? parseFloat((a.reduce((s,x)=>s+x,0)/a.length).toFixed(2)) : null;
-  }
-
-  function lvColor(v) {
-    if (!v) return "#AAA";
-    const r = Math.round(v);
-    return ["#78716C","#D97706","#2563EB","#7C3AED","#059669"][r-1]||"#AAA";
-  }
   function lvLabel(v) {
     return ["","Básico","Emergente","Robusto","Avanzado","Líder"][Math.round(v)]||"—";
   }
@@ -2154,7 +2161,6 @@ function ReportTab({ evaluaciones, respuestas }) {
   async function generatePDF() {
     setGenerating(true);
     try {
-      // Load jsPDF dynamically
       if (!window.jspdf) {
         await new Promise((res, rej) => {
           const s = document.createElement("script");
@@ -2165,548 +2171,394 @@ function ReportTab({ evaluaciones, respuestas }) {
       }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-      const W = 210, H = 297;
-      const RED = [232, 37, 31], DARK = [17, 17, 16], MID = [107, 104, 96], LIGHT = [200, 198, 192];
+      const W = 210, H = 297, M = 16;
+      const RED = [232, 37, 31], DARK = [26, 26, 24], MID = [107, 104, 96], LIGHT = [180, 178, 174];
+      const LV_NAMES = ["","Basico","Emergente","Robusto","Avanzado","Lider"];
+      const LV_RGB = [[120,113,108],[217,119,6],[37,99,235],[124,58,237],[5,150,105]];
       const now = new Date().toLocaleDateString("es-CO", { day:"2-digit", month:"long", year:"numeric" });
 
-      // ── helpers ──────────────────────────────────────────────────────────
-      function setFont(weight="normal", size=10, color=DARK) {
-        doc.setFont("helvetica", weight);
-        doc.setFontSize(size);
-        doc.setTextColor(...color);
-      }
-      function rect(x,y,w,h,r,fillRGB) {
-        doc.setFillColor(...fillRGB);
-        doc.roundedRect(x,y,w,h,r,r,"F");
-      }
-      function hline(y, color=[232,228,224]) {
-        doc.setDrawColor(...color);
-        doc.setLineWidth(0.3);
-        doc.line(16, y, W-16, y);
-      }
-      function pill(x, y, text, bgRGB, textRGB) {
-        setFont("bold", 7.5, textRGB);
-        const tw = doc.getTextWidth(text);
-        doc.setFillColor(...bgRGB);
-        doc.roundedRect(x-2, y-3.5, tw+4, 5.5, 1.5, 1.5, "F");
-        doc.text(text, x, y);
-      }
-      function miniBar(x, y, value, max, color, barW=40) {
-        doc.setFillColor(235,233,228);
-        doc.roundedRect(x, y, barW, 2.5, 1, 1, "F");
-        if (value && max) {
-          doc.setFillColor(...color);
-          doc.roundedRect(x, y, Math.max(1.5, (value/max)*barW), 2.5, 1, 1, "F");
-        }
-      }
-      function newPage(header=true) {
-        doc.addPage();
-        if (header) {
-          rect(0, 0, W, 14, 0, RED);
-          setFont("bold", 9, [255,255,255]);
-          doc.text(titulo, 16, 9.5);
-          setFont("normal", 7.5, [255,200,200]);
-          doc.text(now, W-16, 9.5, { align:"right" });
-        }
-        return 20;
-      }
-      function checkY(y, needed=30) {
-        if (y + needed > H - 20) return newPage();
-        return y;
-      }
+      function sf(w="normal",s=10,c=DARK){doc.setFont("helvetica",w);doc.setFontSize(s);doc.setTextColor(...c);}
+      function rr(x,y,w,h,r,c){doc.setFillColor(...c);doc.roundedRect(x,y,w,h,r,r,"F");}
+      function hl(y,c=[232,228,224]){doc.setDrawColor(...c);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);}
+      function bar(x,y,v,max,c,bw=40){rr(x,y,bw,3,1,[240,238,233]);if(v&&max)rr(x,y,Math.max(2,(v/max)*bw),3,1,c);}
+      function lvC(v){return v?LV_RGB[Math.max(0,Math.round(v)-1)]:[180,178,174];}
+      function newPg(){doc.addPage();rr(0,0,W,12,0,RED);sf("bold",8,[255,255,255]);doc.text(titulo,M,8);sf("normal",7,[255,200,200]);doc.text(now,W-M,8,{align:"right"});return 18;}
+      function chkY(y,n=30){return y+n>H-16?newPg():y;}
+      function sectionTitle(y,title){sf("bold",14,RED);doc.text(title,M,y);y+=3;hl(y);return y+7;}
 
-      // ── data ─────────────────────────────────────────────────────────────
+      // ── DATA (enriched) ─────────────────────────────────────────────────
       const globalAvg = avgArr(filtered.map(e=>e.score_global));
-      const dimAvgs = DIMS_META.map(d => ({ ...d, score: avgArr(filtered.map(e=>e[`score_${d.key}`])) }));
+      const dimAvgs = DIMS_META.map(d=>({...d,score:avgArr(filtered.map(e=>e[`score_${d.key}`]))}));
       const strongest = [...dimAvgs].filter(d=>d.score).sort((a,b)=>b.score-a.score)[0];
       const weakest   = [...dimAvgs].filter(d=>d.score).sort((a,b)=>a.score-b.score)[0];
-      const spread    = strongest&&weakest ? parseFloat((strongest.score-weakest.score).toFixed(1)) : null;
-      const LV_NAMES  = ["","Básico","Emergente","Robusto","Avanzado","Líder"];
-      const LV_COLORS_RGB = [[120,113,108],[217,119,6],[37,99,235],[124,58,237],[5,150,105]];
+      const spread    = strongest&&weakest?parseFloat((strongest.score-weakest.score).toFixed(1)):null;
 
-      const gapsData = DIMS_META.map(d => {
-        const sc = avgArr(filtered.map(e=>e[`score_${d.key}`]));
-        if (!sc || sc >= 5) return null;
-        const fromLvl = Math.round(sc);
-        const toLvl = Math.min(fromLvl + 1, 5);
-        return { ...d, score:sc, from:fromLvl, to:toLvl, gap:parseFloat((toLvl-sc).toFixed(1)), n:filtered.filter(e=>e[`score_${d.key}`]).length };
+      const gapsData = DIMS_META.map(d=>{
+        const sc=avgArr(filtered.map(e=>e[`score_${d.key}`]));
+        if(!sc||sc>=5)return null;
+        const fr=Math.round(sc),to=Math.min(fr+1,5);
+        return{...d,score:sc,from:fr,to,gap:parseFloat((to-sc).toFixed(1)),n:filtered.filter(e=>e[`score_${d.key}`]).length};
       }).filter(Boolean).sort((a,b)=>a.score-b.score);
-      const critGaps = gapsData.filter(g=>g.score<2.5);
-      const modGaps  = gapsData.filter(g=>g.score>=2.5&&g.score<3.5);
-      const advGaps  = gapsData.filter(g=>g.score>=3.5);
+      const critGaps=gapsData.filter(g=>g.score<2.5);
+      const modGaps=gapsData.filter(g=>g.score>=2.5&&g.score<3.5);
+      const advGaps=gapsData.filter(g=>g.score>=3.5);
 
-      const byRoleData = [...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol=>{
-        const rows = filtered.filter(e=>e.rol===rol);
-        return { rol, n:rows.length, score:avgArr(rows.map(e=>e.score_global)) };
+      const byRoleData=[...new Set(filtered.map(e=>e.rol).filter(Boolean))].map(rol=>{
+        const rows=filtered.filter(e=>e.rol===rol);
+        return{rol,n:rows.length,score:avgArr(rows.map(e=>e.score_global))};
       }).filter(r=>r.score).sort((a,b)=>b.score-a.score);
 
-      const heatDirs = [...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
-      const heatRows = heatDirs.map(dir => {
-        const rows = filtered.filter(e=>e.direccion===dir);
-        const r = { dir, n:rows.length, global:avgArr(rows.map(e=>e.score_global)) };
-        DIMS_META.forEach(d => { r[d.key] = avgArr(rows.map(e=>e[`score_${d.key}`])); });
+      const heatDirs=[...new Set(filtered.map(e=>e.direccion).filter(Boolean))].sort();
+      const heatRows=heatDirs.map(dir=>{
+        const rows=filtered.filter(e=>e.direccion===dir);
+        const r={dir,n:rows.length,global:avgArr(rows.map(e=>e.score_global))};
+        DIMS_META.forEach(d=>{r[d.key]=avgArr(rows.map(e=>e[`score_${d.key}`]));});
         return r;
       });
 
-      const distData = [1,2,3,4,5].map(v => {
-        const count = filtered.filter(e=>Math.round(e.score_global)===v).length;
-        return {
-          v, label: LV_NAMES[v], count, color: LV_COLORS_RGB[v-1],
-          pct: filtered.length ? Math.round(count/filtered.length*100) : 0,
-        };
+      const distData=[1,2,3,4,5].map(v=>{
+        const count=filtered.filter(e=>Math.round(e.score_global)===v).length;
+        return{v,label:LV_NAMES[v],count,color:LV_RGB[v-1],pct:filtered.length?Math.round(count/filtered.length*100):0};
       });
 
       // ══════════════════════════════════════════════════════════════════════
       // PORTADA
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.portada) {
-        // Red hero
-        rect(0, 0, W, 110, 0, RED);
-        // Dot grid pattern
-        doc.setFillColor(255,255,255);
-        for (let gx = 10; gx < W; gx += 14) {
-          for (let gy = 10; gy < 110; gy += 14) {
-            doc.circle(gx, gy, 0.4, "F");
-          }
-        }
-        // Decorative circles
-        doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.08 }));
-        doc.circle(W-20, 20, 60, "F");
-        doc.circle(30, 95, 35, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
-
-        // Logo area
-        rect(16, 16, 42, 9, 3, [200,20,15]);
-        setFont("bold", 9, [255,255,255]);
-        doc.text("KEARNEY", 37, 21.5, { align:"center" });
-
+      if(sections.portada){
+        // Full-page red hero
+        rr(0,0,W,120,0,RED);
+        // Diagonal accent strip
+        doc.setFillColor(200,20,15);
+        doc.triangle(0,100,W,80,W,120,"F");
+        // Kearney branding
+        rr(M,18,50,10,4,[200,20,15]);
+        sf("bold",10,[255,255,255]);
+        doc.text("KEARNEY",M+25,24.5,{align:"center"});
         // Title
-        setFont("bold", 28, [255,255,255]);
-        const titleLines = doc.splitTextToSize(titulo, W-40);
-        let ty = 48;
-        titleLines.forEach(line => { doc.text(line, 16, ty); ty += 11; });
+        sf("bold",26,[255,255,255]);
+        const tLines=doc.splitTextToSize(titulo,W-40);
+        let ty=46;
+        tLines.forEach(l=>{doc.text(l,M,ty);ty+=10;});
+        sf("normal",11,[255,210,210]);
+        doc.text(subtitulo,M,ty+3);
+        sf("normal",9,[255,255,255]);
+        doc.text(now,M,ty+12);
 
-        setFont("normal", 12, [255,200,200]);
-        doc.text(subtitulo, 16, ty+4);
-
-        // Date pill
-        doc.setFillColor(255,255,255);
-        doc.setGState(new doc.GState({ opacity: 0.15 }));
-        doc.roundedRect(14, ty+12, 70, 8, 2, 2, "F");
-        doc.setGState(new doc.GState({ opacity: 1 }));
-        setFont("bold", 8, [255,255,255]);
-        doc.text(`📅 ${now}`, 18, ty+17);
-
-        // Summary box
-        rect(16, 118, W-32, 44, 6, [255,248,248]);
-        doc.setDrawColor(232,37,31);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(16, 118, W-32, 44, 6, 6);
-
-        setFont("bold", 8, MID);
-        doc.text("RESUMEN EJECUTIVO", 24, 128);
-        hline(131, [255,220,218]);
-
-        // KPI boxes on cover
-        const kpis = [
-          { label:"Evaluaciones", value: String(filtered.length) },
-          { label:"Score Global", value: globalAvg?.toFixed(1)||"—" },
-          { label:"Nivel", value: globalAvg?LV_NAMES[Math.round(globalAvg)]||"—":"—" },
-          { label:"Dispersión", value: spread!=null?`${spread}pts`:"—" },
+        // KPI cards below hero
+        const kpis=[
+          {l:"Evaluaciones",v:String(filtered.length)},
+          {l:"Score Global",v:globalAvg?.toFixed(1)||"--"},
+          {l:"Nivel",v:globalAvg?LV_NAMES[Math.round(globalAvg)]:"--"},
+          {l:"Dispersion",v:spread!=null?spread+" pts":"--"},
         ];
-        kpis.forEach((k,i) => {
-          const kx = 24 + i*(W-48)/4;
-          rect(kx, 134, (W-48)/4-4, 20, 4, [255,241,241]);
-          setFont("bold", 16, RED);
-          doc.text(k.value, kx+((W-48)/4-4)/2, 146, { align:"center" });
-          setFont("normal", 7, MID);
-          doc.text(k.label, kx+((W-48)/4-4)/2, 152, { align:"center" });
+        const kw=(W-M*2-12)/4;
+        kpis.forEach((k,i)=>{
+          const kx=M+i*(kw+4);
+          rr(kx,130,kw,28,5,[255,248,248]);
+          doc.setDrawColor(232,37,31);doc.setLineWidth(0.4);
+          doc.roundedRect(kx,130,kw,28,5,5);
+          sf("bold",18,RED);
+          doc.text(k.v,kx+kw/2,146,{align:"center"});
+          sf("normal",7.5,MID);
+          doc.text(k.l,kx+kw/2,153,{align:"center"});
         });
 
-        // Filtros usados
-        let fy = 170;
-        if (filterDir.length || filterRol.length) {
-          setFont("bold", 8, MID);
-          doc.text("Filtros aplicados:", 16, fy); fy += 6;
-          if (filterDir.length) {
-            setFont("normal", 7.5, MID);
-            doc.text(`Dirección: ${filterDir.join(", ")}`, 20, fy); fy += 5;
-          }
-          if (filterRol.length) {
-            setFont("normal", 7.5, MID);
-            doc.text(`Rol: ${filterRol.join(", ")}`, 20, fy); fy += 5;
-          }
+        // Dim scores summary
+        let dy=168;
+        sf("bold",9,DARK);doc.text("Score promedio por dimension",M,dy);dy+=6;
+        DIMS_META.forEach((d,i)=>{
+          const sc=dimAvgs.find(x=>x.key===d.key)?.score;
+          const rgb=sc?LV_RGB[Math.round(sc)-1]:[180,178,174];
+          const dx=M+i*((W-M*2)/7);
+          const dw=(W-M*2)/7-2;
+          rr(dx,dy,dw,18,3,[248,246,243]);
+          sf("bold",7,rgb);doc.text(d.num,dx+dw/2,dy+5.5,{align:"center"});
+          sf("bold",11,rgb);doc.text(sc?.toFixed(1)||"--",dx+dw/2,dy+13,{align:"center"});
+          bar(dx+2,dy+15,sc||0,5,rgb,dw-4);
+        });
+
+        // Filters
+        let fy=196;
+        if(filterDir.length||filterRol.length){
+          sf("bold",8,MID);doc.text("Filtros aplicados:",M,fy);fy+=5;
+          if(filterDir.length){sf("normal",7.5,MID);doc.text("Direccion: "+filterDir.join(", "),M+4,fy);fy+=4.5;}
+          if(filterRol.length){sf("normal",7.5,MID);doc.text("Rol: "+filterRol.join(", "),M+4,fy);fy+=4.5;}
         }
 
-        // Sections included
-        setFont("bold", 8, MID);
-        doc.text("Secciones incluidas:", 16, Math.max(fy+4,178));
-        const included = Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
-        setFont("normal", 7.5, MID);
-        const incText = included.join("  ·  ");
-        const incLines = doc.splitTextToSize(incText, W-32);
-        incLines.forEach((line,i) => doc.text(line, 16, Math.max(fy+4,178)+6+i*4.5));
+        // Sections
+        sf("bold",8,MID);doc.text("Secciones incluidas:",M,Math.max(fy+4,205));
+        const inc=Object.entries(sections).filter(([sk,v])=>v&&sk!=="portada").map(([sk])=>SECTION_LABELS[sk]?.label||sk);
+        sf("normal",7.5,MID);
+        doc.splitTextToSize(inc.join("  |  "),W-M*2).forEach((ln,i)=>doc.text(ln,M,Math.max(fy+4,205)+5.5+i*4));
 
-        // Footer on cover
-        rect(0, H-14, W, 14, 0, [30,30,28]);
-        setFont("normal", 7.5, [150,148,144]);
-        doc.text(`Confidencial · Generado ${now} · ${filtered.length} evaluaciones incluidas`, W/2, H-6, { align:"center" });
+        // Footer
+        rr(0,H-12,W,12,0,[30,30,28]);
+        sf("normal",7,[150,148,144]);
+        doc.text("Confidencial  |  "+now+"  |  "+filtered.length+" evaluaciones",W/2,H-5,{align:"center"});
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      // PAGE: KPIs EJECUTIVOS
+      // KPIs EJECUTIVOS
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.resumen_kpis) {
-        let y = newPage();
-        setFont("bold", 16, RED);
-        doc.text("KPIs Ejecutivos", 16, y); y += 4;
-        hline(y); y += 8;
+      if(sections.resumen_kpis){
+        let y=newPg();
+        y=sectionTitle(y,"KPIs Ejecutivos");
 
-        // 4 big KPI boxes
-        const kpiBox = (x, bw, icon, label, value, sub, rgb) => {
-          rect(x, y, bw-3, 28, 5, [248,246,243]);
-          doc.setDrawColor(...rgb);
-          doc.setLineWidth(0.5);
-          doc.roundedRect(x, y, bw-3, 28, 5, 5);
-          setFont("normal", 11, rgb);
-          doc.text(icon, x+5, y+9);
-          setFont("bold", 18, rgb);
-          doc.text(value, x+(bw-3)/2, y+19, { align:"center" });
-          setFont("normal", 7, MID);
-          doc.text(label, x+(bw-3)/2, y+25, { align:"center" });
-          if (sub) {
-            setFont("normal", 6.5, LIGHT);
-            doc.text(sub, x+(bw-3)/2, y+28.5, { align:"center" });
-          }
-        };
-        const bw = (W-32)/4;
-        kpiBox(16, bw, "⭐", "Score Global Prom.", globalAvg?.toFixed(2)||"—", `${filtered.length} evaluaciones`, RED);
-        kpiBox(16+bw, bw, "💪", "Dimensión más fuerte", strongest?.num||"—", strongest?.label, [5,150,105]);
-        kpiBox(16+bw*2, bw, "⚠️", "Dimensión más débil", weakest?.num||"—", weakest?.label, [220,38,38]);
-        kpiBox(16+bw*3, bw, "📐", "Dispersión", spread!=null?`${spread}`:"-", "max − min (pts)", spread>=2?RED:spread>=1?[217,119,6]:[5,150,105]);
-        y += 36;
-
-        // Dim scores row
-        setFont("bold", 9, DARK);
-        doc.text("Score promedio por dimensión", 16, y); y += 6;
-        DIMS_META.forEach((d,i) => {
-          const sc = dimAvgs.find(x=>x.key===d.key)?.score;
-          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
-          const dx = 16 + i*(W-32)/7;
-          const dw = (W-32)/7 - 3;
-          rect(dx, y, dw, 22, 4, [248,246,243]);
-          setFont("bold", 7, rgb);
-          doc.text(d.num, dx+dw/2, y+6, { align:"center" });
-          setFont("bold", 13, rgb);
-          doc.text(sc?.toFixed(1)||"—", dx+dw/2, y+15, { align:"center" });
-          miniBar(dx+2, y+18, sc||0, 5, rgb, dw-4);
+        // KPI row
+        const bw=(W-M*2)/4;
+        [{l:"Score Global",v:globalAvg?.toFixed(2)||"--",s:filtered.length+" eval.",c:RED},
+         {l:"Dim. mas fuerte",v:strongest?strongest.num+" "+strongest.label:"--",s:strongest?.score?.toFixed(1),c:[5,150,105]},
+         {l:"Dim. mas debil",v:weakest?weakest.num+" "+weakest.label:"--",s:weakest?.score?.toFixed(1),c:[220,38,38]},
+         {l:"Dispersion",v:spread!=null?spread+" pts":"--",s:"max - min",c:spread>=2?RED:[5,150,105]},
+        ].forEach((k,i)=>{
+          const kx=M+i*bw;
+          rr(kx+1,y,bw-2,26,4,[248,246,243]);
+          sf("normal",7,MID);doc.text(k.l,kx+bw/2,y+6,{align:"center"});
+          sf("bold",14,k.c);doc.text(k.v,kx+bw/2,y+17,{align:"center"});
+          if(k.s){sf("normal",7,LIGHT);doc.text(k.s,kx+bw/2,y+23,{align:"center"});}
         });
-        y += 30;
+        y+=34;
+
+        // Dim scores
+        sf("bold",9,DARK);doc.text("Score promedio por dimension",M,y);y+=6;
+        DIMS_META.forEach((d,i)=>{
+          const sc=dimAvgs.find(x=>x.key===d.key)?.score;
+          const rgb=sc?LV_RGB[Math.round(sc)-1]:[180,178,174];
+          const dx=M+i*((W-M*2)/7),dw=(W-M*2)/7-2;
+          rr(dx,y,dw,20,3,[248,246,243]);
+          sf("bold",7,rgb);doc.text(d.num,dx+dw/2,y+5,{align:"center"});
+          sf("bold",12,rgb);doc.text(sc?.toFixed(1)||"--",dx+dw/2,y+14,{align:"center"});
+          bar(dx+2,y+17,sc||0,5,rgb,dw-4);
+        });
+        y+=28;
+
+        // Puntaje por Unidad
+        sf("bold",9,DARK);doc.text("Puntaje consolidado por unidad",M,y);y+=6;
+        const units=UNITS.map(u=>{const rows=filtered.filter(e=>e.direccion===u);return{unit:u,n:rows.length,sc:avgArr(rows.map(e=>e.score_global))};}).filter(u=>u.n>0);
+        const uw=(W-M*2)/Math.min(units.length,3)-2;
+        units.forEach((u,i)=>{
+          const ux=M+(i%3)*(uw+2),uy=y+Math.floor(i/3)*16;
+          const rgb=u.sc?LV_RGB[Math.round(u.sc)-1]:[180,178,174];
+          rr(ux,uy,uw,13,3,[248,246,243]);
+          sf("bold",8,DARK);doc.text(u.unit,ux+3,uy+5);
+          sf("normal",7,MID);doc.text("n="+u.n,ux+3,uy+10);
+          sf("bold",11,rgb);doc.text(u.sc?.toFixed(1)||"--",ux+uw-3,uy+7,{align:"right"});
+          bar(ux+3,uy+11,u.sc||0,5,rgb,uw-6);
+        });
+        y+=Math.ceil(units.length/3)*16+6;
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      // PAGE: DISTRIBUCIÓN
+      // DISTRIBUCION
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.distribucion) {
-        let y = checkY(999); // force new page for this section
-        y = newPage(); 
-        setFont("bold", 16, RED);
-        doc.text("Distribución por Nivel de Madurez", 16, y); y += 4;
-        hline(y); y += 10;
-
-        const maxCount = Math.max(...distData.map(d=>d.count), 1);
-        const barAreaH = 60;
-        const barW = (W-60) / 5;
-
-        distData.forEach((l, i) => {
-          const bx = 30 + i * barW;
-          const bh = l.count > 0 ? Math.max(4, (l.count/maxCount)*barAreaH) : 0;
-          // Bar BG
-          doc.setFillColor(240,238,233);
-          doc.roundedRect(bx, y, barW-4, barAreaH, 3, 3, "F");
-          // Bar fill
-          if (bh > 0) {
-            doc.setFillColor(...l.color);
-            doc.roundedRect(bx, y+barAreaH-bh, barW-4, bh, 3, 3, "F");
-          }
-          // Count on top
-          setFont("bold", 12, l.color);
-          doc.text(String(l.count), bx+(barW-4)/2, y+barAreaH-bh-2, { align:"center" });
-          // Label
-          setFont("bold", 7.5, l.color);
-          doc.text(l.label, bx+(barW-4)/2, y+barAreaH+7, { align:"center" });
-          // Pct
-          setFont("normal", 7, MID);
-          doc.text(`${l.pct}%`, bx+(barW-4)/2, y+barAreaH+13, { align:"center" });
+      if(sections.distribucion){
+        let y=newPg();
+        y=sectionTitle(y,"Distribucion por Nivel de Madurez");
+        const maxC=Math.max(...distData.map(d=>d.count),1);
+        const barH=55,bw=(W-M*2-20)/5;
+        distData.forEach((l,i)=>{
+          const bx=M+10+i*bw;
+          const bh=l.count>0?Math.max(4,(l.count/maxC)*barH):0;
+          rr(bx,y,bw-4,barH,3,[240,238,233]);
+          if(bh>0){doc.setFillColor(...l.color);doc.roundedRect(bx,y+barH-bh,bw-4,bh,3,3,"F");}
+          sf("bold",11,l.color);doc.text(String(l.count),bx+(bw-4)/2,y+barH-bh-3,{align:"center"});
+          sf("bold",7.5,l.color);doc.text(l.label,bx+(bw-4)/2,y+barH+6,{align:"center"});
+          sf("normal",7,MID);doc.text(l.pct+"%",bx+(bw-4)/2,y+barH+11,{align:"center"});
         });
-        y += barAreaH + 20;
-
-        // Pill summary
-        distData.filter(d=>d.count>0).forEach(l => {
-          pill(16, y, `${l.label}: ${l.count} eval. (${l.pct}%)`, [...l.color, 0.15].slice(0,3), l.color);
-          y += 7;
+        y+=barH+18;
+        // Summary pills
+        let px=M;
+        distData.filter(d=>d.count>0).forEach(l=>{
+          const t=l.label+": "+l.count+" ("+l.pct+"%)";
+          sf("bold",7,l.color);const tw=doc.getTextWidth(t);
+          rr(px,y-3,tw+6,5.5,2,l.color.map(c=>Math.min(255,c+200)));
+          doc.text(t,px+3,y);
+          px+=tw+10;
         });
       }
 
       // ══════════════════════════════════════════════════════════════════════
-      // PAGE: HEATMAP
+      // HEATMAP
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.heatmap && heatRows.length > 0) {
-        let y = newPage();
-        setFont("bold", 16, RED);
-        doc.text("Heatmap Dirección × Dimensión", 16, y); y += 4;
-        hline(y); y += 8;
-
-        const cols = ["Dirección","n","Global",...DIMS_META.map(d=>d.num)];
-        const colW  = [42, 10, 18, ...Array(7).fill((W-32-42-10-18)/7)];
-        let cx = 16;
-
-        // Header row
-        rect(16, y, W-32, 7, 2, [248,246,243]);
-        cols.forEach((col,i) => {
-          setFont("bold", 7, MID);
-          doc.text(col, cx+colW[i]/2, y+4.8, { align:"center" });
-          cx += colW[i];
-        });
-        y += 8;
-
-        heatRows.sort((a,b)=>(b.global||0)-(a.global||0)).forEach(row => {
-          y = checkY(y, 10);
-          cx = 16;
-          // Dir
-          setFont("bold", 8, DARK);
-          doc.text(row.dir, cx+2, y+4.8);
-          cx += colW[0];
-          // n
-          setFont("normal", 7.5, MID);
-          doc.text(String(row.n), cx+colW[1]/2, y+4.8, { align:"center" });
-          cx += colW[1];
-          // Global
-          const gl = row.global ? LV_COLORS_RGB[Math.round(row.global)-1] : [200,198,192];
-          rect(cx, y+0.5, colW[2]-1, 6.5, 2, [...gl].map(c=>Math.min(255,c+200)));
-          setFont("bold", 8, gl);
-          doc.text(row.global?.toFixed(1)||"—", cx+colW[2]/2, y+4.8, { align:"center" });
-          cx += colW[2];
-          // Dims
-          DIMS_META.forEach(d => {
-            const v = row[d.key];
-            const rgb = v ? LV_COLORS_RGB[Math.round(v)-1] : [200,198,192];
-            if (v) {
-              rect(cx+0.5, y+0.5, colW[3]-1, 6.5, 2, [...rgb].map(c=>Math.min(255,c+200)));
-            }
-            setFont(v?"bold":"normal", v?8:7, v?rgb:LIGHT);
-            doc.text(v?.toFixed(1)||"—", cx+colW[3]/2, y+4.8, { align:"center" });
-            cx += colW[3];
+      if(sections.heatmap&&heatRows.length>0){
+        let y=newPg();
+        y=sectionTitle(y,"Heatmap Direccion x Dimension");
+        const cols=["Direccion","n","Global",...DIMS_META.map(d=>d.num)];
+        const cw=[42,10,18,...Array(7).fill((W-M*2-42-10-18)/7)];
+        // Header
+        rr(M,y,W-M*2,7,2,[248,246,243]);
+        let cx=M;
+        cols.forEach((c,i)=>{sf("bold",7,MID);doc.text(c,cx+cw[i]/2,y+4.8,{align:"center"});cx+=cw[i];});
+        y+=8;
+        heatRows.sort((a,b)=>(b.global||0)-(a.global||0)).forEach(row=>{
+          y=chkY(y,10);cx=M;
+          sf("bold",8,DARK);doc.text(row.dir.slice(0,18),cx+2,y+4.8);cx+=cw[0];
+          sf("normal",7.5,MID);doc.text(String(row.n),cx+cw[1]/2,y+4.8,{align:"center"});cx+=cw[1];
+          const gl=lvC(row.global);
+          rr(cx,y+0.5,cw[2]-1,6.5,2,gl.map(c=>Math.min(255,c+200)));
+          sf("bold",8,gl);doc.text(row.global?.toFixed(1)||"--",cx+cw[2]/2,y+4.8,{align:"center"});cx+=cw[2];
+          DIMS_META.forEach(d=>{
+            const v=row[d.key],rgb=lvC(v);
+            if(v)rr(cx+0.5,y+0.5,cw[3]-1,6.5,2,rgb.map(c=>Math.min(255,c+200)));
+            sf(v?"bold":"normal",v?8:7,v?rgb:LIGHT);
+            doc.text(v?.toFixed(1)||"--",cx+cw[3]/2,y+4.8,{align:"center"});cx+=cw[3];
           });
-          hline(y+8, [240,238,233]);
-          y += 9;
+          hl(y+8,[240,238,233]);y+=9;
         });
-
         // Legend
-        y += 6;
-        setFont("bold", 7, MID);
-        doc.text("Referencia de colores:", 16, y); y += 5;
-        ["#1","Básico","#2","Emergente","#3","Robusto","#4","Avanzado","#5","Líder"].forEach((lbl,i) => {
-          if (i%2===0) return;
-          const lx = 16 + Math.floor(i/2)*42;
-          const rgb = LV_COLORS_RGB[Math.floor(i/2)];
-          doc.setFillColor(...rgb.map(c=>Math.min(255,c+200)));
-          doc.roundedRect(lx-1, y-3.5, 40, 5, 1.5, 1.5, "F");
-          setFont("bold", 7, rgb);
-          doc.text(lbl, lx+20, y, { align:"center" });
+        y+=5;sf("bold",7,MID);doc.text("Referencia:",M,y);y+=5;
+        LV_NAMES.slice(1).forEach((n,i)=>{
+          const lx=M+i*36;
+          rr(lx,y-3,34,5,1.5,LV_RGB[i].map(c=>Math.min(255,c+200)));
+          sf("bold",7,LV_RGB[i]);doc.text(n,lx+17,y,{align:"center"});
         });
       }
 
       // ══════════════════════════════════════════════════════════════════════
       // POR ROL
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.por_rol && byRoleData.length > 0) {
-        let y = newPage();
-        setFont("bold", 16, RED);
-        doc.text("Score Promedio por Rol", 16, y); y += 4;
-        hline(y); y += 10;
-
-        byRoleData.forEach((r,i) => {
-          y = checkY(y, 12);
-          const sc = r.score;
-          const rgb = sc ? LV_COLORS_RGB[Math.round(sc)-1] : [180,178,174];
-          setFont("bold", 8, rgb);
-          doc.text(`#${i+1}`, 16, y+3);
-          setFont("bold", 10, DARK);
-          doc.text(r.rol, 26, y+3);
-          setFont("normal", 8, MID);
-          doc.text(`n=${r.n}`, 110, y+3);
-          miniBar(120, y, sc||0, 5, rgb, 55);
-          setFont("bold", 11, rgb);
-          doc.text(sc?.toFixed(2)||"—", W-16, y+3, { align:"right" });
-          hline(y+7, [240,238,233]);
-          y += 10;
+      if(sections.por_rol&&byRoleData.length>0){
+        let y=newPg();
+        y=sectionTitle(y,"Score Promedio por Rol");
+        byRoleData.forEach((r,i)=>{
+          y=chkY(y,12);const sc=r.score,rgb=lvC(sc);
+          sf("bold",8,MID);doc.text("#"+(i+1),M,y+3);
+          sf("bold",9,DARK);doc.text(r.rol,M+10,y+3);
+          sf("normal",7.5,MID);doc.text("n="+r.n,100,y+3);
+          bar(110,y+1,sc||0,5,rgb,60);
+          sf("bold",10,rgb);doc.text(sc?.toFixed(2)||"--",W-M,y+3,{align:"right"});
+          hl(y+7,[240,238,233]);y+=10;
         });
       }
 
-      // ── helper to render a gap section in the PDF ──
-      function renderGapSection(doc, gapItems, title, titleRGB, bgBox, bdrRGB, emptyMsg) {
-        let y = newPage();
-        setFont("bold", 16, titleRGB);
-        doc.text(title, 16, y); y += 4;
-        hline(y, bdrRGB); y += 6;
-        setFont("normal", 9, MID);
-        doc.text(`${gapItems.length} dimensiones identificadas.`, 16, y); y += 8;
-
-        if (gapItems.length === 0) {
-          rect(16, y, W-32, 14, 4, [236,253,245]);
-          setFont("bold", 9, [5,150,105]);
-          doc.text(emptyMsg, W/2, y+9, { align:"center" });
-        } else {
-          gapItems.forEach(g => {
-            y = checkY(y, 28);
-            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
-            const toRGB = LV_COLORS_RGB[g.to-1] || LV_COLORS_RGB[4];
-            rect(16, y, W-32, 24, 4, bgBox);
-            doc.setDrawColor(...bdrRGB);
-            doc.roundedRect(16, y, W-32, 24, 4, 4);
-            setFont("bold", 11, DARK);
-            doc.text(`${g.dimIcon}  ${g.dimLabel}`, 22, y+8);
-            // From badge
-            rect(W-80, y+3, 28, 7, 3, [...rgb].map(c=>Math.min(255,c+200)));
-            setFont("bold", 7.5, rgb);
-            doc.text(`${lvLabel(g.score)} ${g.score.toFixed(1)}`, W-66, y+7.5, { align:"center" });
-            // Arrow
-            setFont("bold", 10, MID);
-            doc.text("→", W-49, y+7.5);
-            // To badge
-            rect(W-46, y+3, 28, 7, 3, [...toRGB].map(c=>Math.min(255,c+200)));
-            setFont("bold", 7.5, toRGB);
-            doc.text(LV_NAMES[g.to]||"", W-32, y+7.5, { align:"center" });
-            // Minibar
-            miniBar(22, y+18.5, g.score, 5, rgb, W-52);
-            setFont("normal", 7, MID);
-            doc.text(`${g.n} evaluaciones`, W-16, y+22, { align:"right" });
-            y += 28;
-          });
-        }
-        return y;
+      // ══════════════════════════════════════════════════════════════════════
+      // BRECHAS (unified renderer)
+      // ══════════════════════════════════════════════════════════════════════
+      function renderGaps(items,title,titleC,bgC,bdrC,emptyTxt){
+        let y=newPg();y=sectionTitle(y,title);
+        sf("normal",8.5,MID);doc.text(items.length+" dimensiones identificadas.",M,y);y+=7;
+        if(!items.length){rr(M,y,W-M*2,12,3,[236,253,245]);sf("bold",8.5,[5,150,105]);doc.text(emptyTxt,W/2,y+7.5,{align:"center"});return;}
+        items.forEach(g=>{
+          y=chkY(y,32);
+          const rgb=lvC(g.score),toRGB=LV_RGB[g.to-1]||LV_RGB[4];
+          rr(M,y,W-M*2,28,4,bgC);
+          doc.setDrawColor(...bdrC);doc.setLineWidth(0.4);doc.roundedRect(M,y,W-M*2,28,4,4);
+          // Dim label
+          sf("bold",10,DARK);doc.text(g.num+"  "+g.label,M+6,y+8);
+          // From pill
+          rr(M+6,y+12,28,6,2,rgb.map(c=>Math.min(255,c+200)));
+          sf("bold",7,rgb);doc.text(LV_NAMES[g.from]+" "+g.score.toFixed(1),M+20,y+16,{align:"center"});
+          // Arrow
+          sf("bold",9,MID);doc.text("-->",M+38,y+16);
+          // To pill
+          rr(M+50,y+12,24,6,2,toRGB.map(c=>Math.min(255,c+200)));
+          sf("bold",7,toRGB);doc.text(LV_NAMES[g.to],M+62,y+16,{align:"center"});
+          // Bar + evals
+          bar(M+80,y+14,g.score,5,rgb,W-M*2-90);
+          sf("normal",7,MID);doc.text(g.n+" eval.",W-M-4,y+8,{align:"right"});
+          // Top initiative
+          if(g.subDetails&&g.subDetails[0]?.opp){
+            sf("italic",7,titleC);
+            const oppLines=doc.splitTextToSize("-> "+g.subDetails[0].opp,W-M*2-14);
+            doc.text(oppLines[0]||"",M+6,y+24);
+          }
+          y+=32;
+        });
       }
 
-      // ══════════════════════════════════════════════════════════════════════
-      // BRECHAS CRÍTICAS
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.brechas_crit) {
-        renderGapSection(doc, critGaps, "🚨 Brechas Críticas", [220,38,38], [255,248,248], [254,202,202], "✅  Sin brechas críticas");
-      }
-
-      // ══════════════════════════════════════════════════════════════════════
-      // BRECHAS MODERADAS
-      // ══════════════════════════════════════════════════════════════════════
-      if (sections.brechas_mod) {
-        renderGapSection(doc, modGaps, "⚡ Brechas Moderadas", [217,119,6], [255,251,240], [253,230,138], "Sin brechas moderadas");
-      }
+      if(sections.brechas_crit) renderGaps(critGaps,"Brechas Criticas",[220,38,38],[255,248,248],[254,202,202],"Sin brechas criticas");
+      if(sections.brechas_mod) renderGaps(modGaps,"Brechas Moderadas",[217,119,6],[255,251,240],[253,230,138],"Sin brechas moderadas");
 
       // ══════════════════════════════════════════════════════════════════════
       // ROADMAP
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.roadmap && gapsData.length > 0) {
-        let y = newPage();
-        setFont("bold", 16, RED);
-        doc.text("🗺️ Hoja de Ruta Priorizada", 16, y); y += 4;
-        hline(y); y += 8;
-
-        const phases = [
-          { t:"🚀 Corto Plazo",   sub:"0–6 meses",    rgb:[220,38,38],  bgRGB:[255,242,242], items:critGaps },
-          { t:"⚡ Mediano Plazo", sub:"6–12 meses",   rgb:[217,119,6],  bgRGB:[255,251,235], items:modGaps },
-          { t:"🏆 Largo Plazo",   sub:"12–24 meses",  rgb:[124,58,237], bgRGB:[245,243,255], items:advGaps },
-        ];
-        const colW2 = (W-38)/3;
-        phases.forEach((ph,pi) => {
-          const px = 16 + pi*(colW2+3);
-          rect(px, y, colW2, 12, 4, ph.bgRGB);
-          doc.setDrawColor(...ph.rgb);
-          doc.roundedRect(px, y, colW2, 12, 4, 4);
-          setFont("bold", 9, ph.rgb);
-          doc.text(ph.t, px+5, y+6);
-          setFont("normal", 7, [...ph.rgb].map(c=>Math.min(200,c+40)));
-          doc.text(`${ph.sub} · ${ph.items.length} dims`, px+5, y+10.5);
+      if(sections.roadmap&&gapsData.length>0){
+        let y=newPg();y=sectionTitle(y,"Hoja de Ruta Priorizada");
+        // Summary
+        [{l:"Criticas",v:critGaps.length,c:[220,38,38],bg:[255,242,242],d:"0-6 meses"},
+         {l:"Moderadas",v:modGaps.length,c:[217,119,6],bg:[255,251,235],d:"6-12 meses"},
+         {l:"Avanzadas",v:advGaps.length,c:[124,58,237],bg:[245,243,255],d:"12-24 meses"},
+         {l:"Score Prom.",v:globalAvg?.toFixed(1)||"--",c:[5,150,105],bg:[236,253,245],d:"Nivel actual"},
+        ].forEach((s,i)=>{
+          const sx=M+i*((W-M*2)/4);const sw=(W-M*2)/4-2;
+          rr(sx,y,sw,18,3,s.bg);
+          sf("bold",16,s.c);doc.text(String(s.v),sx+sw/2,y+10,{align:"center"});
+          sf("bold",7,s.c);doc.text(s.l,sx+sw/2,y+14.5,{align:"center"});
+          sf("normal",6.5,MID);doc.text(s.d,sx+sw/2,y+17.5,{align:"center"});
         });
-        y += 16;
+        y+=24;
 
-        const maxItems = Math.max(...phases.map(p=>p.items.length), 1);
-        for (let row=0; row < maxItems; row++) {
-          y = checkY(y, 14);
-          phases.forEach((ph,pi) => {
-            const px = 16 + pi*(colW2+3);
-            const g = ph.items[row];
-            if (!g) return;
-            const rgb = LV_COLORS_RGB[Math.round(g.score)-1];
-            const toRGB = LV_COLORS_RGB[g.to-1] || LV_COLORS_RGB[4];
-            rect(px, y, colW2, 11, 3, [250,249,247]);
-            setFont("bold", 8.5, DARK);
-            doc.text(`${g.dimIcon} ${g.dimLabel}`, px+4, y+5);
-            miniBar(px+4, y+7, g.score, 5, rgb, colW2-18);
-            setFont("bold", 7, rgb);
-            doc.text(g.score.toFixed(1), px+colW2-14, y+5);
-            setFont("normal", 7, MID);
-            doc.text("→", px+colW2-10, y+5);
-            setFont("bold", 7, toRGB);
-            doc.text(LV_NAMES[g.to]||"", px+colW2-4, y+5, { align:"right" });
+        // 3 columns
+        const phases=[
+          {t:"Corto Plazo",s:"0-6 meses",c:[220,38,38],bg:[255,242,242],bdr:[254,202,202],items:critGaps},
+          {t:"Mediano Plazo",s:"6-12 meses",c:[217,119,6],bg:[255,251,235],bdr:[253,230,138],items:modGaps},
+          {t:"Largo Plazo",s:"12-24 meses",c:[124,58,237],bg:[245,243,255],bdr:[221,214,254],items:advGaps},
+        ];
+        const cw2=(W-M*2-8)/3;
+        phases.forEach((ph,pi)=>{
+          const px=M+pi*(cw2+4);
+          rr(px,y,cw2,10,3,ph.bg);
+          doc.setDrawColor(...ph.bdr);doc.roundedRect(px,y,cw2,10,3,3);
+          sf("bold",8,ph.c);doc.text(ph.t,px+cw2/2,y+5,{align:"center"});
+          sf("normal",6.5,ph.c);doc.text(ph.s+" | "+ph.items.length+" dims",px+cw2/2,y+9,{align:"center"});
+        });
+        y+=14;
+
+        const maxR=Math.max(...phases.map(p=>p.items.length),1);
+        for(let row=0;row<maxR;row++){
+          y=chkY(y,12);
+          phases.forEach((ph,pi)=>{
+            const px=M+pi*(cw2+4),g=ph.items[row];
+            if(!g)return;
+            const rgb=lvC(g.score),toRGB=LV_RGB[g.to-1]||LV_RGB[4];
+            rr(px,y,cw2,9,2,[250,249,247]);
+            sf("bold",7.5,DARK);doc.text(g.num+" "+g.label,px+3,y+4.5);
+            bar(px+3,y+6.5,g.score,5,rgb,cw2-26);
+            sf("bold",7,rgb);doc.text(g.score.toFixed(1),px+cw2-18,y+4.5);
+            sf("normal",6.5,MID);doc.text("->",px+cw2-13,y+4.5);
+            sf("bold",6.5,toRGB);doc.text(LV_NAMES[g.to]||"",px+cw2-3,y+4.5,{align:"right"});
           });
-          y += 14;
+          y+=12;
         }
       }
 
       // ══════════════════════════════════════════════════════════════════════
       // RANKING
       // ══════════════════════════════════════════════════════════════════════
-      if (sections.ranking) {
-        let y = newPage();
-        setFont("bold", 16, RED);
-        doc.text("🏆 Ranking de Evaluaciones", 16, y); y += 4;
-        hline(y); y += 8;
-
-        const sorted = [...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
-        // Header
-        rect(16, y, W-32, 7, 2, [248,246,243]);
-        setFont("bold", 7.5, MID);
-        const RCols = [[16,"#",8],[26,"Dirección",50],[78,"Rol",36],[116,"Score",18],[136,"Nivel",28],[166,"Fecha",30]];
-        RCols.forEach(([cx,lbl])=>{ doc.text(lbl, cx, y+4.8); });
-        y += 8;
-
-        sorted.forEach((e,i) => {
-          y = checkY(y, 10);
-          const rgb = e.score_global ? LV_COLORS_RGB[Math.round(e.score_global)-1] : [180,178,174];
-          if (i===0) rect(16, y-0.5, W-32, 9, 2, [255,248,248]);
-          setFont("bold", 8, i===0?RED:MID);
-          doc.text(`#${i+1}`, 16, y+4.5);
-          setFont(i<3?"bold":"normal", 8, DARK);
-          doc.text((e.direccion||"—").slice(0,22), 26, y+4.5);
-          setFont("normal", 8, MID);
-          doc.text((e.rol||"—").slice(0,18), 78, y+4.5);
-          setFont("bold", 9, rgb);
-          doc.text(e.score_global?.toFixed(2)||"—", 116, y+4.5);
-          rect(136, y+0.5, 28, 6, 2, [...rgb].map(c=>Math.min(255,c+200)));
-          setFont("bold", 7, rgb);
-          doc.text(lvLabel(e.score_global), 136+14, y+4.5, { align:"center" });
-          setFont("normal", 7, LIGHT);
-          doc.text(e.created_at?.slice(0,10)||"—", 166, y+4.5);
-          hline(y+8.5,[240,238,233]);
-          y += 10;
+      if(sections.ranking){
+        let y=newPg();y=sectionTitle(y,"Ranking de Evaluaciones");
+        const sorted=[...filtered].sort((a,b)=>(b.score_global||0)-(a.score_global||0)).slice(0,15);
+        rr(M,y,W-M*2,7,2,[248,246,243]);
+        sf("bold",7,MID);
+        [[M+2,"#"],[M+10,"Direccion"],[M+62,"Rol"],[110,"Score"],[130,"Nivel"],[165,"Fecha"]].forEach(([cx,lbl])=>doc.text(lbl,cx,y+4.8));
+        y+=8;
+        sorted.forEach((e,i)=>{
+          y=chkY(y,10);
+          const rgb=lvC(e.score_global);
+          if(i===0)rr(M,y-0.5,W-M*2,9,2,[255,248,248]);
+          sf("bold",7.5,i<3?RED:MID);doc.text("#"+(i+1),M+2,y+4.5);
+          sf(i<3?"bold":"normal",8,DARK);doc.text((e.direccion||"--").slice(0,22),M+10,y+4.5);
+          sf("normal",7.5,MID);doc.text((e.rol||"--").slice(0,18),M+62,y+4.5);
+          sf("bold",9,rgb);doc.text(e.score_global?.toFixed(2)||"--",110,y+4.5);
+          rr(130,y+0.5,28,6,2,rgb.map(c=>Math.min(255,c+200)));
+          sf("bold",7,rgb);doc.text(lvLabel(e.score_global),144,y+4.5,{align:"center"});
+          sf("normal",7,LIGHT);doc.text(e.created_at?.slice(0,10)||"--",165,y+4.5);
+          hl(y+8.5,[240,238,233]);y+=10;
         });
       }
 
       // ── Page numbers ──────────────────────────────────────────────────────
-      const totalPages = doc.getNumberOfPages();
-      for (let p=1; p<=totalPages; p++) {
+      const tp=doc.getNumberOfPages();
+      for(let p=1;p<=tp;p++){
         doc.setPage(p);
-        if (p > 1 || !sections.portada) {
-          setFont("normal", 7, LIGHT);
-          doc.text(`Página ${p} de ${totalPages}`, W-16, H-5, { align:"right" });
-          setFont("normal", 7, LIGHT);
-          doc.text("Confidencial · Kearney · Diagnóstico de Madurez de Inventarios", 16, H-5);
+        if(p>1||!sections.portada){
+          sf("normal",7,LIGHT);
+          doc.text("Pagina "+p+" de "+tp,W-M,H-5,{align:"right"});
+          doc.text("Confidencial | Kearney | Diagnostico de Madurez",M,H-5);
         }
       }
 
-      const fname = `Reporte_Madurez_${new Date().toISOString().slice(0,10)}.pdf`;
-      doc.save(fname);
+      doc.save("Reporte_Madurez_"+new Date().toISOString().slice(0,10)+".pdf");
     } catch(err) {
       console.error("PDF error:", err);
       alert("Error generando PDF: " + err.message);
